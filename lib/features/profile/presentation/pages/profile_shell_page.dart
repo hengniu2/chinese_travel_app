@@ -19,14 +19,20 @@ class ProfileShellPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(l10n?.tabProfile ?? '我的'),
-        backgroundColor: AppColors.backgroundCard,
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
       ),
-      body: ListView(
+      body: AppGradientBackground(
+        colors: AppGradientBackground.pageGradient,
+        stops: AppGradientBackground.pageGradientStops,
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        child: ListView(
         padding: EdgeInsets.only(bottom: 24.h),
         children: [
           _buildUserHeader(context, ref, auth, l10n),
@@ -53,6 +59,7 @@ class ProfileShellPage extends ConsumerWidget {
             ],
           ),
         ],
+        ),
       ),
     );
   }
@@ -63,7 +70,7 @@ class ProfileShellPage extends ConsumerWidget {
       padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 24.h),
       decoration: BoxDecoration(
         color: AppColors.backgroundCard,
-        boxShadow: AppShadow.card,
+        boxShadow: AppShadow.cardElevated,
       ),
       child: Column(
         children: [
@@ -141,13 +148,13 @@ class ProfileShellPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenuCard(BuildContext context, {required List<Widget> children}) {
+  Widget _buildMenuCard(BuildContext context, {List<BoxShadow>? boxShadow, required List<Widget> children}) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),
       decoration: BoxDecoration(
         color: AppColors.backgroundCard,
         borderRadius: AppRadius.cardRadius,
-        boxShadow: AppShadow.card,
+        boxShadow: boxShadow ?? AppShadow.cardElevated,
       ),
       child: Column(children: children),
     );

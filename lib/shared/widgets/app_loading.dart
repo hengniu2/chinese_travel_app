@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
+import '../design_system/design_system.dart';
 
 /// 全局 Loading 组件
 class AppLoading extends StatelessWidget {
@@ -18,7 +18,7 @@ class AppLoading extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const CircularProgressIndicator(
-            color: kAppPrimaryGreen,
+            color: AppColors.primary,
             strokeWidth: 2,
           ),
           if (message != null && message!.isNotEmpty) ...[

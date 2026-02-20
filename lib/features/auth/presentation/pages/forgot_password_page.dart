@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/app_button.dart';
 import '../../../../shared/design_system/app_colors.dart';
 import '../../../../shared/design_system/app_spacing.dart';
@@ -53,7 +54,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     setState(() => _error = null);
     try {
       await ref.read(authProvider.notifier).sendCode(phone);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('验证码已发送')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)?.authVerifyCodeSent ?? '验证码已发送')));
     } catch (e) {
       if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
     }
@@ -87,7 +88,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     try {
       await ref.read(authProvider.notifier).resetPassword(phone, code, password);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('密码已重置，请登录')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)?.authPasswordResetSuccess ?? '密码已重置，请登录')));
         context.pop();
       }
     } catch (e) {
@@ -102,7 +103,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppTopBar(
-        title: '忘记密码',
+        title: AppLocalizations.of(context)?.authForgotPasswordPageTitle ?? '忘记密码',
         onLeadingTap: () => context.pop(),
       ),
       body: SafeArea(
@@ -112,14 +113,14 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(height: 24.h),
-              Text('重置密码', style: AppTextStyles.headlineLarge),
+              Text(AppLocalizations.of(context)?.authResetPassword ?? '重置密码', style: AppTextStyles.headlineLarge),
               SizedBox(height: 8.h),
-              Text('通过手机验证码重置登录密码', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+              Text(AppLocalizations.of(context)?.authResetPasswordSubtitle ?? '通过手机验证码重置登录密码', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
               SizedBox(height: 32.h),
               AuthInputField(
                 controller: _phoneController,
-                label: '手机号',
-                hint: '请输入手机号',
+                label: AppLocalizations.of(context)?.authPhone ?? '手机号',
+                hint: '${AppLocalizations.of(context)?.authPhone ?? '手机号'}',
                 keyboardType: TextInputType.phone,
                 prefixIcon: Icon(Icons.phone_android_outlined, size: 22, color: AppColors.textTertiary),
                 maxLength: 11,
@@ -132,8 +133,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   Expanded(
                     child: AuthInputField(
                       controller: _codeController,
-                      label: '验证码',
-                      hint: '请输入验证码',
+                      label: AppLocalizations.of(context)?.authVerifyCode ?? '验证码',
+                      hint: '${AppLocalizations.of(context)?.authVerifyCode ?? '验证码'}',
                       keyboardType: TextInputType.number,
                       maxLength: 6,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -149,16 +150,16 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               SizedBox(height: AppSpacing.lg.h),
               AuthInputField(
                 controller: _passwordController,
-                label: '新密码',
-                hint: '请设置新密码（至少 6 位）',
+                label: AppLocalizations.of(context)?.authNewPassword ?? '新密码',
+                hint: '${AppLocalizations.of(context)?.authNewPassword ?? '新密码'}',
                 obscureText: true,
                 prefixIcon: Icon(Icons.lock_outline_rounded, size: 22, color: AppColors.textTertiary),
               ),
               SizedBox(height: AppSpacing.lg.h),
               AuthInputField(
                 controller: _confirmController,
-                label: '确认新密码',
-                hint: '请再次输入新密码',
+                label: AppLocalizations.of(context)?.authConfirmNewPassword ?? '确认新密码',
+                hint: '${AppLocalizations.of(context)?.authConfirmNewPassword ?? '确认新密码'}',
                 obscureText: true,
                 prefixIcon: Icon(Icons.lock_outline_rounded, size: 22, color: AppColors.textTertiary),
               ),
@@ -168,7 +169,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               ],
               SizedBox(height: 28.h),
               AppButton(
-                label: '确认重置',
+                label: AppLocalizations.of(context)?.authConfirmReset ?? '确认重置',
                 loading: _loading,
                 onPressed: _submit,
               ),

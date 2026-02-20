@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../shared/design_system/design_system.dart';
+import '../../../../shared/widgets/app_network_image.dart';
 import '../../domain/forum_post.dart';
 
 /// 论坛帖子卡片：标题、封面、作者、点赞、评论数
@@ -109,10 +110,12 @@ class ForumPostCard extends StatelessWidget {
         ),
       ),
       child: post.coverUrl != null && post.coverUrl!.isNotEmpty
-          ? Image.network(
-              post.coverUrl!,
+          ? AppNetworkImage(
+              imageUrl: post.coverUrl!,
+              width: double.infinity,
+              height: 140.h,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _coverPlaceholder(),
+              errorWidget: _coverPlaceholder(),
             )
           : _coverPlaceholder(),
     );

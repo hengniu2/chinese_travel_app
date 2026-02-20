@@ -397,4 +397,281 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get filterClear => '清除筛选';
+
+  @override
+  String get authWelcomeBack => '欢迎回来';
+
+  @override
+  String get authLoginSubtitle => '登录享梦游，发现更多旅行';
+
+  @override
+  String get authPhone => '手机号';
+
+  @override
+  String get authPassword => '密码';
+
+  @override
+  String get authLogin => '登录';
+
+  @override
+  String get authVerifyCodeLogin => '验证码登录';
+
+  @override
+  String get authVerifyCodeLoginSubtitle => '未注册手机号验证后将自动创建账号';
+
+  @override
+  String get authForgotPassword => '忘记密码？';
+
+  @override
+  String get authNoAccount => '还没有账号？';
+
+  @override
+  String get authRegisterNow => '立即注册';
+
+  @override
+  String get authCreateAccount => '创建账号';
+
+  @override
+  String get authRegisterSubtitle => '注册享梦游，开启绿色旅行';
+
+  @override
+  String get authVerifyCode => '验证码';
+
+  @override
+  String get authSetPassword => '设置密码';
+
+  @override
+  String get authConfirmPassword => '确认密码';
+
+  @override
+  String get authRegister => '注册';
+
+  @override
+  String get authHasAccount => '已有账号？';
+
+  @override
+  String get authGoToLogin => '去登录';
+
+  @override
+  String get authResetPassword => '重置密码';
+
+  @override
+  String get authResetPasswordSubtitle => '通过手机验证码重置登录密码';
+
+  @override
+  String get authNewPassword => '新密码';
+
+  @override
+  String get authConfirmNewPassword => '确认新密码';
+
+  @override
+  String get authConfirmReset => '确认重置';
+
+  @override
+  String get authUsePasswordLogin => '使用密码登录';
+
+  @override
+  String get authVerifyCodeSent => '验证码已发送';
+
+  @override
+  String get authPasswordResetSuccess => '密码已重置，请登录';
+
+  @override
+  String get authAgreementRequired => '请先阅读并同意用户协议和隐私政策';
+
+  @override
+  String get authForgotPasswordPageTitle => '忘记密码';
+
+  @override
+  String get sectionGuests => '入住人信息';
+
+  @override
+  String get sectionTravelers => '出行人信息';
+
+  @override
+  String get sectionAgreement => '同意协议';
+
+  @override
+  String get orderGuestHint => '请填写每位入住人的姓名、身份证、手机号，确保与证件一致';
+
+  @override
+  String get orderTravelerHint => '请填写每位出行人的姓名、身份证、手机号，确保与证件一致';
+
+  @override
+  String orderGuestNameError(int n) {
+    return '请填写第$n位入住人姓名';
+  }
+
+  @override
+  String orderTravelerNameError(int n) {
+    return '请填写第$n位出行人姓名';
+  }
+
+  @override
+  String orderGuestIdError(int n) {
+    return '请填写第$n位入住人身份证号';
+  }
+
+  @override
+  String orderTravelerIdError(int n) {
+    return '请填写第$n位出行人身份证号';
+  }
+
+  @override
+  String orderGuestPhoneError(int n) {
+    return '请填写第$n位入住人手机号';
+  }
+
+  @override
+  String orderTravelerPhoneError(int n) {
+    return '请填写第$n位出行人手机号';
+  }
+
+  @override
+  String get orderAgreementRequired => '请阅读并同意用户协议与隐私政策';
+
+  @override
+  String get hotelNoRooms => '暂无可订房型';
+
+  @override
+  String get guestLabel => '入住人';
+
+  @override
+  String get commonRetry => '重试';
+
+  @override
+  String get filterSelectCity => '选择城市';
+
+  @override
+  String get filterSelectPrice => '选择价格';
+
+  @override
+  String get filterSelectDays => '选择天数';
+
+  @override
+  String get filterSelectType => '选择类型';
+
+  @override
+  String tourDaysNights(int days, int nights) {
+    return '$days天$nights晚';
+  }
+
+  @override
+  String tourDepartFrom(String city) {
+    return '$city出发';
+  }
+
+  @override
+  String get priceFrom => '起';
+
+  @override
+  String tourDayTitle(int day, String title) {
+    return '第$day天 $title';
+  }
+
+  @override
+  String get sectionItinerary => '行程时间轴';
+
+  @override
+  String get sectionHighlights => '行程亮点';
+
+  @override
+  String get sectionCost => '费用说明';
+
+  @override
+  String get sectionCostIncluded => '费用包含';
+
+  @override
+  String get sectionCostExcluded => '费用不含';
+
+  @override
+  String get sectionHotelInfo => '酒店信息';
+
+  @override
+  String get sectionPolicy => '退改政策';
+
+  @override
+  String get sectionReviews => '用户评价';
+
+  @override
+  String get hotelSectionRooms => '房型列表';
+
+  @override
+  String get hotelSectionPolicy => '取消政策';
+
+  @override
+  String get hotelSectionFacilities => '设施';
+
+  @override
+  String get hotelSectionReviews => '评价';
+
+  @override
+  String get hotelScoreSuffix => '分';
+
+  @override
+  String get roomAvailable => '可订';
+
+  @override
+  String roomRemaining(int count) {
+    return '仅剩$count间';
+  }
+
+  @override
+  String get roomLimited => '紧张';
+
+  @override
+  String get roomSoldOut => '售罄';
+
+  @override
+  String get chatInputHint => '输入消息';
+
+  @override
+  String chatOrderCard(String id) {
+    return '订单 $id';
+  }
+
+  @override
+  String get travelerFormName => '姓名';
+
+  @override
+  String get travelerFormIdCard => '身份证';
+
+  @override
+  String get travelerFormPhone => '手机号';
+
+  @override
+  String get companionOrderTitle => '填写订单';
+
+  @override
+  String get companionSubmitOrder => '提交订单';
+
+  @override
+  String get companionOrderSuccess => '订单提交成功';
+
+  @override
+  String get companionAddTraveler => '添加随行人员';
+
+  @override
+  String get companionRemarksHint => '选填，如特殊需求、集合地点等';
+
+  @override
+  String get companionSectionSkills => '技能标签';
+
+  @override
+  String get companionSectionDescription => '服务说明';
+
+  @override
+  String get companionSectionPackages => '套餐';
+
+  @override
+  String get companionSectionCalendar => '档期日历';
+
+  @override
+  String get companionViewAll => '查看全部';
+
+  @override
+  String get companionSectionReviews => '评价';
+
+  @override
+  String get plannerTabTours => '行程/跟团游';
 }

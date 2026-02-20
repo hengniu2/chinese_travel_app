@@ -16,8 +16,8 @@ enum AppButtonVariant {
   disabled,
 }
 
-/// 统一按钮（主/次/禁用）
-class AppButton extends StatelessWidget {
+/// 统一按钮（主/次/禁用）+ 点击缩放反馈
+class AppButton extends StatefulWidget {
   const AppButton({
     super.key,
     required this.label,
@@ -39,80 +39,124 @@ class AppButton extends StatelessWidget {
   final double minHeight;
   final bool expand;
 
-  bool get _enabled => !loading && (variant != AppButtonVariant.disabled) && onPressed != null;
+  @override
+  State<AppButton> createState() => _AppButtonState();
+}
+
+class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 100),
+      vsync: this,
+    );
+    _scale = Tween<double>(begin: 1, end: 0.97).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  bool get _enabled =>
+      !widget.loading &&
+      (widget.variant != AppButtonVariant.disabled) &&
+      widget.onPressed != null;
 
   @override
   Widget build(BuildContext context) {
-    final effectiveOnPressed = _enabled ? onPressed : null;
-
+    final effectiveOnPressed = _enabled ? widget.onPressed : null;
     final (backgroundColor, foregroundColor, border) = _resolveColors();
 
-    final child = loading
+    final child = widget.loading
         ? SizedBox(
             height: 24,
             width: 24,
             child: CircularProgressIndicator(
               strokeWidth: 2,
               valueColor: AlwaysStoppedAnimation<Color>(
-                variant == AppButtonVariant.primary ? Colors.white : AppColors.primary,
+                widget.variant == AppButtonVariant.primary
+                    ? Colors.white
+                    : AppColors.primary,
               ),
             ),
           )
         : Row(
-            mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
+            mainAxisSize: widget.expand ? MainAxisSize.max : MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (icon != null) ...[
-                icon!,
+              if (widget.icon != null) ...[
+                widget.icon!,
                 SizedBox(width: AppSpacing.sm),
               ],
               Text(
-                label,
-                style: variant == AppButtonVariant.primary
+                widget.label,
+                style: widget.variant == AppButtonVariant.primary
                     ? AppTextStyles.button.copyWith(color: foregroundColor)
                     : AppTextStyles.buttonSecondary.copyWith(color: foregroundColor),
               ),
-              if (iconTrailing != null) ...[
+              if (widget.iconTrailing != null) ...[
                 SizedBox(width: AppSpacing.sm),
-                iconTrailing!,
+                widget.iconTrailing!,
               ],
             ],
           );
 
+    final content = Container(
+      constraints: BoxConstraints(minHeight: widget.minHeight),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.xl,
+        vertical: AppSpacing.md,
+      ),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: AppRadius.largeRadius,
+        border: border != null ? Border.all(color: border, width: 1.5) : null,
+        boxShadow: widget.variant == AppButtonVariant.primary && _enabled
+            ? AppShadow.light
+            : null,
+      ),
+      child: child,
+    );
+
     final button = Material(
-      color: backgroundColor,
-      borderRadius: AppRadius.cardRadius,
-      child: InkWell(
-        onTap: effectiveOnPressed,
-        borderRadius: AppRadius.cardRadius,
-        child: Container(
-          constraints: BoxConstraints(minHeight: minHeight),
-          padding: EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
+      color: Colors.transparent,
+      borderRadius: AppRadius.largeRadius,
+      child: Listener(
+        onPointerDown: _enabled ? (_) => _controller.forward() : null,
+        onPointerUp: _enabled ? (_) => _controller.reverse() : null,
+        onPointerCancel: _enabled ? (_) => _controller.reverse() : null,
+        child: AnimatedBuilder(
+          animation: _scale,
+          builder: (_, c) => Transform.scale(scale: _scale.value, child: c),
+          child: InkWell(
+            onTap: effectiveOnPressed,
+            borderRadius: AppRadius.largeRadius,
+            child: content,
           ),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.cardRadius,
-            border: border != null ? Border.all(color: border, width: 1.5) : null,
-            boxShadow: variant == AppButtonVariant.primary && _enabled ? AppShadow.light : null,
-          ),
-          child: child,
         ),
       ),
     );
 
-    if (expand) {
+    if (widget.expand) {
       return SizedBox(width: double.infinity, child: button);
     }
     return button;
   }
 
   (Color, Color, Color?) _resolveColors() {
-    switch (variant) {
+    switch (widget.variant) {
       case AppButtonVariant.primary:
         return (
-          _enabled ? AppColors.primary : AppColors.primaryLight2,
+          _enabled ? AppColors.primary : AppColors.primaryPale,
           Colors.white,
           null,
         );

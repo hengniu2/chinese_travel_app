@@ -865,6 +865,516 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'清除筛选'**
   String get filterClear;
+
+  /// No description provided for @authWelcomeBack.
+  ///
+  /// In zh, this message translates to:
+  /// **'欢迎回来'**
+  String get authWelcomeBack;
+
+  /// No description provided for @authLoginSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'登录享梦游，发现更多旅行'**
+  String get authLoginSubtitle;
+
+  /// No description provided for @authPhone.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机号'**
+  String get authPhone;
+
+  /// No description provided for @authPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码'**
+  String get authPassword;
+
+  /// No description provided for @authLogin.
+  ///
+  /// In zh, this message translates to:
+  /// **'登录'**
+  String get authLogin;
+
+  /// No description provided for @authVerifyCodeLogin.
+  ///
+  /// In zh, this message translates to:
+  /// **'验证码登录'**
+  String get authVerifyCodeLogin;
+
+  /// No description provided for @authVerifyCodeLoginSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'未注册手机号验证后将自动创建账号'**
+  String get authVerifyCodeLoginSubtitle;
+
+  /// No description provided for @authForgotPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'忘记密码？'**
+  String get authForgotPassword;
+
+  /// No description provided for @authNoAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有账号？'**
+  String get authNoAccount;
+
+  /// No description provided for @authRegisterNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'立即注册'**
+  String get authRegisterNow;
+
+  /// No description provided for @authCreateAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建账号'**
+  String get authCreateAccount;
+
+  /// No description provided for @authRegisterSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'注册享梦游，开启绿色旅行'**
+  String get authRegisterSubtitle;
+
+  /// No description provided for @authVerifyCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'验证码'**
+  String get authVerifyCode;
+
+  /// No description provided for @authSetPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置密码'**
+  String get authSetPassword;
+
+  /// No description provided for @authConfirmPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认密码'**
+  String get authConfirmPassword;
+
+  /// No description provided for @authRegister.
+  ///
+  /// In zh, this message translates to:
+  /// **'注册'**
+  String get authRegister;
+
+  /// No description provided for @authHasAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'已有账号？'**
+  String get authHasAccount;
+
+  /// No description provided for @authGoToLogin.
+  ///
+  /// In zh, this message translates to:
+  /// **'去登录'**
+  String get authGoToLogin;
+
+  /// No description provided for @authResetPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'重置密码'**
+  String get authResetPassword;
+
+  /// No description provided for @authResetPasswordSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'通过手机验证码重置登录密码'**
+  String get authResetPasswordSubtitle;
+
+  /// No description provided for @authNewPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'新密码'**
+  String get authNewPassword;
+
+  /// No description provided for @authConfirmNewPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认新密码'**
+  String get authConfirmNewPassword;
+
+  /// No description provided for @authConfirmReset.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认重置'**
+  String get authConfirmReset;
+
+  /// No description provided for @authUsePasswordLogin.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用密码登录'**
+  String get authUsePasswordLogin;
+
+  /// No description provided for @authVerifyCodeSent.
+  ///
+  /// In zh, this message translates to:
+  /// **'验证码已发送'**
+  String get authVerifyCodeSent;
+
+  /// No description provided for @authPasswordResetSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码已重置，请登录'**
+  String get authPasswordResetSuccess;
+
+  /// No description provided for @authAgreementRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先阅读并同意用户协议和隐私政策'**
+  String get authAgreementRequired;
+
+  /// No description provided for @authForgotPasswordPageTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'忘记密码'**
+  String get authForgotPasswordPageTitle;
+
+  /// No description provided for @sectionGuests.
+  ///
+  /// In zh, this message translates to:
+  /// **'入住人信息'**
+  String get sectionGuests;
+
+  /// No description provided for @sectionTravelers.
+  ///
+  /// In zh, this message translates to:
+  /// **'出行人信息'**
+  String get sectionTravelers;
+
+  /// No description provided for @sectionAgreement.
+  ///
+  /// In zh, this message translates to:
+  /// **'同意协议'**
+  String get sectionAgreement;
+
+  /// No description provided for @orderGuestHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请填写每位入住人的姓名、身份证、手机号，确保与证件一致'**
+  String get orderGuestHint;
+
+  /// No description provided for @orderTravelerHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请填写每位出行人的姓名、身份证、手机号，确保与证件一致'**
+  String get orderTravelerHint;
+
+  /// No description provided for @orderGuestNameError.
+  ///
+  /// In zh, this message translates to:
+  /// **'请填写第{n}位入住人姓名'**
+  String orderGuestNameError(int n);
+
+  /// No description provided for @orderTravelerNameError.
+  ///
+  /// In zh, this message translates to:
+  /// **'请填写第{n}位出行人姓名'**
+  String orderTravelerNameError(int n);
+
+  /// No description provided for @orderGuestIdError.
+  ///
+  /// In zh, this message translates to:
+  /// **'请填写第{n}位入住人身份证号'**
+  String orderGuestIdError(int n);
+
+  /// No description provided for @orderTravelerIdError.
+  ///
+  /// In zh, this message translates to:
+  /// **'请填写第{n}位出行人身份证号'**
+  String orderTravelerIdError(int n);
+
+  /// No description provided for @orderGuestPhoneError.
+  ///
+  /// In zh, this message translates to:
+  /// **'请填写第{n}位入住人手机号'**
+  String orderGuestPhoneError(int n);
+
+  /// No description provided for @orderTravelerPhoneError.
+  ///
+  /// In zh, this message translates to:
+  /// **'请填写第{n}位出行人手机号'**
+  String orderTravelerPhoneError(int n);
+
+  /// No description provided for @orderAgreementRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请阅读并同意用户协议与隐私政策'**
+  String get orderAgreementRequired;
+
+  /// No description provided for @hotelNoRooms.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无可订房型'**
+  String get hotelNoRooms;
+
+  /// No description provided for @guestLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'入住人'**
+  String get guestLabel;
+
+  /// No description provided for @commonRetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'重试'**
+  String get commonRetry;
+
+  /// No description provided for @filterSelectCity.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择城市'**
+  String get filterSelectCity;
+
+  /// No description provided for @filterSelectPrice.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择价格'**
+  String get filterSelectPrice;
+
+  /// No description provided for @filterSelectDays.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择天数'**
+  String get filterSelectDays;
+
+  /// No description provided for @filterSelectType.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择类型'**
+  String get filterSelectType;
+
+  /// No description provided for @tourDaysNights.
+  ///
+  /// In zh, this message translates to:
+  /// **'{days}天{nights}晚'**
+  String tourDaysNights(int days, int nights);
+
+  /// No description provided for @tourDepartFrom.
+  ///
+  /// In zh, this message translates to:
+  /// **'{city}出发'**
+  String tourDepartFrom(String city);
+
+  /// No description provided for @priceFrom.
+  ///
+  /// In zh, this message translates to:
+  /// **'起'**
+  String get priceFrom;
+
+  /// No description provided for @tourDayTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'第{day}天 {title}'**
+  String tourDayTitle(int day, String title);
+
+  /// No description provided for @sectionItinerary.
+  ///
+  /// In zh, this message translates to:
+  /// **'行程时间轴'**
+  String get sectionItinerary;
+
+  /// No description provided for @sectionHighlights.
+  ///
+  /// In zh, this message translates to:
+  /// **'行程亮点'**
+  String get sectionHighlights;
+
+  /// No description provided for @sectionCost.
+  ///
+  /// In zh, this message translates to:
+  /// **'费用说明'**
+  String get sectionCost;
+
+  /// No description provided for @sectionCostIncluded.
+  ///
+  /// In zh, this message translates to:
+  /// **'费用包含'**
+  String get sectionCostIncluded;
+
+  /// No description provided for @sectionCostExcluded.
+  ///
+  /// In zh, this message translates to:
+  /// **'费用不含'**
+  String get sectionCostExcluded;
+
+  /// No description provided for @sectionHotelInfo.
+  ///
+  /// In zh, this message translates to:
+  /// **'酒店信息'**
+  String get sectionHotelInfo;
+
+  /// No description provided for @sectionPolicy.
+  ///
+  /// In zh, this message translates to:
+  /// **'退改政策'**
+  String get sectionPolicy;
+
+  /// No description provided for @sectionReviews.
+  ///
+  /// In zh, this message translates to:
+  /// **'用户评价'**
+  String get sectionReviews;
+
+  /// No description provided for @hotelSectionRooms.
+  ///
+  /// In zh, this message translates to:
+  /// **'房型列表'**
+  String get hotelSectionRooms;
+
+  /// No description provided for @hotelSectionPolicy.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消政策'**
+  String get hotelSectionPolicy;
+
+  /// No description provided for @hotelSectionFacilities.
+  ///
+  /// In zh, this message translates to:
+  /// **'设施'**
+  String get hotelSectionFacilities;
+
+  /// No description provided for @hotelSectionReviews.
+  ///
+  /// In zh, this message translates to:
+  /// **'评价'**
+  String get hotelSectionReviews;
+
+  /// No description provided for @hotelScoreSuffix.
+  ///
+  /// In zh, this message translates to:
+  /// **'分'**
+  String get hotelScoreSuffix;
+
+  /// No description provided for @roomAvailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'可订'**
+  String get roomAvailable;
+
+  /// No description provided for @roomRemaining.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅剩{count}间'**
+  String roomRemaining(int count);
+
+  /// No description provided for @roomLimited.
+  ///
+  /// In zh, this message translates to:
+  /// **'紧张'**
+  String get roomLimited;
+
+  /// No description provided for @roomSoldOut.
+  ///
+  /// In zh, this message translates to:
+  /// **'售罄'**
+  String get roomSoldOut;
+
+  /// No description provided for @chatInputHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入消息'**
+  String get chatInputHint;
+
+  /// No description provided for @chatOrderCard.
+  ///
+  /// In zh, this message translates to:
+  /// **'订单 {id}'**
+  String chatOrderCard(String id);
+
+  /// No description provided for @travelerFormName.
+  ///
+  /// In zh, this message translates to:
+  /// **'姓名'**
+  String get travelerFormName;
+
+  /// No description provided for @travelerFormIdCard.
+  ///
+  /// In zh, this message translates to:
+  /// **'身份证'**
+  String get travelerFormIdCard;
+
+  /// No description provided for @travelerFormPhone.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机号'**
+  String get travelerFormPhone;
+
+  /// No description provided for @companionOrderTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'填写订单'**
+  String get companionOrderTitle;
+
+  /// No description provided for @companionSubmitOrder.
+  ///
+  /// In zh, this message translates to:
+  /// **'提交订单'**
+  String get companionSubmitOrder;
+
+  /// No description provided for @companionOrderSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'订单提交成功'**
+  String get companionOrderSuccess;
+
+  /// No description provided for @companionAddTraveler.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加随行人员'**
+  String get companionAddTraveler;
+
+  /// No description provided for @companionRemarksHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'选填，如特殊需求、集合地点等'**
+  String get companionRemarksHint;
+
+  /// No description provided for @companionSectionSkills.
+  ///
+  /// In zh, this message translates to:
+  /// **'技能标签'**
+  String get companionSectionSkills;
+
+  /// No description provided for @companionSectionDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务说明'**
+  String get companionSectionDescription;
+
+  /// No description provided for @companionSectionPackages.
+  ///
+  /// In zh, this message translates to:
+  /// **'套餐'**
+  String get companionSectionPackages;
+
+  /// No description provided for @companionSectionCalendar.
+  ///
+  /// In zh, this message translates to:
+  /// **'档期日历'**
+  String get companionSectionCalendar;
+
+  /// No description provided for @companionViewAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看全部'**
+  String get companionViewAll;
+
+  /// No description provided for @companionSectionReviews.
+  ///
+  /// In zh, this message translates to:
+  /// **'评价'**
+  String get companionSectionReviews;
+
+  /// No description provided for @plannerTabTours.
+  ///
+  /// In zh, this message translates to:
+  /// **'行程/跟团游'**
+  String get plannerTabTours;
 }
 
 class _AppLocalizationsDelegate

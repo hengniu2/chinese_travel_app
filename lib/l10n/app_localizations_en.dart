@@ -399,4 +399,287 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get filterClear => 'Clear filters';
+
+  @override
+  String get authWelcomeBack => 'Welcome back';
+
+  @override
+  String get authLoginSubtitle => 'Log in to discover more travel';
+
+  @override
+  String get authPhone => 'Phone';
+
+  @override
+  String get authPassword => 'Password';
+
+  @override
+  String get authLogin => 'Log in';
+
+  @override
+  String get authVerifyCodeLogin => 'Verify code login';
+
+  @override
+  String get authVerifyCodeLoginSubtitle =>
+      'Unregistered numbers will create an account after verification';
+
+  @override
+  String get authForgotPassword => 'Forgot password?';
+
+  @override
+  String get authNoAccount => 'Don\'t have an account?';
+
+  @override
+  String get authRegisterNow => 'Register now';
+
+  @override
+  String get authCreateAccount => 'Create account';
+
+  @override
+  String get authRegisterSubtitle => 'Join us for green travel';
+
+  @override
+  String get authVerifyCode => 'Verify code';
+
+  @override
+  String get authSetPassword => 'Set password';
+
+  @override
+  String get authConfirmPassword => 'Confirm password';
+
+  @override
+  String get authRegister => 'Register';
+
+  @override
+  String get authHasAccount => 'Already have an account?';
+
+  @override
+  String get authGoToLogin => 'Log in';
+
+  @override
+  String get authResetPassword => 'Reset password';
+
+  @override
+  String get authResetPasswordSubtitle =>
+      'Reset your password via phone verification';
+
+  @override
+  String get authNewPassword => 'New password';
+
+  @override
+  String get authConfirmNewPassword => 'Confirm new password';
+
+  @override
+  String get authConfirmReset => 'Confirm reset';
+
+  @override
+  String get authUsePasswordLogin => 'Use password login';
+
+  @override
+  String get authVerifyCodeSent => 'Verification code sent';
+
+  @override
+  String get authPasswordResetSuccess => 'Password reset. Please log in';
+
+  @override
+  String get authAgreementRequired =>
+      'Please read and agree to the user agreement and privacy policy';
+
+  @override
+  String get authForgotPasswordPageTitle => 'Forgot password';
+
+  @override
+  String get sectionGuests => 'Guests';
+
+  @override
+  String get sectionTravelers => 'Travelers';
+
+  @override
+  String get sectionAgreement => 'Agreement';
+
+  @override
+  String get orderGuestHint => 'Enter name, ID number and phone for each guest';
+
+  @override
+  String get orderTravelerHint =>
+      'Enter name, ID number and phone for each traveler';
+
+  @override
+  String orderGuestNameError(int n) {
+    return 'Enter name for guest $n';
+  }
+
+  @override
+  String orderTravelerNameError(int n) {
+    return 'Enter name for traveler $n';
+  }
+
+  @override
+  String orderGuestIdError(int n) {
+    return 'Enter ID number for guest $n';
+  }
+
+  @override
+  String orderTravelerIdError(int n) {
+    return 'Enter ID number for traveler $n';
+  }
+
+  @override
+  String orderGuestPhoneError(int n) {
+    return 'Enter phone for guest $n';
+  }
+
+  @override
+  String orderTravelerPhoneError(int n) {
+    return 'Enter phone for traveler $n';
+  }
+
+  @override
+  String get orderAgreementRequired =>
+      'Please read and agree to the user agreement and privacy policy';
+
+  @override
+  String get hotelNoRooms => 'No rooms available';
+
+  @override
+  String get guestLabel => 'Guest';
+
+  @override
+  String get commonRetry => 'Retry';
+
+  @override
+  String get filterSelectCity => 'Select city';
+
+  @override
+  String get filterSelectPrice => 'Select price';
+
+  @override
+  String get filterSelectDays => 'Select days';
+
+  @override
+  String get filterSelectType => 'Select type';
+
+  @override
+  String tourDaysNights(int days, int nights) {
+    return '${days}d ${nights}n';
+  }
+
+  @override
+  String tourDepartFrom(String city) {
+    return 'From $city';
+  }
+
+  @override
+  String get priceFrom => ' from';
+
+  @override
+  String tourDayTitle(int day, String title) {
+    return 'Day $day $title';
+  }
+
+  @override
+  String get sectionItinerary => 'Itinerary';
+
+  @override
+  String get sectionHighlights => 'Highlights';
+
+  @override
+  String get sectionCost => 'Cost';
+
+  @override
+  String get sectionCostIncluded => 'Included';
+
+  @override
+  String get sectionCostExcluded => 'Excluded';
+
+  @override
+  String get sectionHotelInfo => 'Hotels';
+
+  @override
+  String get sectionPolicy => 'Policy';
+
+  @override
+  String get sectionReviews => 'Reviews';
+
+  @override
+  String get hotelSectionRooms => 'Room types';
+
+  @override
+  String get hotelSectionPolicy => 'Cancellation';
+
+  @override
+  String get hotelSectionFacilities => 'Facilities';
+
+  @override
+  String get hotelSectionReviews => 'Reviews';
+
+  @override
+  String get hotelScoreSuffix => '';
+
+  @override
+  String get roomAvailable => 'Available';
+
+  @override
+  String roomRemaining(int count) {
+    return '$count left';
+  }
+
+  @override
+  String get roomLimited => 'Limited';
+
+  @override
+  String get roomSoldOut => 'Sold out';
+
+  @override
+  String get chatInputHint => 'Type a message';
+
+  @override
+  String chatOrderCard(String id) {
+    return 'Order $id';
+  }
+
+  @override
+  String get travelerFormName => 'Name';
+
+  @override
+  String get travelerFormIdCard => 'ID number';
+
+  @override
+  String get travelerFormPhone => 'Phone';
+
+  @override
+  String get companionOrderTitle => 'Fill order';
+
+  @override
+  String get companionSubmitOrder => 'Submit order';
+
+  @override
+  String get companionOrderSuccess => 'Order submitted';
+
+  @override
+  String get companionAddTraveler => 'Add companion';
+
+  @override
+  String get companionRemarksHint =>
+      'Optional, e.g. special requests, meeting point';
+
+  @override
+  String get companionSectionSkills => 'Skills';
+
+  @override
+  String get companionSectionDescription => 'Description';
+
+  @override
+  String get companionSectionPackages => 'Packages';
+
+  @override
+  String get companionSectionCalendar => 'Calendar';
+
+  @override
+  String get companionViewAll => 'View all';
+
+  @override
+  String get companionSectionReviews => 'Reviews';
+
+  @override
+  String get plannerTabTours => 'Tours';
 }

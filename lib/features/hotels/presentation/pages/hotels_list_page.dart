@@ -38,12 +38,13 @@ class _HotelsListPageState extends State<HotelsListPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(l10n?.hotelsTitle ?? '酒店'),
-        backgroundColor: AppColors.backgroundCard,
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.search_rounded),
@@ -55,7 +56,12 @@ class _HotelsListPageState extends State<HotelsListPage> {
           ),
         ],
       ),
-      body: Column(
+      body: AppGradientBackground(
+        colors: AppGradientBackground.pageGradient,
+        stops: AppGradientBackground.pageGradientStops,
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           HotelFilterBar(
@@ -67,6 +73,7 @@ class _HotelsListPageState extends State<HotelsListPage> {
                 ? _buildEmpty(context)
                 : ListView.separated(
                     padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                    cacheExtent: 200,
                     itemCount: _hotels.length,
                     separatorBuilder: (_, __) => SizedBox(height: 14.h),
                     itemBuilder: (context, index) {
@@ -79,6 +86,7 @@ class _HotelsListPageState extends State<HotelsListPage> {
                   ),
           ),
         ],
+        ),
       ),
     );
   }

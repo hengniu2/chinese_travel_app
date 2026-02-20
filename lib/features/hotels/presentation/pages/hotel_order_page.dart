@@ -62,24 +62,26 @@ class _HotelOrderPageState extends State<HotelOrderPage> {
     setState(() => _guests.removeAt(index));
   }
 
-  bool _validate() {
+  bool _validate(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     for (var i = 0; i < _guests.length; i++) {
       final g = _guests[i];
+      final n = i + 1;
       if (g.name.trim().isEmpty) {
-        setState(() => _error = '请填写第${i + 1}位入住人姓名');
+        setState(() => _error = l10n?.orderGuestNameError(n) ?? '请填写第${n}位入住人姓名');
         return false;
       }
       if (g.idCard.trim().length < 15) {
-        setState(() => _error = '请填写第${i + 1}位入住人身份证号');
+        setState(() => _error = l10n?.orderGuestIdError(n) ?? '请填写第${n}位入住人身份证号');
         return false;
       }
       if (g.phone.trim().length < 11) {
-        setState(() => _error = '请填写第${i + 1}位入住人手机号');
+        setState(() => _error = l10n?.orderGuestPhoneError(n) ?? '请填写第${n}位入住人手机号');
         return false;
       }
     }
     if (!_agreed) {
-      setState(() => _error = '请阅读并同意用户协议与隐私政策');
+      setState(() => _error = l10n?.orderAgreementRequired ?? '请阅读并同意用户协议与隐私政策');
       return false;
     }
     setState(() => _error = null);
@@ -87,9 +89,10 @@ class _HotelOrderPageState extends State<HotelOrderPage> {
   }
 
   Future<void> _submit() async {
-    if (!_validate()) return;
+    if (!_validate(context)) return;
     if (_selectedRoom == null) {
-      setState(() => _error = '暂无可订房型');
+      final l10n = AppLocalizations.of(context);
+      setState(() => _error = l10n?.hotelNoRooms ?? '暂无可订房型');
       return;
     }
     setState(() => _submitting = true);
@@ -127,10 +130,10 @@ class _HotelOrderPageState extends State<HotelOrderPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildProductSummary(),
+            _buildProductSummary(context),
             SizedBox(height: 24.h),
-            _section('入住人信息', _buildGuestsSection()),
-            _section('同意协议', _buildAgreementSection()),
+            _section(l10n?.sectionGuests ?? '入住人信息', _buildGuestsSection(context)),
+            _section(l10n?.sectionAgreement ?? '同意协议', _buildAgreementSection()),
             if (_error != null) ...[
               SizedBox(height: 12.h),
               Text(_error!, style: AppTextStyles.bodySmall.copyWith(color: AppColors.error)),
@@ -148,7 +151,8 @@ class _HotelOrderPageState extends State<HotelOrderPage> {
     );
   }
 
-  Widget _buildProductSummary() {
+  Widget _buildProductSummary(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final room = _selectedRoom;
     return AppCard(
       child: Column(
@@ -164,7 +168,7 @@ class _HotelOrderPageState extends State<HotelOrderPage> {
             children: [
               Text('¥', style: AppTextStyles.priceSmall.copyWith(fontSize: 14.sp)),
               Text(_orderAmount.toStringAsFixed(0), style: AppTextStyles.price.copyWith(fontSize: 22.sp)),
-              Text(' /晚', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary)),
+              Text(l10n?.hotelOrderProductPerNight ?? ' /晚', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary)),
             ],
           ),
         ],
@@ -186,12 +190,13 @@ class _HotelOrderPageState extends State<HotelOrderPage> {
     );
   }
 
-  Widget _buildGuestsSection() {
+  Widget _buildGuestsSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '请填写每位入住人的姓名、身份证、手机号，确保与证件一致',
+          l10n?.orderGuestHint ?? '请填写每位入住人的姓名、身份证、手机号，确保与证件一致',
           style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
         ),
         SizedBox(height: 12.h),
@@ -202,7 +207,7 @@ class _HotelOrderPageState extends State<HotelOrderPage> {
             child: TravelerFormCard(
               traveler: _guests[i],
               index: i,
-              labelPrefix: '入住人',
+              labelPrefix: l10n?.guestLabel ?? '入住人',
               onChanged: (updated) => setState(() => _guests[i] = updated),
               onRemove: _guests.length > 1 ? () => _removeGuest(i) : null,
               canRemove: _guests.length > 1,
@@ -213,7 +218,7 @@ class _HotelOrderPageState extends State<HotelOrderPage> {
         OutlinedButton.icon(
           onPressed: _addGuest,
           icon: Icon(Icons.add_rounded, size: 20.sp, color: AppColors.primary),
-          label: Text('添加入住人', style: TextStyle(color: AppColors.primary, fontSize: 14.sp)),
+          label: Text(l10n?.hotelAddGuest ?? '添加入住人', style: TextStyle(color: AppColors.primary, fontSize: 14.sp)),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
             side: const BorderSide(color: AppColors.primary),

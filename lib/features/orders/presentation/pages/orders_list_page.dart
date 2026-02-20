@@ -54,12 +54,13 @@ class _OrdersListPageState extends State<OrdersListPage> with SingleTickerProvid
     final l10n = AppLocalizations.of(context);
     final labels = _tabLabels(l10n);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(l10n?.ordersTitle ?? '我的订单'),
-        backgroundColor: AppColors.backgroundCard,
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -72,11 +73,17 @@ class _OrdersListPageState extends State<OrdersListPage> with SingleTickerProvid
           tabs: labels.map((l) => Tab(text: l)).toList(),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: List.generate(_tabFilters.length, (i) {
-          return _OrderListBody(filter: _tabFilters[i]);
-        }),
+      body: AppGradientBackground(
+        colors: AppGradientBackground.pageGradient,
+        stops: AppGradientBackground.pageGradientStops,
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        child: TabBarView(
+          controller: _tabController,
+          children: List.generate(_tabFilters.length, (i) {
+            return _OrderListBody(filter: _tabFilters[i]);
+          }),
+        ),
       ),
     );
   }
@@ -108,6 +115,7 @@ class _OrderListBody extends StatelessWidget {
     }
     return ListView.separated(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      cacheExtent: 200,
       itemCount: orders.length,
       separatorBuilder: (_, __) => SizedBox(height: 14.h),
       itemBuilder: (context, index) {

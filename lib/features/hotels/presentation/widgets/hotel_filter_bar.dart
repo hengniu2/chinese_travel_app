@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../domain/hotel_item.dart';
 
@@ -138,7 +139,7 @@ class HotelFilterBar extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.all(16.w),
-              child: Text('价格区间', style: AppTextStyles.headlineSmall),
+              child: Text(AppLocalizations.of(ctx)?.filterPriceRange ?? '价格区间', style: AppTextStyles.headlineSmall),
             ),
             ...options.map((o) => ListTile(
                   title: Text(o == '不限' ? o : '¥$o'),
@@ -180,7 +181,7 @@ class HotelFilterBar extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.all(16.w),
-              child: Text('星级筛选', style: AppTextStyles.headlineSmall),
+              child: Text(AppLocalizations.of(ctx)?.filterStar ?? '星级筛选', style: AppTextStyles.headlineSmall),
             ),
             ...stars.map((s) => ListTile(
                   title: Text(s == 0 ? '不限' : '$s星'),
@@ -216,7 +217,7 @@ class HotelFilterBar extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.all(16.w),
-              child: Text('排序', style: AppTextStyles.headlineSmall),
+              child: Text(AppLocalizations.of(ctx)?.filterSort ?? '排序', style: AppTextStyles.headlineSmall),
             ),
             ...options.map((e) => ListTile(
                   title: Text(e.$2),

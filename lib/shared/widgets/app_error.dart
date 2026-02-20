@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// 错误状态组件
 class AppError extends StatelessWidget {
   const AppError({
@@ -37,7 +39,7 @@ class AppError extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: onRetry,
-                child: const Text('重试'),
+                child: Text(AppLocalizations.of(context)?.commonRetry ?? '重试'),
               ),
             ],
           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_gradients.dart';
 
 /// 渐变背景组件（中国旅行风 - 主色渐变）
 class AppGradientBackground extends StatelessWidget {
@@ -30,6 +31,12 @@ class AppGradientBackground extends StatelessWidget {
         AppColors.primaryLight,
         AppColors.backgroundCard,
       ];
+
+  /// 页面级柔和渐变（全屏背景，与 primary 协调）
+  static List<Color> get pageGradient => AppGradients.page;
+
+  /// 页面渐变色阶（三色平滑过渡）
+  static List<double>? get pageGradientStops => AppGradients.pageStops;
 
   @override
   Widget build(BuildContext context) {

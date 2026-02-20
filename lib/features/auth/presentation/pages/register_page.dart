@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_router.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/app_button.dart';
 import '../../../../shared/design_system/app_colors.dart';
 import '../../../../shared/design_system/app_spacing.dart';
@@ -56,7 +57,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     setState(() => _error = null);
     try {
       await ref.read(authProvider.notifier).sendCode(phone);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('验证码已发送')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)?.authVerifyCodeSent ?? '验证码已发送')));
     } catch (e) {
       if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
     }
@@ -64,7 +65,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   Future<void> _submit() async {
     if (!_agreed) {
-      setState(() => _error = '请先阅读并同意用户协议和隐私政策');
+      setState(() => _error = AppLocalizations.of(context)?.authAgreementRequired ?? '请先阅读并同意用户协议和隐私政策');
       return;
     }
     final phone = _phoneController.text.trim();
@@ -103,10 +104,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppTopBar(
-        title: '注册',
+        title: l10n?.authRegister ?? '注册',
         onLeadingTap: () => context.pop(),
       ),
       body: SafeArea(
@@ -116,14 +118,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(height: 24.h),
-              Text('创建账号', style: AppTextStyles.headlineLarge),
+              Text(l10n?.authCreateAccount ?? '创建账号', style: AppTextStyles.headlineLarge),
               SizedBox(height: 8.h),
-              Text('注册享梦游，开启绿色旅行', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+              Text(l10n?.authRegisterSubtitle ?? '注册享梦游，开启绿色旅行', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
               SizedBox(height: 32.h),
               AuthInputField(
                 controller: _phoneController,
-                label: '手机号',
-                hint: '请输入手机号',
+                label: l10n?.authPhone ?? '手机号',
+                hint: '${l10n?.authPhone ?? '手机号'}',
                 keyboardType: TextInputType.phone,
                 prefixIcon: Icon(Icons.phone_android_outlined, size: 22, color: AppColors.textTertiary),
                 maxLength: 11,
@@ -136,8 +138,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   Expanded(
                     child: AuthInputField(
                       controller: _codeController,
-                      label: '验证码',
-                      hint: '请输入验证码',
+                      label: l10n?.authVerifyCode ?? '验证码',
+                      hint: '${l10n?.authVerifyCode ?? '验证码'}',
                       keyboardType: TextInputType.number,
                       maxLength: 6,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -156,16 +158,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               SizedBox(height: AppSpacing.lg.h),
               AuthInputField(
                 controller: _passwordController,
-                label: '设置密码',
-                hint: '请设置密码（至少 6 位）',
+                label: l10n?.authSetPassword ?? '设置密码',
+                hint: '${l10n?.authSetPassword ?? '设置密码'}',
                 obscureText: true,
                 prefixIcon: Icon(Icons.lock_outline_rounded, size: 22, color: AppColors.textTertiary),
               ),
               SizedBox(height: AppSpacing.lg.h),
               AuthInputField(
                 controller: _confirmController,
-                label: '确认密码',
-                hint: '请再次输入密码',
+                label: l10n?.authConfirmPassword ?? '确认密码',
+                hint: '${l10n?.authConfirmPassword ?? '确认密码'}',
                 obscureText: true,
                 prefixIcon: Icon(Icons.lock_outline_rounded, size: 22, color: AppColors.textTertiary),
               ),
@@ -182,7 +184,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               ),
               SizedBox(height: 28.h),
               AppButton(
-                label: '注册',
+                label: l10n?.authRegister ?? '注册',
                 loading: _loading,
                 onPressed: _submit,
               ),
@@ -190,10 +192,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('已有账号？', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+                  Text(l10n?.authHasAccount ?? '已有账号？', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
                   TextButton(
                     onPressed: () => context.pop(),
-                    child: Text('去登录', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                    child: Text(l10n?.authGoToLogin ?? '去登录', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),

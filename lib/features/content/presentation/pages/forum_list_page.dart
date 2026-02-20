@@ -17,24 +17,35 @@ class ForumListPage extends StatefulWidget {
 }
 
 class _ForumListPageState extends State<ForumListPage> {
-  late List<ForumPost> _posts;
+  List<ForumPost>? _posts;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _posts = getForumList();
+    _loadPosts();
+  }
+
+  Future<void> _loadPosts() async {
+    await Future.delayed(const Duration(milliseconds: 400));
+    if (!mounted) return;
+    setState(() {
+      _posts = getForumList();
+      _loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(l10n?.forumTitle ?? '旅游社区'),
-        backgroundColor: AppColors.backgroundCard,
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.search_rounded),
@@ -46,32 +57,47 @@ class _ForumListPageState extends State<ForumListPage> {
           ),
         ],
       ),
-      body: _posts.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.forum_outlined, size: 64.sp, color: AppColors.textTertiary),
-                  SizedBox(height: 16.h),
-                  Text(
-                    l10n?.forumNoContent ?? '暂无内容',
-                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-                  ),
-                ],
-              ),
-            )
-          : ListView.separated(
+      body: AppGradientBackground(
+        colors: AppGradientBackground.pageGradient,
+        stops: AppGradientBackground.pageGradientStops,
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        child: _loading
+          ? ListView.separated(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-              itemCount: _posts.length,
+              cacheExtent: 200,
+              itemCount: 5,
               separatorBuilder: (_, __) => SizedBox(height: 14.h),
-              itemBuilder: (context, index) {
-                final post = _posts[index];
-                return ForumPostCard(
-                  post: post,
-                  onTap: () => context.push('/article/${post.id}'),
-                );
-              },
-            ),
+              itemBuilder: (_, __) => const AppSkeletonForumCard(),
+            )
+          : _posts!.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.forum_outlined, size: 64.sp, color: AppColors.textTertiary),
+                      SizedBox(height: 16.h),
+                      Text(
+                        l10n?.forumNoContent ?? '暂无内容',
+                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.separated(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                  cacheExtent: 200,
+                  itemCount: _posts!.length,
+                  separatorBuilder: (_, __) => SizedBox(height: 14.h),
+                  itemBuilder: (context, index) {
+                    final post = _posts![index];
+                    return ForumPostCard(
+                      post: post,
+                      onTap: () => context.push('/article/${post.id}'),
+                    );
+                  },
+                ),
+      ),
     );
   }
 }

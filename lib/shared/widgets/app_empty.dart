@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
+import '../design_system/design_system.dart';
 
 /// 空状态组件
 class AppEmpty extends StatelessWidget {
@@ -45,7 +45,7 @@ class AppEmpty extends StatelessWidget {
                 onPressed: onAction,
                 child: Text(
                   actionLabel!,
-                  style: const TextStyle(color: kAppPrimaryGreen),
+                  style: const TextStyle(color: AppColors.primary),
                 ),
               ),
             ],

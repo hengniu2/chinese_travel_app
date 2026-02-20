@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_router.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/app_button.dart';
 import '../../../../shared/design_system/app_colors.dart';
 import '../../../../shared/design_system/app_spacing.dart';
@@ -52,7 +53,7 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
     setState(() => _error = null);
     try {
       await ref.read(authProvider.notifier).sendCode(phone);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('验证码已发送')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)?.authVerifyCodeSent ?? '验证码已发送')));
     } catch (e) {
       if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
     }
@@ -60,7 +61,7 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
 
   Future<void> _submit() async {
     if (!_agreed) {
-      setState(() => _error = '请先阅读并同意用户协议和隐私政策');
+      setState(() => _error = AppLocalizations.of(context)?.authAgreementRequired ?? '请先阅读并同意用户协议和隐私政策');
       return;
     }
     final phone = _phoneController.text.trim();
@@ -89,10 +90,11 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppTopBar(
-        title: '验证码登录',
+        title: l10n?.authVerifyCodeLogin ?? '验证码登录',
         onLeadingTap: () => context.pop(),
       ),
       body: SafeArea(
@@ -102,14 +104,14 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(height: 24.h),
-              Text('验证码登录', style: AppTextStyles.headlineLarge),
+              Text(l10n?.authVerifyCodeLogin ?? '验证码登录', style: AppTextStyles.headlineLarge),
               SizedBox(height: 8.h),
-              Text('未注册手机号验证后将自动创建账号', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+              Text(l10n?.authVerifyCodeLoginSubtitle ?? '未注册手机号验证后将自动创建账号', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
               SizedBox(height: 32.h),
               AuthInputField(
                 controller: _phoneController,
-                label: '手机号',
-                hint: '请输入手机号',
+                label: l10n?.authPhone ?? '手机号',
+                hint: '${l10n?.authPhone ?? '手机号'}',
                 keyboardType: TextInputType.phone,
                 prefixIcon: Icon(Icons.phone_android_outlined, size: 22, color: AppColors.textTertiary),
                 maxLength: 11,
@@ -122,8 +124,8 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
                   Expanded(
                     child: AuthInputField(
                       controller: _codeController,
-                      label: '验证码',
-                      hint: '请输入验证码',
+                      label: l10n?.authVerifyCode ?? '验证码',
+                      hint: '${l10n?.authVerifyCode ?? '验证码'}',
                       keyboardType: TextInputType.number,
                       maxLength: 6,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -152,7 +154,7 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
               ),
               SizedBox(height: 28.h),
               AppButton(
-                label: '登录',
+                label: l10n?.authLogin ?? '登录',
                 loading: _loading,
                 onPressed: _submit,
               ),
@@ -160,7 +162,7 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
               Center(
                 child: TextButton(
                   onPressed: () => context.pop(),
-                  child: Text('使用密码登录', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary)),
+                  child: Text(l10n?.authUsePasswordLogin ?? '使用密码登录', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary)),
                 ),
               ),
             ],

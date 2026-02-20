@@ -46,6 +46,7 @@ dependencies:
 
   # UI & i18n
   cached_network_image: ^3.4.1
+  google_fonts: ^6.2.1
   intl: ^0.20.2
   flutter_screenutil: ^5.9.3
   shimmer: ^3.0.0

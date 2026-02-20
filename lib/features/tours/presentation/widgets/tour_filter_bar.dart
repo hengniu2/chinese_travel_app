@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../domain/tour_item.dart';
 
@@ -104,7 +105,7 @@ class TourFilterBar extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.all(16.w),
-              child: Text('选择城市', style: AppTextStyles.headlineSmall),
+              child: Text(AppLocalizations.of(ctx)?.filterSelectCity ?? '选择城市', style: AppTextStyles.headlineSmall),
             ),
             ...list.map((c) => ListTile(
                   title: Text(c),
@@ -132,7 +133,7 @@ class TourFilterBar extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.all(16.w),
-              child: Text('选择价格', style: AppTextStyles.headlineSmall),
+              child: Text(AppLocalizations.of(ctx)?.filterSelectPrice ?? '选择价格', style: AppTextStyles.headlineSmall),
             ),
             ...options.map((o) => ListTile(
                   title: Text(o == '不限' ? o : '¥$o'),
@@ -174,7 +175,7 @@ class TourFilterBar extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.all(16.w),
-              child: Text('选择天数', style: AppTextStyles.headlineSmall),
+              child: Text(AppLocalizations.of(ctx)?.filterSelectDays ?? '选择天数', style: AppTextStyles.headlineSmall),
             ),
             ...options.map((o) => ListTile(
                   title: Text(o),
@@ -226,7 +227,7 @@ class TourFilterBar extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.all(16.w),
-              child: Text('选择类型', style: AppTextStyles.headlineSmall),
+              child: Text(AppLocalizations.of(ctx)?.filterSelectType ?? '选择类型', style: AppTextStyles.headlineSmall),
             ),
             ...list.map((t) => ListTile(
                   title: Text(t),

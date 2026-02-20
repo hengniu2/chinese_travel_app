@@ -5,6 +5,7 @@ export 'app_button.dart';
 export 'app_card.dart';
 export 'app_colors.dart';
 export 'app_gradient_background.dart';
+export 'app_gradients.dart';
 export 'app_radius.dart';
 export 'app_search_bar.dart';
 export 'app_shadow.dart';

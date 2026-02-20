@@ -40,13 +40,21 @@ class App extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
     final router = ref.watch(appRouterProvider);
 
+    final l10n = lookupAppLocalizations(locale);
     return MaterialApp.router(
-      title: '享梦游',
+      title: l10n.appTitle,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
+      supportedLocales: const [Locale('zh'), Locale('en')],
       localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localeResolutionCallback: (locale, supported) {
+        if (locale != null) {
+          final match = supported.where((l) => l.languageCode == locale.languageCode).toList();
+          if (match.isNotEmpty) return match.first;
+        }
+        return const Locale('zh');
+      },
       routerConfig: router,
       builder: (context, child) {
         return ScreenUtilInit(

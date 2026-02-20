@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_router.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/app_button.dart';
 import '../../../../shared/design_system/app_colors.dart';
 import '../../../../shared/design_system/app_spacing.dart';
@@ -38,7 +39,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Future<void> _submit() async {
     if (!_agreed) {
-      setState(() => _error = '请先阅读并同意用户协议和隐私政策');
+      setState(() => _error = AppLocalizations.of(context)?.authAgreementRequired ?? '请先阅读并同意用户协议和隐私政策');
       return;
     }
     final phone = _phoneController.text.trim();
@@ -67,10 +68,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppTopBar(
-        title: '登录',
+        title: l10n?.authLogin ?? '登录',
         onLeadingTap: () => context.pop(),
       ),
       body: SafeArea(
@@ -80,14 +82,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(height: 24.h),
-              Text('欢迎回来', style: AppTextStyles.headlineLarge),
+              Text(l10n?.authWelcomeBack ?? '欢迎回来', style: AppTextStyles.headlineLarge),
               SizedBox(height: 8.h),
-              Text('登录享梦游，发现更多旅行', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+              Text(l10n?.authLoginSubtitle ?? '登录享梦游，发现更多旅行', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
               SizedBox(height: 32.h),
               AuthInputField(
                 controller: _phoneController,
-                label: '手机号',
-                hint: '请输入手机号',
+                label: l10n?.authPhone ?? '手机号',
+                hint: '${l10n?.authPhone ?? '手机号'}',
                 keyboardType: TextInputType.phone,
                 prefixIcon: Icon(Icons.phone_android_outlined, size: 22, color: AppColors.textTertiary),
                 maxLength: 11,
@@ -96,8 +98,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               SizedBox(height: AppSpacing.lg.h),
               AuthInputField(
                 controller: _passwordController,
-                label: '密码',
-                hint: '请输入密码（至少 6 位）',
+                label: l10n?.authPassword ?? '密码',
+                hint: '${l10n?.authPassword ?? '密码'}',
                 obscureText: true,
                 prefixIcon: Icon(Icons.lock_outline_rounded, size: 22, color: AppColors.textTertiary),
               ),
@@ -114,7 +116,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               SizedBox(height: 28.h),
               AppButton(
-                label: '登录',
+                label: l10n?.authLogin ?? '登录',
                 loading: _loading,
                 onPressed: _submit,
               ),
@@ -122,23 +124,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               Center(
                 child: TextButton(
                   onPressed: () => context.push('/auth/verify-code'),
-                  child: Text('验证码登录', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary)),
+                  child: Text(l10n?.authVerifyCodeLogin ?? '验证码登录', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary)),
                 ),
               ),
               Center(
                 child: TextButton(
                   onPressed: () => context.push('/auth/forgot-password'),
-                  child: Text('忘记密码？', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary)),
+                  child: Text(l10n?.authForgotPassword ?? '忘记密码？', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary)),
                 ),
               ),
               SizedBox(height: 8.h),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('还没有账号？', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+                  Text(l10n?.authNoAccount ?? '还没有账号？', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
                   TextButton(
                     onPressed: () => context.push('/auth/register'),
-                    child: Text('立即注册', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                    child: Text(l10n?.authRegisterNow ?? '立即注册', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),

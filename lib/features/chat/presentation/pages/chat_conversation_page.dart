@@ -2,13 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../data/chat_list_mock.dart';
 import '../../data/chat_messages_mock.dart';
 import '../../domain/chat_message.dart';
 import '../widgets/chat_message_bubble.dart';
 
-/// 聊天对话页：文本、图片、订单卡片
+/// 中国主流 IM 聊天背景灰
+const Color _kChatBackground = Color(0xFFEDEDED);
+
+/// 列表项：时间分隔 或 消息
+class _ChatListItem {
+  const _ChatListItem({this.timeLabel, this.message});
+  final String? timeLabel;
+  final ChatMessage? message;
+  bool get isTimeSeparator => timeLabel != null;
+}
+
+/// 聊天对话页：时间分隔、气泡+头像、订单卡片、输入栏
 class ChatConversationPage extends StatefulWidget {
   const ChatConversationPage({super.key, required this.chatId});
 
@@ -19,7 +31,8 @@ class ChatConversationPage extends StatefulWidget {
 }
 
 class _ChatConversationPageState extends State<ChatConversationPage> {
-  late List<ChatMessage> _messages;
+  List<ChatMessage> _messages = [];
+  List<_ChatListItem> _listItems = [];
   final _inputController = TextEditingController();
   final _scrollController = ScrollController();
 
@@ -27,6 +40,39 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
   void initState() {
     super.initState();
     _messages = getChatMessages(widget.chatId);
+    _rebuildListItems();
+  }
+
+  void _rebuildListItems() {
+    final items = <_ChatListItem>[];
+    DateTime? prevTime;
+    for (final msg in _messages) {
+      final t = msg.time;
+      final showTime = prevTime == null ||
+          _isDifferentDay(prevTime, t) ||
+          t.difference(prevTime).inMinutes >= 5;
+      if (showTime) {
+        items.add(_ChatListItem(timeLabel: _formatTimeLabel(t)));
+      }
+      items.add(_ChatListItem(message: msg));
+      prevTime = t;
+    }
+    _listItems = items;
+  }
+
+  static bool _isDifferentDay(DateTime a, DateTime b) {
+    return a.year != b.year || a.month != b.month || a.day != b.day;
+  }
+
+  static String _formatTimeLabel(DateTime t) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dt = DateTime(t.year, t.month, t.day);
+    final timeStr = '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+    if (dt == today) return timeStr;
+    if (dt == yesterday) return '昨天 $timeStr';
+    return '${t.month}月${t.day}日 $timeStr';
   }
 
   @override
@@ -41,13 +87,17 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
     return item?.nickname ?? '客服';
   }
 
+  String? get _partnerAvatarUrl {
+    return getChatListItem(widget.chatId)?.avatarUrl;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: _kChatBackground,
       appBar: AppBar(
         title: Text(_nickname),
-        backgroundColor: AppColors.backgroundCard,
+        backgroundColor: _kChatBackground,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         leading: IconButton(
@@ -62,18 +112,29 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
         children: [
           Expanded(
             child: ListView.builder(
+              cacheExtent: 200,
               controller: _scrollController,
               padding: EdgeInsets.symmetric(vertical: 12.h),
-              itemCount: _messages.length,
+              itemCount: _listItems.length,
               itemBuilder: (context, index) {
-                final msg = _messages[index];
+                final item = _listItems[index];
+                if (item.isTimeSeparator) {
+                  return _buildTimeSeparator(item.timeLabel!);
+                }
+                final msg = item.message!;
                 return ChatMessageBubble(
                   message: msg,
+                  partnerAvatarUrl: _partnerAvatarUrl,
+                  showAvatar: true,
                   onOrderCardTap: msg.orderCard != null
                       ? () {
-                          // 可跳转订单详情 context.push('/orders/${msg.orderCard!.orderId}')
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('订单 ${msg.orderCard!.orderId}')),
+                            SnackBar(
+                              content: Text(
+                                AppLocalizations.of(context)?.chatOrderCard(msg.orderCard!.orderId) ??
+                                    '订单 ${msg.orderCard!.orderId}',
+                              ),
+                            ),
                           );
                         }
                       : null,
@@ -87,10 +148,32 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
     );
   }
 
+  Widget _buildTimeSeparator(String label) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 16.h),
+      child: Center(
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(6.r),
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+              fontSize: 12.sp,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildInputBar() {
     return Container(
       padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 8.h + MediaQuery.of(context).padding.bottom),
-      color: AppColors.backgroundCard,
+      color: _kChatBackground,
       child: SafeArea(
         top: false,
         child: Row(
@@ -106,12 +189,12 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
                 maxLines: 4,
                 minLines: 1,
                 decoration: InputDecoration(
-                  hintText: '输入消息',
+                  hintText: AppLocalizations.of(context)?.chatInputHint ?? '输入消息',
                   hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textHint),
                   filled: true,
-                  fillColor: AppColors.surface,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(22.r),
+                    borderRadius: BorderRadius.circular(8.r),
                     borderSide: BorderSide.none,
                   ),
                   contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
@@ -137,6 +220,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
                       text: text,
                     ),
                   ];
+                  _rebuildListItems();
                 });
                 Future.microtask(() {
                   if (_scrollController.hasClients) {

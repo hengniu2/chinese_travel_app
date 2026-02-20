@@ -57,6 +57,7 @@ class _ChatListPageState extends State<ChatListPage> {
               ),
             )
           : ListView.separated(
+              cacheExtent: 150,
               itemCount: _chats.length,
               separatorBuilder: (_, __) => const SizedBox.shrink(),
               itemBuilder: (context, index) {

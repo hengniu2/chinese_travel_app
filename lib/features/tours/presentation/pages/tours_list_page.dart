@@ -38,12 +38,13 @@ class _ToursListPageState extends State<ToursListPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(l10n?.toursTitle ?? '精选旅行线路'),
-        backgroundColor: AppColors.backgroundCard,
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.more_horiz_rounded),
@@ -51,7 +52,12 @@ class _ToursListPageState extends State<ToursListPage> {
           ),
         ],
       ),
-      body: Column(
+      body: AppGradientBackground(
+        colors: AppGradientBackground.pageGradient,
+        stops: AppGradientBackground.pageGradientStops,
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TourFilterBar(
@@ -64,9 +70,10 @@ class _ToursListPageState extends State<ToursListPage> {
             child: _tours.isEmpty
                 ? _buildEmpty(context)
                 : ListView.separated(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                    cacheExtent: 200,
                     itemCount: _tours.length,
-                    separatorBuilder: (_, __) => SizedBox(height: 14.h),
+                    separatorBuilder: (_, __) => SizedBox(height: 16.h),
                     itemBuilder: (context, index) {
                       final tour = _tours[index];
                       return TourCard(
@@ -77,6 +84,7 @@ class _ToursListPageState extends State<ToursListPage> {
                   ),
           ),
         ],
+        ),
       ),
     );
   }

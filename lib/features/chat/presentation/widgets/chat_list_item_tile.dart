@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../shared/design_system/design_system.dart';
+import '../../../../shared/widgets/app_network_image.dart';
 import '../../domain/chat_list_item.dart';
 
 /// 聊天列表项：头像、昵称、最后消息、未读数
@@ -106,12 +107,12 @@ class ChatListItemTile extends StatelessWidget {
       ),
       child: item.avatarUrl != null && item.avatarUrl!.isNotEmpty
           ? ClipOval(
-              child: Image.network(
-                item.avatarUrl!,
-                fit: BoxFit.cover,
+              child: AppNetworkImage(
+                imageUrl: item.avatarUrl!,
                 width: 48.w,
                 height: 48.w,
-                errorBuilder: (_, __, ___) => _avatarPlaceholder(),
+                fit: BoxFit.cover,
+                errorWidget: _avatarPlaceholder(),
               ),
             )
           : _avatarPlaceholder(),

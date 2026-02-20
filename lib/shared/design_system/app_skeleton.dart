@@ -30,7 +30,7 @@ class AppSkeleton extends StatelessWidget {
   }
 }
 
-/// 提供 Shimmer 包装的 Skeleton 区域
+/// 提供 Shimmer 包装的 Skeleton 区域（商业级：顺滑周期 + 柔和高光）
 class AppSkeletonWrap extends StatelessWidget {
   const AppSkeletonWrap({
     super.key,
@@ -47,7 +47,8 @@ class AppSkeletonWrap extends StatelessWidget {
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
       baseColor: baseColor ?? AppColors.surface,
-      highlightColor: highlightColor ?? AppColors.backgroundCard,
+      highlightColor: highlightColor ?? AppColors.divider,
+      period: const Duration(milliseconds: 1600),
       child: child,
     );
   }
@@ -76,6 +77,45 @@ class AppSkeletonCard extends StatelessWidget {
           AppSkeleton(width: 80, height: 14),
           const SizedBox(height: 12),
           AppSkeleton(width: 72, height: 20),
+        ],
+      ),
+    );
+  }
+}
+
+/// 预设：论坛/文章卡片骨架（封面 + 标题 + 作者行）
+class AppSkeletonForumCard extends StatelessWidget {
+  const AppSkeletonForumCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppSkeletonWrap(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppSkeleton(
+            width: double.infinity,
+            height: 140,
+            borderRadius: AppRadius.cardRadius,
+          ),
+          const SizedBox(height: 14),
+          AppSkeleton(width: double.infinity, height: 18),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              AppSkeleton(width: 20, height: 20, borderRadius: BorderRadius.circular(10)),
+              const SizedBox(width: 6),
+              AppSkeleton(width: 80, height: 14),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              AppSkeleton(width: 40, height: 12),
+              const SizedBox(width: 16),
+              AppSkeleton(width: 40, height: 12),
+            ],
+          ),
         ],
       ),
     );
