@@ -111,14 +111,11 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
 
     final content = Container(
       constraints: BoxConstraints(minHeight: widget.minHeight),
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSpacing.xl,
-        vertical: AppSpacing.md,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: AppRadius.largeRadius,
+        borderRadius: AppRadius.mediumRadius,
         border: border != null ? Border.all(color: border, width: 1.5) : null,
         boxShadow: widget.variant == AppButtonVariant.primary && _enabled
             ? AppShadow.light
@@ -129,7 +126,7 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
 
     final button = Material(
       color: Colors.transparent,
-      borderRadius: AppRadius.largeRadius,
+      borderRadius: AppRadius.mediumRadius,
       child: Listener(
         onPointerDown: _enabled ? (_) => _controller.forward() : null,
         onPointerUp: _enabled ? (_) => _controller.reverse() : null,
@@ -139,7 +136,7 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
           builder: (_, c) => Transform.scale(scale: _scale.value, child: c),
           child: InkWell(
             onTap: effectiveOnPressed,
-            borderRadius: AppRadius.largeRadius,
+            borderRadius: AppRadius.mediumRadius,
             child: content,
           ),
         ),

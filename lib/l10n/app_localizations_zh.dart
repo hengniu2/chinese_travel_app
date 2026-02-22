@@ -75,6 +75,110 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hotelPricePerNight => '/晚';
 
   @override
+  String get hotelListTitle => '酒店列表';
+
+  @override
+  String get hotelSearchPlaceholder => '酒店 / 关键词 / 品牌';
+
+  @override
+  String get hotelViewDetail => '查看详情';
+
+  @override
+  String get hotelViewRoomTypes => '查看房型';
+
+  @override
+  String get hotelNoRooms => '暂无可订房型';
+
+  @override
+  String get hotelBookingConfirmTitle => '确认订单';
+
+  @override
+  String get hotelPriceBreakdown => '费用明细';
+
+  @override
+  String get hotelRoomPrice => '房费';
+
+  @override
+  String get hotelServiceFee => '服务费';
+
+  @override
+  String get hotelContinueToGuest => '下一步：填写入住人';
+
+  @override
+  String get hotelBookingGuestTitle => '入住人信息';
+
+  @override
+  String get hotelGuestName => '姓名';
+
+  @override
+  String get hotelGuestPhone => '手机号';
+
+  @override
+  String get hotelGuestIdNumber => '身份证号';
+
+  @override
+  String get hotelSpecialRequest => '特殊要求';
+
+  @override
+  String get hotelSpecialRequestHint => '如：提前入住、加枕头等';
+
+  @override
+  String get hotelProceedToPayment => '去支付';
+
+  @override
+  String get hotelBookingPaymentTitle => '支付';
+
+  @override
+  String get hotelBookingSuccessTitle => '预订成功！';
+
+  @override
+  String get hotelBookingSuccessMessage => '您的预订已确认。';
+
+  @override
+  String get paymentCreditCard => '信用卡';
+
+  @override
+  String get paymentCreditCardHint => '使用信用卡或借记卡支付';
+
+  @override
+  String get hotelCompareTitle => '酒店对比';
+
+  @override
+  String get hotelCompareEmpty => '请先添加最多3家酒店进行对比';
+
+  @override
+  String get hotelCompareItem => '项目';
+
+  @override
+  String get hotelComparePrice => '价格';
+
+  @override
+  String get hotelCompareRating => '评分';
+
+  @override
+  String get hotelCompareDistance => '距离';
+
+  @override
+  String get hotelCompareFacilities => '设施';
+
+  @override
+  String get hotelCompareCancellation => '取消政策';
+
+  @override
+  String get hotelMapSheetTitle => '选择酒店';
+
+  @override
+  String get hotelBundleSectionTitle => '超值套餐推荐';
+
+  @override
+  String hotelBundleSavings(Object amount) {
+    return '已为您节省 ¥$amount';
+  }
+
+  @override
+  String get hotelBundleCta => '立即打包预订';
+
+  @override
   String get ordersTitle => '我的订单';
 
   @override
@@ -118,6 +222,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get orderNoOrders => '暂无订单';
+
+  @override
+  String get orderNoOrdersDescription => '您的旅行订单将显示在这里';
 
   @override
   String get orderReturnToOrders => '返回订单页';
@@ -242,6 +349,69 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatSend => '发表';
 
   @override
+  String get chatSearchHint => '搜索联系人、消息';
+
+  @override
+  String get chatNoSearchResults => '未找到相关对话';
+
+  @override
+  String get chatCopy => '复制';
+
+  @override
+  String get chatCopied => '已复制';
+
+  @override
+  String get chatQuickReplyOk => '好的';
+
+  @override
+  String get chatQuickReplyThanks => '谢谢';
+
+  @override
+  String get chatQuickReplyLater => '稍后联系';
+
+  @override
+  String get chatSubtitle => '智能客服 · 随时为您服务';
+
+  @override
+  String get chatGuessYouAsk => '猜你想问';
+
+  @override
+  String get chatConsultTrip => '行程咨询';
+
+  @override
+  String get chatOrderIssue => '订单问题';
+
+  @override
+  String get chatRefundChange => '退款改签';
+
+  @override
+  String get chatTickets => '景点门票';
+
+  @override
+  String get chatHumanService => '人工客服';
+
+  @override
+  String get chatYouCanAsk => '您可以问我：行程、订单、退改、天气…';
+
+  @override
+  String get chatStartConsult => '开始咨询';
+
+  @override
+  String get chatViewOrder => '查看订单';
+
+  @override
+  String get chatChangeTrip => '修改行程';
+
+  @override
+  String get chatRefundPolicy => '退改政策';
+
+  @override
+  String get chatSendLocation => '发送位置';
+
+  @override
+  String get chatViewDetail => '查看详情';
+
+  @override
   String get forumTitle => '旅游社区';
 
   @override
@@ -304,8 +474,300 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileSettings => '设置';
 
   @override
+  String get profileSectionServices => '我的服务';
+
+  @override
+  String get profileSectionMore => '更多';
+
+  @override
   String profileFeatureComing(String name) {
     return '$name 功能开发中';
+  }
+
+  @override
+  String get profileGreetingMorning => '早上好';
+
+  @override
+  String get profileGreetingAfternoon => '下午好';
+
+  @override
+  String get profileGreetingEvening => '晚上好';
+
+  @override
+  String get profileGreetingReady => '准备好新的旅行了吗？';
+
+  @override
+  String get profileLoginNow => '立即登录';
+
+  @override
+  String get profileLevelExplorer => 'Lv.1 探险家';
+
+  @override
+  String get profileCouponExpiring => '即将过期';
+
+  @override
+  String get profileCouponTabAvailable => '可使用';
+
+  @override
+  String get profileCouponTabUsed => '已使用';
+
+  @override
+  String get profileCouponTabExpired => '已过期';
+
+  @override
+  String profileCouponCondition(String amount) {
+    return '满$amount可用';
+  }
+
+  @override
+  String profileCouponValidUntil(String date) {
+    return '有效期至 $date';
+  }
+
+  @override
+  String get profileCouponEmpty => '暂无优惠券';
+
+  @override
+  String get profileCouponUse => '去使用';
+
+  @override
+  String get couponClaimNow => '立即领取';
+
+  @override
+  String get couponSelect => '选择优惠券';
+
+  @override
+  String couponSavedAmount(String amount) {
+    return '已为您节省 ¥$amount';
+  }
+
+  @override
+  String get couponTypeThreshold => '满减券';
+
+  @override
+  String get couponTypeNoThreshold => '无门槛券';
+
+  @override
+  String get couponTypeDiscount => '折扣券';
+
+  @override
+  String get couponTypeFlash => '限时闪促';
+
+  @override
+  String get couponNoThreshold => '无门槛';
+
+  @override
+  String couponValidUntil(String date) {
+    return '有效期至 $date';
+  }
+
+  @override
+  String couponFlashRemaining(String time) {
+    return '剩余 $time';
+  }
+
+  @override
+  String couponApplyConfirm(String amount) {
+    return '使用该优惠券可省 ¥$amount，确认使用？';
+  }
+
+  @override
+  String get couponDiscount => '优惠';
+
+  @override
+  String get couponFinalAmount => '实付';
+
+  @override
+  String get profileFrequentTravelerEmpty => '暂无常用出行人';
+
+  @override
+  String get profileFrequentTravelerAdd => '添加出行人';
+
+  @override
+  String get profileAddressEmpty => '暂无收货地址';
+
+  @override
+  String get profileAddressAdd => '添加地址';
+
+  @override
+  String get profileFeedbackHint => '请描述您的建议或问题';
+
+  @override
+  String get profileFeedbackSubmit => '提交反馈';
+
+  @override
+  String get profileFeedbackSuccess => '感谢您的反馈！';
+
+  @override
+  String profileClearCacheSize(String size) {
+    return '缓存大小：$size';
+  }
+
+  @override
+  String get profileClearCacheDo => '清除缓存';
+
+  @override
+  String get profileClearCacheDone => '已清除';
+
+  @override
+  String get commonName => '姓名';
+
+  @override
+  String get commonPhone => '手机号';
+
+  @override
+  String get commonIdNumber => '证件号';
+
+  @override
+  String get commonAddress => '地址';
+
+  @override
+  String get commonDefault => '默认';
+
+  @override
+  String get profileTravelPlannerSubtitle => '智能规划你的行程';
+
+  @override
+  String get profileSectionTravel => '出行服务';
+
+  @override
+  String get profileSectionAssets => '我的资产';
+
+  @override
+  String get profileSectionMoreSettings => '更多与设置';
+
+  @override
+  String get profileEditProfile => '编辑资料';
+
+  @override
+  String get profileMembershipTourist => '游客';
+
+  @override
+  String get profileMembershipMember => '会员';
+
+  @override
+  String get profileMembershipGold => '黄金会员';
+
+  @override
+  String get profileSectionTravelServices => '出行服务';
+
+  @override
+  String get profileSectionMyAssets => '我的资产';
+
+  @override
+  String get profileSectionSocialGrowth => '社交与成长';
+
+  @override
+  String get profileSectionSmartTools => '智能工具';
+
+  @override
+  String get profileSectionSettingsSupport => '设置与帮助';
+
+  @override
+  String get profileTravelPlanner => '旅行规划师';
+
+  @override
+  String get profileTourPackages => '跟团游';
+
+  @override
+  String get profileHotels => '酒店';
+
+  @override
+  String get profileFlights => '机票';
+
+  @override
+  String get profileInsurance => '保险';
+
+  @override
+  String get profilePoints => '积分';
+
+  @override
+  String get profileInvoice => '开发票';
+
+  @override
+  String get profileRewards => '我的奖品';
+
+  @override
+  String get profileInviteFriends => '邀请好友';
+
+  @override
+  String get profileBecomePlanner => '成为规划师';
+
+  @override
+  String get profileReferralCenter => '引荐中心';
+
+  @override
+  String get profileItinerary => '行程管理';
+
+  @override
+  String get profileExpenseStats => '花费统计';
+
+  @override
+  String get profileDownloadedTickets => '已下载票据';
+
+  @override
+  String get profileEmergencyContact => '紧急联系人';
+
+  @override
+  String get profileHelpCenter => '帮助中心';
+
+  @override
+  String get profileFeedback => '意见反馈';
+
+  @override
+  String get profileAboutUs => '关于我们';
+
+  @override
+  String get profileClearCache => '清除缓存';
+
+  @override
+  String get profileMyFriends => '我的朋友';
+
+  @override
+  String get profileAllOrders => '全部订单';
+
+  @override
+  String get profileSectionMyTools => '我的工具';
+
+  @override
+  String get profileSectionCommonSettings => '常用设置';
+
+  @override
+  String get profileFrequentTravelers => '常用出行人';
+
+  @override
+  String get profileShippingAddress => '收货地址';
+
+  @override
+  String get profileIssueInvoice => '开发票';
+
+  @override
+  String get profileCourseOrders => '课程订单';
+
+  @override
+  String get profileFlightOrders => '机票订单';
+
+  @override
+  String get profileHotelOrders => '酒店订单';
+
+  @override
+  String get profileMyPrizes => '我的奖品';
+
+  @override
+  String get profileReferrer => '引荐人';
+
+  @override
+  String get profileTravelCollection => '出行收集';
+
+  @override
+  String get profileDataStats => '数据统计';
+
+  @override
+  String get profileBadgeNew => '新';
+
+  @override
+  String profileUserLabel(String id) {
+    return '用户$id';
   }
 
   @override
@@ -391,6 +853,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get hotelEmpty => '暂无符合条件的酒店';
+
+  @override
+  String get emptyStateNoHotels => '暂时没有找到合适的酒店哦～';
+
+  @override
+  String get emptyStateNoRooms => '暂无可用房型，换个日期试试吧～';
+
+  @override
+  String get emptyStateNoInternet => '网络开小差了，再试试吧';
+
+  @override
+  String get emptyStateLoading => '加载中…';
+
+  @override
+  String get emptyStateError => '加载失败，再试试吧';
 
   @override
   String get tourEmpty => '暂无符合条件的线路';
@@ -529,9 +1006,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get orderAgreementRequired => '请阅读并同意用户协议与隐私政策';
-
-  @override
-  String get hotelNoRooms => '暂无可订房型';
 
   @override
   String get guestLabel => '入住人';
@@ -673,5 +1147,614 @@ class AppLocalizationsZh extends AppLocalizations {
   String get companionSectionReviews => '评价';
 
   @override
+  String get companionDiscoveryTitle => '找陪游';
+
+  @override
+  String get companionSearchPlaceholder => '城市、技能、关键词';
+
+  @override
+  String get companionCityHint => '选择城市';
+
+  @override
+  String get companionSortSmart => '智能排序';
+
+  @override
+  String get companionSortRating => '评分优先';
+
+  @override
+  String get companionSortPriceAsc => '价格从低到高';
+
+  @override
+  String get companionSortPriceDesc => '价格从高到低';
+
+  @override
+  String get companionSectionFeatured => '热门陪游';
+
+  @override
+  String get companionSectionAll => '全部陪游';
+
+  @override
+  String companionReviewsCount(Object count) {
+    return '$count条评价';
+  }
+
+  @override
+  String get companionPriceFrom => '起';
+
+  @override
+  String get companionEmpty => '暂无符合条件的陪游';
+
+  @override
+  String get companionFilterAll => '全部';
+
+  @override
+  String get companionBookNow => '立即预约';
+
+  @override
+  String companionServiceCount(Object count) {
+    return '已服务 $count次';
+  }
+
+  @override
+  String companionExperienceYears(Object years) {
+    return '$years年陪游经验';
+  }
+
+  @override
+  String companionResponseTime(Object time) {
+    return '平均回复 $time';
+  }
+
+  @override
+  String get companionVerified => '已认证';
+
+  @override
+  String get companionPricePerDay => '/ 天';
+
+  @override
   String get plannerTabTours => '行程/跟团游';
+
+  @override
+  String get plannerLandingHeroTitle => '规划你的完美旅程';
+
+  @override
+  String get plannerLandingHeroSubtitle => '量身定制行程，几步即可开始。';
+
+  @override
+  String get plannerModePersonal => '个人定制';
+
+  @override
+  String get plannerModeTeam => '团队定制';
+
+  @override
+  String get plannerFormDestination => '目的地';
+
+  @override
+  String get plannerFormDestinationHint => '你想去哪里？';
+
+  @override
+  String get plannerFormDeparture => '出发城市';
+
+  @override
+  String get plannerFormDepartureHint => '你的出发地';
+
+  @override
+  String get plannerFormDateRange => '出行日期';
+
+  @override
+  String get plannerFormDateRangeHint => '选择日期';
+
+  @override
+  String get plannerFormTravelers => '出行人数';
+
+  @override
+  String get plannerFormTravelersHint => '人数';
+
+  @override
+  String get plannerFormBudget => '预算';
+
+  @override
+  String get plannerFormBudgetHint => '选填';
+
+  @override
+  String get plannerFormThemes => '旅行主题';
+
+  @override
+  String get plannerFormThemesHint => '如文化、自然、探险';
+
+  @override
+  String get plannerFormCta => '开始规划';
+
+  @override
+  String get plannerFeaturedTitle => '精选套餐';
+
+  @override
+  String get plannerFeaturedSeeAll => '查看全部';
+
+  @override
+  String get plannerWhyChooseUs => '为什么选我们';
+
+  @override
+  String get plannerWhySafety => '安全可靠';
+
+  @override
+  String get plannerWhySafetyDesc => '认证合作方，安心预订';
+
+  @override
+  String get plannerWhyFlexible => '灵活取消';
+
+  @override
+  String get plannerWhyFlexibleDesc => '出发前免费改期';
+
+  @override
+  String get plannerWhyLocal => '当地专家';
+
+  @override
+  String get plannerWhyLocalDesc => '目的地达人精选';
+
+  @override
+  String get plannerFeaturedEmpty => '暂无精选套餐';
+
+  @override
+  String get plannerFeaturedEmptyAction => '浏览全部行程';
+
+  @override
+  String get plannerGetPlan => '生成我的方案';
+
+  @override
+  String get plannerResultTitle => '你的方案';
+
+  @override
+  String get plannerResultRecommended => '为你推荐';
+
+  @override
+  String get plannerResultNoPackages => '暂无匹配的套餐，试试调整目的地、预算或日期。';
+
+  @override
+  String get plannerSavePlan => '保存方案';
+
+  @override
+  String get plannerEditPlan => '编辑方案';
+
+  @override
+  String get plannerSharePlan => '分享方案';
+
+  @override
+  String get plannerRequestConsultant => '预约顾问';
+
+  @override
+  String get plannerCustomItinerary => '生成定制行程';
+
+  @override
+  String get plannerPlanSaved => '方案已保存';
+
+  @override
+  String get plannerShareMessage => '看看我的旅行方案';
+
+  @override
+  String get plannerConsultantMessage => '顾问将尽快与您联系。';
+
+  @override
+  String plannerMatch(Object score) {
+    return '匹配度：$score%';
+  }
+
+  @override
+  String get discoverySearchHint => '搜索目的地、行程…';
+
+  @override
+  String get discoveryFilter => '筛选';
+
+  @override
+  String get discoveryCategoryAll => '全部';
+
+  @override
+  String get discoveryCategoryGroup => '跟团';
+
+  @override
+  String get discoveryCategorySmallGroup => '小团';
+
+  @override
+  String get discoveryCategoryFamily => '亲子';
+
+  @override
+  String get discoveryCategoryCustom => '定制';
+
+  @override
+  String get discoveryCategoryLocal => '周边';
+
+  @override
+  String get discoveryChipDeparture => '出发地';
+
+  @override
+  String get discoveryChipDays => '天数';
+
+  @override
+  String get discoveryChipBudget => '预算';
+
+  @override
+  String get discoveryChipTheme => '主题';
+
+  @override
+  String get discoveryChipSort => '排序';
+
+  @override
+  String get discoverySortRecommended => '推荐';
+
+  @override
+  String get discoverySortPriceAsc => '价格从低到高';
+
+  @override
+  String get discoverySortPriceDesc => '价格从高到低';
+
+  @override
+  String get discoverySortDurationAsc => '行程从短到长';
+
+  @override
+  String get discoverySortDurationDesc => '行程从长到短';
+
+  @override
+  String get discoverySortRating => '评分优先';
+
+  @override
+  String get discoveryEmptyTitle => '暂无匹配行程';
+
+  @override
+  String get discoveryEmptySubtitle => '试试调整筛选条件或关键词。';
+
+  @override
+  String get discoveryEmptyAction => '清除筛选';
+
+  @override
+  String get discoveryAdvancedFilters => '更多筛选';
+
+  @override
+  String get discoveryApplyFilters => '应用';
+
+  @override
+  String get discoveryClearFilters => '清除';
+
+  @override
+  String get discoveryLoadMore => '加载更多';
+
+  @override
+  String get discoveryFrom => '起';
+
+  @override
+  String get discoveryFilterReset => '重置';
+
+  @override
+  String get discoveryFilterPriceRange => '价格区间';
+
+  @override
+  String get discoveryFilterDuration => '行程天数';
+
+  @override
+  String get discoveryFilterThemes => '主题';
+
+  @override
+  String get discoveryFilterGroupSize => '团队规模';
+
+  @override
+  String get discoveryFilterDepartureCity => '出发城市';
+
+  @override
+  String get discoveryFilterAccommodation => '住宿等级';
+
+  @override
+  String get discoveryFilterTransportation => '交通方式';
+
+  @override
+  String get discoveryFilterDuration1to3 => '1-3天';
+
+  @override
+  String get discoveryFilterDuration4to7 => '4-7天';
+
+  @override
+  String get discoveryFilterDuration8to14 => '8-14天';
+
+  @override
+  String get discoveryFilterDuration15Plus => '15天以上';
+
+  @override
+  String get discoveryFilterGroupSolo => '单人';
+
+  @override
+  String get discoveryFilterGroup2to4 => '2-4人';
+
+  @override
+  String get discoveryFilterGroup5to9 => '5-9人';
+
+  @override
+  String get discoveryFilterGroup10Plus => '10人以上';
+
+  @override
+  String get discoveryFilterAccomEconomy => '经济';
+
+  @override
+  String get discoveryFilterAccomComfort => '舒适';
+
+  @override
+  String get discoveryFilterAccomPremium => '高端';
+
+  @override
+  String get discoveryFilterAccomLuxury => '奢华';
+
+  @override
+  String get discoveryFilterTransportFlight => '飞机';
+
+  @override
+  String get discoveryFilterTransportTrain => '火车/高铁';
+
+  @override
+  String get discoveryFilterTransportBus => '大巴';
+
+  @override
+  String get discoveryFilterTransportSelfDrive => '自驾';
+
+  @override
+  String get discoveryFilterDepartureHint => '如：上海、北京';
+
+  @override
+  String get detailShare => '分享';
+
+  @override
+  String get detailBook => '立即预订';
+
+  @override
+  String get detailTabOverview => '概览';
+
+  @override
+  String get detailTabItinerary => '行程';
+
+  @override
+  String get detailTabCost => '费用';
+
+  @override
+  String get detailTabNotice => '须知';
+
+  @override
+  String get detailTabReviews => '评价';
+
+  @override
+  String get detailFrom => '起';
+
+  @override
+  String get detailPerPerson => '/人';
+
+  @override
+  String detailDay(Object n) {
+    return '第$n天';
+  }
+
+  @override
+  String get detailMealsIncluded => '餐食';
+
+  @override
+  String get detailHotel => '住宿';
+
+  @override
+  String get detailIncluded => '费用包含';
+
+  @override
+  String get detailExcluded => '费用不含';
+
+  @override
+  String get detailOptionalUpgrades => '可选升级';
+
+  @override
+  String get detailNoticeVisa => '签证';
+
+  @override
+  String get detailNoticeInsurance => '保险';
+
+  @override
+  String get detailNoticeCancellation => '取消政策';
+
+  @override
+  String get detailNoticeImportant => '重要提示';
+
+  @override
+  String get detailReviewsSummary => '评分概览';
+
+  @override
+  String detailReviewsCount(Object count) {
+    return '$count 条评价';
+  }
+
+  @override
+  String get detailOverviewSubtitle => '行程简介';
+
+  @override
+  String get detailNoItinerary => '暂无行程说明。';
+
+  @override
+  String get detailNoReviews => '暂无评价。';
+
+  @override
+  String get detailExperienceMoments => '体验瞬间';
+
+  @override
+  String get detailEmotionalHighlight => '当日亮点';
+
+  @override
+  String get detailPhotographyHighlights => '摄影推荐';
+
+  @override
+  String get detailLocalCulture => '当地文化';
+
+  @override
+  String get detailMapPreview => '路线示意';
+
+  @override
+  String get detailViewOnMap => '在地图中查看';
+
+  @override
+  String get trustCancellationGuarantee => '免费取消';
+
+  @override
+  String get trustSecurePayment => '安全支付';
+
+  @override
+  String get trustVerifiedLocalPartner => '认证本地商家';
+
+  @override
+  String get trustRealTravelerReview => '真实游客评价';
+
+  @override
+  String trustBookingsLast7Days(Object count) {
+    return '近7天有$count人预订';
+  }
+
+  @override
+  String trustLimitedStock(Object count) {
+    return '仅剩$count个名额';
+  }
+
+  @override
+  String get trustLimitedStockTitle => '名额紧张';
+
+  @override
+  String bookingStepOf(Object current, Object total) {
+    return '第$current步，共$total步';
+  }
+
+  @override
+  String get bookingSelectDate => '选择日期';
+
+  @override
+  String get bookingTravelers => '出行人信息';
+
+  @override
+  String get bookingAddOns => '附加服务';
+
+  @override
+  String get bookingReview => '确认订单';
+
+  @override
+  String get bookingPayment => '支付';
+
+  @override
+  String get bookingConfirmation => '预订成功';
+
+  @override
+  String get bookingNext => '下一步';
+
+  @override
+  String get bookingDuration => '行程';
+
+  @override
+  String get bookingTravelersCount => '出行人数';
+
+  @override
+  String get bookingBasePrice => '基础价格';
+
+  @override
+  String get bookingEstimatedTotal => '预估总价';
+
+  @override
+  String get bookingLowestPrice => '最低';
+
+  @override
+  String get bookingUnavailable => '—';
+
+  @override
+  String get bookingContactInfo => '联系信息';
+
+  @override
+  String get bookingTravelerList => '出行人列表';
+
+  @override
+  String get bookingPassportInfo => '护照（如需要）';
+
+  @override
+  String get bookingSpecialRequests => '特殊说明';
+
+  @override
+  String get bookingAddTraveler => '添加出行人';
+
+  @override
+  String get bookingProceedToPayment => '去支付';
+
+  @override
+  String get bookingPayNow => '立即支付';
+
+  @override
+  String get bookingSecurePayment => '安全支付';
+
+  @override
+  String get bookingOrderSummary => '订单摘要';
+
+  @override
+  String get bookingSuccessTitle => '预订成功';
+
+  @override
+  String get bookingViewOrder => '查看订单';
+
+  @override
+  String get bookingBackToHome => '返回首页';
+
+  @override
+  String get bookingShareTrip => '分享行程';
+
+  @override
+  String bookingOrderNumber(Object orderId) {
+    return '订单号：$orderId';
+  }
+
+  @override
+  String get bookingCreditCard => '信用卡';
+
+  @override
+  String get bookingTripInfo => '行程信息';
+
+  @override
+  String get membershipCenterTitle => '会员中心';
+
+  @override
+  String get membershipTierBasic => '基础';
+
+  @override
+  String get membershipTierSilver => '银卡';
+
+  @override
+  String get membershipTierGold => '金卡';
+
+  @override
+  String get membershipTierVip => 'VIP';
+
+  @override
+  String get membershipPointsBalance => '积分余额';
+
+  @override
+  String get membershipProgressToNext => '升级进度';
+
+  @override
+  String get membershipBenefits => '权益';
+
+  @override
+  String get membershipDiscount => '折扣';
+
+  @override
+  String get membershipEarlyBooking => '提前预订';
+
+  @override
+  String get membershipExclusivePackages => '专属套餐';
+
+  @override
+  String get membershipPrioritySupport => '优先客服';
+
+  @override
+  String get membershipExclusivePackagesSection => '专属套餐';
+
+  @override
+  String get membershipUsePoints => '使用积分';
+
+  @override
+  String membershipPointsOff(Object amount, Object points) {
+    return '$points 积分抵 ¥$amount';
+  }
+
+  @override
+  String get membershipPointsRedeemHint => '积分可抵现（100积分=¥10）';
 }

@@ -2,6 +2,8 @@
 
 基于中国旅行类商业 App 视觉逆向分析，抽象出的**统一、高级、可复用、可规模扩展**的设计语言。本系统高于参考截图水准，适用于全产品线。
 
+> **Implementation reference:** For concrete values (margins, padding, icons, colors, radii, shadows) as used in the app, see **[HOME_STYLE_REFERENCE.md](./HOME_STYLE_REFERENCE.md)**. New development should align with that document so all screens match the Home screen style.
+
 ---
 
 ## 1️⃣ 颜色系统
@@ -45,8 +47,15 @@
 
 ### 渐变规范
 - **品牌渐变**：`Primary Dark → Primary`，用于头部、主 CTA 按钮。
-- **页面背景渐变**：`#F0F9F4 → #E8F5EC → #F8F9FA`（三阶），用于全屏背景，保持与主色协调。
+- **页面背景渐变**：暖白三阶（见 `AppColors.gradientStart/Accent/End`），全屏背景不铺黄，保持层次。
 - **按钮渐变**：同品牌渐变，可选 90deg 或 180deg，增强立体感。
+
+### 主色与语义（实现：`AppColors`）
+- **主色**：**RGB(203, 235, 34)** `#CBEB22`，全应用统一（图标填充、底部导航选中、主按钮、品牌渐变）。
+- **浅底图标线条**：`iconOutlineOnLight`（深色 #1A1A1A），用于白底/亮底上的导航与图标轮廓，与主色搭配成「深线 + 亮体」。
+- **链接/次要 CTA**：`linkCta`（暖珊瑚）用于「查看全部」「更多」等，与主色区分。
+- **分区图标**：按含义区分——线路用 `accentWarm`/`tagGreen`，陪游用 `sectionCompanion`，种草用 `sectionSeed`，酒店/星级用 `accentGold`，信息用 `accentCool`。
+- **背景**：全局背景与渐变使用微主色 tint（`gradientStart/Accent/End`），`primaryPale` 用于选中态背景（如 nav 指示）。
 
 ---
 
@@ -121,19 +130,19 @@
 ## 4️⃣ 圆角系统
 
 ### 规范
-- 全产品圆角仅使用以下三档，禁止任意值（如 6、10、14）。
+- 全产品圆角 **最大 12–16dp**，仅使用以下档位。
 
 ### 小圆角（Small）
-- **值**：**4px**
-- **用途**：标签、Chip、输入框、小按钮、表格单元格
-
-### 中圆角（Medium）
 - **值**：**8px**
-- **用途**：卡片、列表项、图片缩略图、次级按钮、日期块
+- **用途**：标签、Chip、Badge、输入框、小按钮
 
-### 大圆角（Large）
+### 中/大圆角（Medium / Large）
 - **值**：**12px**
-- **用途**：主 CTA 按钮、弹窗容器、顶部 Sheet、搜索栏外框
+- **用途**：卡片、列表项、主 CTA 按钮、弹窗、搜索栏
+
+### Sheet 顶角
+- **值**：**16px**（仅顶部两角）
+- **用途**：Bottom Sheet、全屏 overlay 顶部
 
 ### 全圆角（Pill / Full）
 - **值**：**9999px** 或 **height/2**
@@ -157,27 +166,19 @@
 ## 5️⃣ 阴影系统
 
 ### 原则
-- 仅用三层：轻 / 中 / 重；颜色统一为带透明度的黑，不采用彩色阴影。
-- 阴影用于表达层级（卡片 > 背景，弹窗 > 卡片），不用于装饰。
+- 仅用轻 / 中两档；**无重阴影**，保持 premium 轻盈感。
+- 颜色统一为带透明度黑，不采用彩色阴影。
 
 ### 轻（Light）
 - **用途**：默认卡片、列表项、输入框聚焦
-- **参数**：单层，Y 2–4px，模糊 8–12px，透明度 4–6%
-- **示例**：`0 2px 8px rgba(0,0,0,0.06)`
+- **参数**：Y 1–2px，模糊 4–8px，透明度 4–6%
 
 ### 中（Medium）
-- **用途**：悬浮卡片、下拉菜单、主按钮、选中卡片
-- **参数**：单层或双层，Y 4–6px，模糊 12–16px，透明度 6–10%
-- **示例**：`0 4px 12px rgba(0,0,0,0.08)` 或叠加一层 `0 2px 4px rgba(0,0,0,0.04)`
-
-### 重（Heavy）
-- **用途**：弹窗、Bottom Sheet、固定底栏
-- **参数**：双层或三层，Y 8–16px，模糊 24–32px，透明度 8–12%
-- **示例**：`0 8px 24px rgba(0,0,0,0.12)` + `0 2px 8px rgba(0,0,0,0.06)`
+- **用途**：悬浮卡片、主按钮、选中态、弹窗/Sheet（仍克制）
+- **参数**：Y 2–6px，模糊 10–20px，透明度 6–8%
 
 ### 层级规则
-- 背景无阴影；卡片用 Light；悬浮/按下用 Medium；弹窗/Sheet 用 Heavy。
-- 同一层级内（如列表内所有卡片）只使用一种阴影强度。
+- 背景无阴影；卡片用 Light；悬浮/弹窗用 Medium。同一层级内只使用一种阴影强度。
 
 ---
 

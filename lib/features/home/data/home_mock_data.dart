@@ -134,7 +134,7 @@ final List<HomeAroundActivityItem> kHomeAroundActivities = [
     title: '春日露营节',
     date: '02.15',
     location: '丽江',
-    imageUrl: 'https://images.unsplash.com/photo-1470240731273-782f2868c530?w=600',
+    imageUrl: 'https://picsum.photos/seed/camp-spring/600/400',
     hot: true,
   ),
 ];

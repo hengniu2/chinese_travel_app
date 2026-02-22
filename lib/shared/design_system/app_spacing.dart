@@ -16,22 +16,26 @@ class AppSpacing {
   /// 页面级水平边距（内容区左右）
   static const double pageHorizontal = lg;
 
-  /// 区块间间距（模块标题与内容、卡片组之间）
-  static const double sectionGap = 24;
+  /// 区块间间距（模块标题与内容、卡片组之间）- 紧凑
+  static const double sectionGap = 16;
   /// 内容块间距（表单项、卡片内区块）
-  static const double contentBlockGap = 20;
+  static const double contentBlockGap = 12;
 
-  /// 页面内边距（常规列表/表单，商业密度）
+  /// 页面内边距（常规列表/表单）
   static EdgeInsets get paddingPage => const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 16,
       );
 
-  /// 卡片内边距
-  static EdgeInsets get paddingCard => const EdgeInsets.all(16);
+  /// 卡片内边距（标准 12–14）
+  static EdgeInsets get paddingCard => const EdgeInsets.all(14);
 
   /// 卡片内边距（紧凑）
   static EdgeInsets get paddingCardSm => const EdgeInsets.all(12);
+
+  /// 列表项间距（紧凑）
+  static const double itemSpacing = 8;
+  static const double itemSpacingTight = 6;
 
   /// 列表项间距（信息密度与可点区域平衡）
   static EdgeInsets get paddingListItem => const EdgeInsets.symmetric(

@@ -1,31 +1,39 @@
 import 'package:flutter/material.dart';
 
 /// 设计语言 · 颜色系统（中国主流商业旅行风）
-/// 主色 / 辅助色 / 功能色 / 灰阶 / 渐变
+/// 主色 / 辅助色 / 功能色 / 灰阶 / 渐变 · 黄调为主但比例克制，搭配多色以成层次
 class AppColors {
   AppColors._();
 
   // ─────────────────────────────────────────────────────────────────────────
-  // 主色（Primary）
+  // 主色（Primary）- RGB(203, 235, 34) #CBEB22，全应用统一（图标填充、导航选中、按钮）
   // ─────────────────────────────────────────────────────────────────────────
-  /// 主色 - 主按钮、选中态、链接、核心图标
-  static const Color primary = Color(0xFF2E9B54);
-  /// 主色浅 - 悬浮、浅底、次要强调（与品牌绿衔接）
-  static const Color primaryLight = Color(0xFF3DBE6C);
-  /// 主色深 - 按下态、深色背景上的主色
-  static const Color primaryDark = Color(0xFF24804A);
-  /// 主色极浅 - 标签背景、高亮区块、弱强调
-  static const Color primaryPale = Color(0xFFE8F5EC);
+  /// 主色 - 主按钮、选中态、底部导航选中、图标填充/body（亮色）
+  static const Color primary = Color(0xFFCBEB22);
+  /// 主色浅 - 渐变结束、悬浮、亮部
+  static const Color primaryLight = Color(0xFFD4EE4D);
+  /// 主色深 - 按下态、深色背景上的主色、渐变深端
+  static const Color primaryDark = Color(0xFFB0D01E);
+  /// 主色极浅 - 选中态背景（nav 指示、选中 chip）、弱强调底
+  static const Color primaryPale = Color(0xFFF5FCE0);
+  /// 浅底图标/导航：线条/边框用深色（白底或亮底上的轮廓）
+  static const Color iconOutlineOnLight = Color(0xFF1A1A1A);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // 辅助色（Accent）
+  // 辅助色（Accent）— 按含义区分，避免全用黄
   // ─────────────────────────────────────────────────────────────────────────
-  /// 暖辅助 - 促销、热门、TOP 标签、节日
-  static const Color accentWarm = Color(0xFFFF6B35);
+  /// 暖辅助 / 强调橙 - 促销、热门、线路/路线类图标、节日
+  static const Color accentWarm = Color(0xFFFF8A00);
   /// 冷辅助 - 信息、链接、部分分类图标
   static const Color accentCool = Color(0xFF1890FF);
-  /// 金色辅助 - 评分、星级、签到、权益
+  /// 金色辅助 - 评分、星级、酒店/亲子类图标、权益
   static const Color accentGold = Color(0xFFFAAD14);
+  /// 链接/次要 CTA（查看全部、更多）— 暖珊瑚，非黄
+  static const Color linkCta = Color(0xFFD84315);
+  /// 陪游/结伴区图标 — 暖琥珀，与主黄区分
+  static const Color sectionCompanion = Color(0xFFB8860B);
+  /// 种草/内容区图标 — 柔和绿，与主黄区分
+  static const Color sectionSeed = Color(0xFF558B2F);
 
   // ─────────────────────────────────────────────────────────────────────────
   // 功能色（Semantic）
@@ -44,10 +52,10 @@ class AppColors {
   // ─────────────────────────────────────────────────────────────────────────
   // 灰阶（Neutral）- 商业级对比度，符合 WCAG AA
   // ─────────────────────────────────────────────────────────────────────────
-  /// 主标题、正文主色（#1A1A1A，白底对比度 >12:1）
-  static const Color textPrimary = Color(0xFF1A1A1A);
-  /// 副标题、次要信息（#525252，白底约 8:1，层次清晰）
-  static const Color textSecondary = Color(0xFF525252);
+  /// 主标题、正文主色
+  static const Color textPrimary = Color(0xFF2B2B2B);
+  /// 副标题、次要信息
+  static const Color textSecondary = Color(0xFF666666);
   /// 辅助说明、占位符（#737373，白底约 4.6:1）
   static const Color textTertiary = Color(0xFF737373);
   /// 禁用、不可点击
@@ -58,18 +66,18 @@ class AppColors {
   /// 内部分割
   static const Color divider = Color(0xFFEEEEEE);
   /// 页面基底、次级背景
-  static const Color surface = Color(0xFFF5F7FA);
-  /// 全局背景
-  static const Color background = Color(0xFFFAFBFC);
+  static const Color surface = Color(0xFFF5F5F5);
+  /// 全局背景（微主色 tint，与 primary 协调）
+  static const Color background = Color(0xFFFAFCF5);
   /// 卡片、弹窗、输入区
   static const Color card = Color(0xFFFFFFFF);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // 渐变用色（页面背景三阶）
+  // 渐变用色（页面背景 - 微主色 tint）
   // ─────────────────────────────────────────────────────────────────────────
-  static const Color gradientStart = Color(0xFFF0F9F4);
-  static const Color gradientAccent = Color(0xFFE8F5EC);
-  static const Color gradientEnd = Color(0xFFF8F9FA);
+  static const Color gradientStart = Color(0xFFFAFCF5);
+  static const Color gradientAccent = Color(0xFFF7FCE8);
+  static const Color gradientEnd = Color(0xFFFBFDF6);
 
   // ─────────────────────────────────────────────────────────────────────────
   // 商业化 / Home Hero（暖色参考，可与主色并存）
@@ -84,8 +92,8 @@ class AppColors {
   static const Color surfaceWarmWhite = Color(0xFFFFFBF7);
   /// 强调红（热门标签、强 CTA）
   static const Color accentRed = Color(0xFFE84855);
-  /// 标签绿（活动/成团等）
-  static const Color tagGreen = Color(0xFF2E9B54);
+  /// 标签主色（活动/成团/线路类）- 暖橙，与 primary 区分
+  static const Color tagGreen = Color(0xFFFF8A00);
 
   // ─────────────────────────────────────────────────────────────────────────
   // 首页 · 中国卡通商业风分区色（高饱和、节日感）
@@ -110,10 +118,28 @@ class AppColors {
   static const Color homeChipRed = Color(0xFFE53935);
 
   // ─────────────────────────────────────────────────────────────────────────
+  // 深色模式（Dark mode）- 深灰底 + 暖黄强调，无刺眼霓虹
+  // ─────────────────────────────────────────────────────────────────────────
+  /// 深色模式 - 背景
+  static const Color darkBackground = Color(0xFF121212);
+  /// 深色模式 - 卡片 / 表面
+  static const Color darkCard = Color(0xFF1E1E1E);
+  /// 深色模式 - 主文字
+  static const Color darkTextPrimary = Color(0xFFFFFFFF);
+  /// 深色模式 - 次要文字
+  static const Color darkTextSecondary = Color(0xFFBBBBBB);
+  /// 深色模式 - 暖黄强调（柔和，非霓虹）
+  static const Color darkPrimary = Color(0xFFFFC107);
+  /// 深色模式 - 暖黄上的文字（深色以保证对比）
+  static const Color darkOnPrimary = Color(0xFF1A1A1A);
+  /// 深色模式 - 边框 / 分割
+  static const Color darkBorder = Color(0xFF2C2C2C);
+
+  // ─────────────────────────────────────────────────────────────────────────
   // 兼容旧命名（逐步迁移后可移除）
   // ─────────────────────────────────────────────────────────────────────────
   static const Color backgroundCard = card;
   static const Color textHint = textTertiary;
-  static const Color primaryLight2 = Color(0xFFC8E6D3);
+  static const Color primaryLight2 = Color(0xFFE0F5A8);
   static const Color tagHot = accentWarm;
 }

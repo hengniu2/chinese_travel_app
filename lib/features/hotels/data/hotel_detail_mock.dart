@@ -12,6 +12,14 @@ final Map<String, HotelDetail> _mockDetails = {
     address: '云南省丽江市古城区束河街道悦榕路',
     score: 4.9,
     tags: ['温泉', '接站', '亲子'],
+    tagBadge: '高端',
+    imageUrls: [
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
+      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800',
+      'https://images.unsplash.com/photo-1578681994506-b8f463449011?w=800',
+    ],
+    policyCheckInOut: '入住时间: 12:00以后 · 离店时间: 14:00以前',
+    policyReception: '接待来自任何国家/地区的客人',
     rooms: [
       RoomType(
         id: 'r1',
@@ -21,6 +29,13 @@ final Map<String, HotelDetail> _mockDetails = {
         bedInfo: '1张大床',
         area: '88㎡',
         breakfast: '双早',
+        featuresSummary: '88平米 | 1张大床 | 可住2人',
+        pricePlans: [
+          RoomPricePlan(label: '无早餐', price: 2480),
+          RoomPricePlan(label: '双早', price: 2680),
+          RoomPricePlan(label: '免费取消'),
+          RoomPricePlan(label: '不可取消', price: 2480),
+        ],
       ),
       RoomType(
         id: 'r2',
@@ -31,6 +46,13 @@ final Map<String, HotelDetail> _mockDetails = {
         area: '120㎡',
         remainingCount: 3,
         breakfast: '双早',
+        featuresSummary: '120平米 | 1张大床 | 可住2人',
+        pricePlans: [
+          RoomPricePlan(label: '无早餐', price: 3480),
+          RoomPricePlan(label: '双早', price: 3680),
+          RoomPricePlan(label: '免费取消'),
+          RoomPricePlan(label: '不可取消', price: 3380),
+        ],
       ),
       RoomType(
         id: 'r3',
@@ -40,6 +62,11 @@ final Map<String, HotelDetail> _mockDetails = {
         bedInfo: '2张单人床',
         area: '45㎡',
         breakfast: '双早',
+        featuresSummary: '45平米 | 2张单人床 | 可住2人',
+        pricePlans: [
+          RoomPricePlan(label: '无早餐', price: 1680),
+          RoomPricePlan(label: '双早', price: 1880),
+        ],
       ),
     ],
     cancellationPolicy: '入住前1天18:00前免费取消；入住前1天18:00至入住当日12:00取消收取首晚房费50%；入住当日12:00后或未入住不予退款。',
@@ -85,6 +112,13 @@ final Map<String, HotelDetail> _mockDetails = {
     address: '云南省丽江市宁蒗县泸沽湖里格村',
     score: 4.7,
     tags: ['湖景', '早餐'],
+    tagBadge: '热门',
+    imageUrls: [
+      'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800',
+      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800',
+    ],
+    policyCheckInOut: '入住时间: 14:00以后 · 离店时间: 12:00以前',
+    policyReception: '接待来自任何国家/地区的客人',
     rooms: [
       RoomType(
         id: 'r1',
@@ -94,6 +128,12 @@ final Map<String, HotelDetail> _mockDetails = {
         bedInfo: '1张大床',
         area: '35㎡',
         breakfast: '双早',
+        featuresSummary: '35平米 | 1张大床 | 可住2人',
+        pricePlans: [
+          RoomPricePlan(label: '无早餐', price: 620),
+          RoomPricePlan(label: '双早', price: 680),
+          RoomPricePlan(label: '免费取消'),
+        ],
       ),
       RoomType(
         id: 'r2',
@@ -104,6 +144,12 @@ final Map<String, HotelDetail> _mockDetails = {
         area: '50㎡',
         remainingCount: 2,
         breakfast: '三早',
+        featuresSummary: '50平米 | 1大1小床 | 可住3人',
+        pricePlans: [
+          RoomPricePlan(label: '无早餐', price: 900),
+          RoomPricePlan(label: '三早', price: 980),
+          RoomPricePlan(label: '免费取消'),
+        ],
       ),
     ],
     cancellationPolicy: '入住前2天18:00前免费取消；之后取消收取首晚房费。',

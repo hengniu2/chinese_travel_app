@@ -1,3 +1,10 @@
+/// 酒店标签类型：舒适 / 高端 / 热门
+enum HotelTagBadge {
+  comfort,  // 舒适
+  premium, // 高端
+  hot,     // 热门
+}
+
 /// 酒店列表项
 class HotelItem {
   const HotelItem({
@@ -9,6 +16,17 @@ class HotelItem {
     this.address,
     this.tags = const [],
     this.score,
+    this.tagBadge,
+    this.features = const [],
+    this.discountAmount,
+    /// 距离（公里），用于对比页
+    this.distanceKm,
+    /// 取消政策摘要，用于对比页
+    this.cancellationSummary,
+    /// 纬度（地图展示）
+    this.latitude,
+    /// 经度（地图展示）
+    this.longitude,
   });
 
   final String id;
@@ -21,6 +39,20 @@ class HotelItem {
   final List<String> tags;
   /// 用户评分 0-5
   final double? score;
+  /// 小标签：舒适 / 高端 / 热门
+  final HotelTagBadge? tagBadge;
+  /// 设施/服务：免费wifi、免费停车、早餐 等
+  final List<String> features;
+  /// 已减金额（元），用于显示「已减XX」角标
+  final int? discountAmount;
+  /// 距离市中心/景点公里数（对比用）
+  final double? distanceKm;
+  /// 取消政策摘要（对比用）
+  final String? cancellationSummary;
+  /// 纬度
+  final double? latitude;
+  /// 经度
+  final double? longitude;
 }
 
 /// 酒店排序方式

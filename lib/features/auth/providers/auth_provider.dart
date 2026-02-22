@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/auth_repository.dart';
@@ -111,10 +112,13 @@ class AuthNotifier extends Notifier<AuthState> {
 final authProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
 
 /// 用于 GoRouter 的 refreshListenable：auth 变化时触发 redirect 重新计算
+/// 延迟到下一帧再通知，避免在 build 中刷新导致 _elements.contains(element) 断言失败
 final authRefreshListenableProvider = Provider<Listenable>((ref) {
   final notifier = ValueNotifier(0);
   ref.listen(authProvider, (previous, next) {
-    notifier.value++;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifier.value++;
+    });
   });
   return notifier;
 });

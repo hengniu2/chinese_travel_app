@@ -29,7 +29,7 @@ class _BubbleRadius {
       );
 }
 
-/// 单条消息气泡（文本 / 图片 / 订单卡片），含头像、时间
+/// 单条消息气泡（文本 / 图片 / 订单卡片），含头像、时间；文本可长按复制
 class ChatMessageBubble extends StatelessWidget {
   const ChatMessageBubble({
     super.key,
@@ -37,6 +37,7 @@ class ChatMessageBubble extends StatelessWidget {
     this.partnerAvatarUrl,
     this.showAvatar = true,
     this.onOrderCardTap,
+    this.onLongPress,
   });
 
   final ChatMessage message;
@@ -44,6 +45,8 @@ class ChatMessageBubble extends StatelessWidget {
   /// 是否显示对方头像（仅对来自对方的消息有效）
   final bool showAvatar;
   final VoidCallback? onOrderCardTap;
+  /// 长按回调（用于文本消息复制等）
+  final VoidCallback? onLongPress;
 
   static String _formatTime(DateTime t) {
     return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
@@ -120,9 +123,9 @@ class ChatMessageBubble extends StatelessWidget {
 
   Widget _textBubble() {
     final isFromMe = message.isFromMe;
-    final bg = isFromMe ? const Color(0xFF95EC69) : Colors.white;
-    final fg = isFromMe ? AppColors.textPrimary : AppColors.textPrimary;
-    return Container(
+    final bg = isFromMe ? const Color(0xFF95EC69) : AppColors.card;
+    final fg = AppColors.textPrimary;
+    final bubble = Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
       decoration: BoxDecoration(
         color: bg,
@@ -139,6 +142,11 @@ class ChatMessageBubble extends StatelessWidget {
         message.text ?? '',
         style: AppTextStyles.bodyMedium.copyWith(color: fg, height: 1.4),
       ),
+    );
+    if (onLongPress == null) return bubble;
+    return GestureDetector(
+      onLongPress: onLongPress,
+      child: bubble,
     );
   }
 
@@ -192,16 +200,10 @@ class ChatMessageBubble extends StatelessWidget {
         child: Container(
           width: 272.w,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.card,
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(color: AppColors.border),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                offset: const Offset(0, 2),
-                blurRadius: 8,
-              ),
-            ],
+            boxShadow: AppShadow.cardElevated,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -297,6 +299,32 @@ class ChatMessageBubble extends StatelessWidget {
                         ),
                       ],
                     ),
+                    if (onOrderCardTap != null) ...[
+                      SizedBox(height: 12.h),
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(vertical: 8.h),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.visibility_rounded, size: 16.sp, color: AppColors.primary),
+                            SizedBox(width: 6.w),
+                            Text(
+                              l10n?.chatViewDetail ?? '查看详情',
+                              style: AppTextStyles.label.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

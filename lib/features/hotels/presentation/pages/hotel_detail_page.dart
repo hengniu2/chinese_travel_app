@@ -1,301 +1,426 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
-import '../../data/hotel_detail_mock.dart';
+import '../../data/hotel_bundle_mock.dart';
 import '../../domain/hotel_detail.dart';
+import '../../providers/hotel_providers.dart';
+import '../widgets/hotel_bundle_card.dart';
+import '../widgets/hotel_detail_banner.dart';
+import '../widgets/hotel_detail_booking_bar.dart';
+import '../widgets/hotel_favorite_button.dart';
+import '../widgets/hotel_detail_date_bar.dart';
+import '../widgets/hotel_detail_facilities_grid.dart';
+import '../widgets/hotel_detail_info_card.dart';
+import '../widgets/hotel_detail_policy_section.dart';
+import '../widgets/hotel_detail_room_card.dart';
+import '../widgets/hotel_ui_constants.dart';
 
-/// 酒店详情页：房型列表、库存状态、取消政策、设施、评价
-class HotelDetailPage extends StatefulWidget {
+/// 酒店详情页：数据来自 Riverpod，日期选择、收藏、分享、地图
+class HotelDetailPage extends ConsumerStatefulWidget {
   const HotelDetailPage({super.key, required this.id});
 
   final String id;
 
   @override
-  State<HotelDetailPage> createState() => _HotelDetailPageState();
+  ConsumerState<HotelDetailPage> createState() => _HotelDetailPageState();
 }
 
-class _HotelDetailPageState extends State<HotelDetailPage> {
-  late HotelDetail _detail;
-
+class _HotelDetailPageState extends ConsumerState<HotelDetailPage> {
   @override
   void initState() {
     super.initState();
-    _detail = getHotelDetail(widget.id);
+    final range = ref.read(hotelSelectedDatesProvider);
+    if (range == null) {
+      final now = DateTime.now();
+      ref.read(hotelSelectedDatesProvider.notifier).state = DateTimeRange(start: now, end: now.add(const Duration(days: 1)));
+    }
+  }
+
+  void _onShare(HotelDetail detail) {
+    final link = 'https://app.example.com/hotels/${detail.id}';
+    // Copy to clipboard (Flutter: Clipboard.setData)
+    Clipboard.setData(ClipboardData(text: link));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: const Text('链接已复制'), behavior: SnackBarBehavior.floating),
+      );
+    }
+  }
+
+  Future<void> _onMapTap(String address) async {
+    final encoded = Uri.encodeComponent(address);
+    final url = Uri.parse('https://maps.google.com/?q=$encoded');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  List<Widget> _buildBundleSection(
+    BuildContext context,
+    String hotelId,
+    ThemeData theme,
+    AppLocalizations? l10n,
+  ) {
+    final bundles = getBundlesForHotel(hotelId);
+    if (bundles.isEmpty) return [];
+    return [
+      SliverToBoxAdapter(child: SizedBox(height: HotelUIConstants.grid3.h)),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: HotelUIConstants.grid2.w),
+          child: Text(
+            l10n?.hotelBundleSectionTitle ?? '超值套餐推荐',
+            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+      ),
+      SliverToBoxAdapter(child: SizedBox(height: HotelUIConstants.grid2.h)),
+      ...bundles.map(
+        (b) => SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: HotelUIConstants.grid2.w,
+              right: HotelUIConstants.grid2.w,
+              bottom: HotelUIConstants.grid2.h,
+            ),
+            child: HotelBundleCard(
+              bundle: b,
+              onBookBundle: () => context.push('/hotels/$hotelId/order?bundleId=${b.id}'),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  Future<void> _openDatePicker() async {
+    final range = ref.read(hotelSelectedDatesProvider) ?? DateTimeRange(start: DateTime.now(), end: DateTime.now().add(const Duration(days: 1)));
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+      initialDateRange: range,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(primary: AppColors.primary),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && mounted) {
+      ref.read(hotelSelectedDatesProvider.notifier).state = picked;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(_detail.name, overflow: TextOverflow.ellipsis, maxLines: 1),
-        backgroundColor: AppColors.backgroundCard,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => context.pop(),
-        ),
-        actions: [
-          IconButton(icon: const Icon(Icons.share_outlined), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.more_horiz_rounded), onPressed: () {}),
-        ],
-      ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(child: _buildHeader()),
-          SliverToBoxAdapter(child: _buildSection('房型列表', _buildRooms())),
-          SliverToBoxAdapter(child: _buildSection('取消政策', _buildPolicy())),
-          SliverToBoxAdapter(child: _buildSection('设施', _buildFacilities())),
-          SliverToBoxAdapter(child: _buildSection('评价', _buildReviews())),
-          SliverToBoxAdapter(child: SizedBox(height: 100.h)),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomBar(context),
-    );
-  }
+    final detailAsync = ref.watch(hotelDetailProvider(widget.id));
+    final dates = ref.watch(hotelSelectedDatesProvider);
+    final favorites = ref.watch(hotelFavoritesProvider);
+    final isFavorite = favorites.contains(widget.id);
+    final l10n = AppLocalizations.of(context);
 
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(AppSpacing.lg.w),
-      color: AppColors.backgroundCard,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return detailAsync.when(
+      data: (detail) {
+        if (detail == null) {
+          final theme = Theme.of(context);
+          return Scaffold(
+            body: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    theme.colorScheme.primary.withValues(alpha: 0.06),
+                    theme.colorScheme.surface,
+                  ],
+                ),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.hotel_rounded, size: 64, color: theme.colorScheme.onSurfaceVariant),
+                    SizedBox(height: HotelUIConstants.grid3.h),
+                    Text(
+                      l10n?.hotelNoRooms ?? '暂无可订房型',
+                      style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                    SizedBox(height: HotelUIConstants.grid3.h),
+                    TextButton(
+                      onPressed: () => context.pop(),
+                      child: Text(l10n?.commonRetry ?? '返回'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        final checkIn = dates?.start ?? DateTime.now();
+        final checkOut = dates?.end ?? checkIn.add(const Duration(days: 1));
+        final lowestPrice = detail.rooms.isEmpty ? 0.0 : detail.rooms.map((r) => r.price).reduce((a, b) => a < b ? a : b);
+
+        final theme = Theme.of(context);
+        final isTablet = HotelUIConstants.isTablet(context);
+        final bannerHeight = isTablet ? 320.0 : 280.0;
+
+        return Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  theme.colorScheme.primary.withValues(alpha: 0.04),
+                  theme.colorScheme.surface,
+                ],
+                stops: const [0.0, 0.25],
+              ),
+            ),
+            child: Stack(
             children: [
-              ...List.generate(_detail.star, (_) => Icon(Icons.star_rounded, size: 18.sp, color: AppColors.warning)),
-              if (_detail.score != null) ...[
-                SizedBox(width: 8.w),
-                Text('${_detail.score}', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                Text('分', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary)),
-              ],
+              CustomScrollView(
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: bannerHeight,
+                    pinned: true,
+                    stretch: true,
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      onPressed: () => context.pop(),
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.share_rounded),
+                        onPressed: () => _onShare(detail),
+                      ),
+                      HotelFavoriteButton(
+                        isFavorite: isFavorite,
+                        onToggle: () => ref.read(hotelFavoritesProvider.notifier).toggle(widget.id),
+                      ),
+                    ],
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: HotelDetailBanner(
+                        detail: detail,
+                        height: bannerHeight,
+                        cornerRadius: 24,
+                        isFavorite: isFavorite,
+                        showOverlayButtons: false,
+                        onShareTap: () => _onShare(detail),
+                        onFavoriteTap: () => ref.read(hotelFavoritesProvider.notifier).toggle(widget.id),
+                      ),
+                      stretchModes: const [StretchMode.zoomBackground],
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Transform.translate(
+                      offset: const Offset(0, -24),
+                      child: HotelDetailInfoCard(
+                        detail: detail,
+                        onMapTap: () => _onMapTap(detail.address),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: HotelUIConstants.grid3.h)),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: HotelUIConstants.grid2.w),
+                      child: HotelDetailDateBar(
+                        checkIn: checkIn,
+                        checkOut: checkOut,
+                        onTap: _openDatePicker,
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: HotelUIConstants.grid3.h)),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: HotelUIConstants.grid2.w),
+                      child: Text(
+                        '房型列表',
+                        style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: HotelUIConstants.grid2.h)),
+                  if (detail.rooms.isEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: HotelUIConstants.grid2.w),
+                        child: CartoonEmptyState(
+                          type: CartoonEmptyType.noRooms,
+                          message: l10n?.emptyStateNoRooms ?? '暂无可用房型，换个日期试试吧～',
+                          onRetry: () => ref.invalidate(hotelDetailProvider(widget.id)),
+                          retryLabel: l10n?.commonRetry ?? '重试',
+                        ),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: EdgeInsets.symmetric(horizontal: HotelUIConstants.grid2.w),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (_, i) => RepaintBoundary(
+                            child: Padding(
+                              padding: EdgeInsets.only(bottom: HotelUIConstants.grid2.h),
+                              child: HotelDetailRoomCard(
+                                key: ValueKey('${detail.id}_room_$i'),
+                                room: detail.rooms[i],
+                                hotelId: detail.id,
+                                roomIndex: i,
+                              ),
+                            ),
+                          ),
+                          childCount: detail.rooms.length,
+                          addAutomaticKeepAlives: true,
+                          addRepaintBoundaries: true,
+                        ),
+                      ),
+                    ),
+                  ..._buildBundleSection(context, detail.id, theme, l10n),
+                  SliverToBoxAdapter(child: SizedBox(height: HotelUIConstants.grid4.h)),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: HotelUIConstants.grid2.w),
+                      child: HotelDetailPolicySection(detail: detail),
+                    ),
+                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: HotelUIConstants.grid3.h)),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: HotelUIConstants.grid2.w),
+                      child: HotelDetailFacilitiesGrid(facilities: detail.facilities),
+                    ),
+                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: 120.h)),
+                ],
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: _AnimatedBookingBar(
+                  visible: true,
+                  child: HotelDetailBookingBar(
+                    lowestPrice: lowestPrice,
+                    hotelId: detail.id,
+                    buttonLabel: l10n?.hotelViewRoomTypes ?? '查看房型',
+                    onTap: () => context.push('/hotels/${detail.id}/order'),
+                  ),
+                ),
+              ),
             ],
           ),
-          SizedBox(height: 8.h),
-          Text(_detail.address, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
-          if (_detail.tags.isNotEmpty) ...[
-            SizedBox(height: 10.h),
-            Wrap(
-              spacing: 8.w,
-              runSpacing: 4.h,
-              children: _detail.tags.map((t) => AppTag(label: t, style: AppTagStyle.primaryLight)).toList(),
+        ),
+        );
+      },
+      loading: () {
+        final theme = Theme.of(context);
+        return Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  theme.colorScheme.primary.withValues(alpha: 0.04),
+                  theme.colorScheme.surface,
+                ],
+              ),
             ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSection(String title, Widget child) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(AppSpacing.lg.w, AppSpacing.xxl.h, AppSpacing.lg.w, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: AppTextStyles.headlineSmall),
-          SizedBox(height: 12.h),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRooms() {
-    return Column(
-      children: List.generate(_detail.rooms.length, (index) {
-        final r = _detail.rooms[index];
-        return Padding(
-          padding: EdgeInsets.only(bottom: 12.h),
-          child: AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(r.name, style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w600)),
-                    ),
-                    _stockChip(r.stockStatus, r.remainingCount),
-                  ],
-                ),
-                if (r.bedInfo != null || r.area != null) ...[
-                  SizedBox(height: 8.h),
-                  Row(
-                    children: [
-                      if (r.bedInfo != null) Text(r.bedInfo!, style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
-                      if (r.bedInfo != null && r.area != null) Text(' · ', style: AppTextStyles.bodySmall),
-                      if (r.area != null) Text(r.area!, style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
-                      if (r.breakfast != null) ...[
-                        Text(' · ${r.breakfast!}', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary)),
-                      ],
-                    ],
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.primary),
+                  ),
+                  SizedBox(height: HotelUIConstants.grid3.h),
+                  Text(
+                    l10n?.commonLoading ?? '加载中...',
+                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ],
-                SizedBox(height: 12.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Row(
-                      children: [
-                        Text('¥', style: AppTextStyles.priceSmall.copyWith(fontSize: 14.sp)),
-                        Text(r.price.toStringAsFixed(0), style: AppTextStyles.price.copyWith(fontSize: 20.sp)),
-                        Text(' 起', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary)),
-                      ],
-                    ),
-                    if (r.stockStatus != RoomStockStatus.soldOut)
-                      TextButton(
-                        onPressed: () => context.push('/hotels/${_detail.id}/order?roomIndex=$index'),
-                        child: const Text('预订'),
-                      ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
         );
-      }),
-    );
-  }
-
-  Widget _stockChip(RoomStockStatus status, int? remaining) {
-    String label;
-    Color bg;
-    Color fg;
-    switch (status) {
-      case RoomStockStatus.available:
-        label = '可订';
-        bg = AppColors.primaryLight;
-        fg = AppColors.primary;
-        break;
-      case RoomStockStatus.limited:
-        label = remaining != null ? '仅剩$remaining间' : '紧张';
-        bg = AppColors.warning.withValues(alpha: 0.15);
-        fg = AppColors.warning;
-        break;
-      case RoomStockStatus.soldOut:
-        label = '售罄';
-        bg = AppColors.surface;
-        fg = AppColors.textTertiary;
-        break;
-    }
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: AppRadius.smRadius,
-      ),
-      child: Text(label, style: AppTextStyles.label.copyWith(color: fg, fontSize: 12.sp)),
-    );
-  }
-
-  Widget _buildPolicy() {
-    return AppCard(
-      child: Text(
-        _detail.cancellationPolicy,
-        style: AppTextStyles.bodyMedium.copyWith(height: 1.6, color: AppColors.textSecondary),
-      ),
-    );
-  }
-
-  Widget _buildFacilities() {
-    return AppCard(
-      child: Wrap(
-        spacing: 12.w,
-        runSpacing: 12.h,
-        children: _detail.facilities.map((f) => Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.check_circle_outline_rounded, size: 18.sp, color: AppColors.primary),
-            SizedBox(width: 6.w),
-            Text(f, style: AppTextStyles.bodyMedium),
-          ],
-        )).toList(),
-      ),
-    );
-  }
-
-  Widget _buildReviews() {
-    return Column(
-      children: _detail.reviews.map((r) => Padding(
-        padding: EdgeInsets.only(bottom: 12.h),
-        child: AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+      },
+      error: (err, _) {
+        final theme = Theme.of(context);
+        return Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  theme.colorScheme.primary.withValues(alpha: 0.04),
+                  theme.colorScheme.surface,
+                ],
+              ),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircleAvatar(
-                    radius: 18.r,
-                    backgroundColor: AppColors.surface,
-                    child: Icon(Icons.person, size: 20.sp, color: AppColors.textTertiary),
-                  ),
-                  SizedBox(width: 10.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(r.userName, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
-                        Row(
-                          children: [
-                            ...List.generate(5, (i) => Icon(
-                                  i < r.rating.toInt() ? Icons.star_rounded : Icons.star_border_rounded,
-                                  size: 14.sp,
-                                  color: AppColors.warning,
-                                )),
-                            SizedBox(width: 8.w),
-                            Text(r.date, style: AppTextStyles.label),
-                            if (r.roomName != null) ...[
-                              SizedBox(width: 8.w),
-                              Text(r.roomName!, style: AppTextStyles.label.copyWith(color: AppColors.textTertiary)),
-                            ],
-                          ],
-                        ),
-                      ],
+                  Icon(Icons.error_outline_rounded, size: 64, color: theme.colorScheme.onSurfaceVariant),
+                  SizedBox(height: HotelUIConstants.grid3.h),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: HotelUIConstants.grid4.w),
+                    child: Text(
+                      l10n?.paymentFailedHint ?? '加载失败，请重试',
+                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      textAlign: TextAlign.center,
                     ),
+                  ),
+                  SizedBox(height: HotelUIConstants.grid3.h),
+                  TextButton(
+                    onPressed: () => ref.invalidate(hotelDetailProvider(widget.id)),
+                    child: Text(l10n?.commonRetry ?? '重试'),
                   ),
                 ],
               ),
-              SizedBox(height: 10.h),
-              Text(r.content, style: AppTextStyles.bodyMedium.copyWith(height: 1.5)),
-            ],
+            ),
           ),
-        ),
-      )).toList(),
+        );
+      },
     );
   }
+}
 
-  Widget _buildBottomBar(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final prices = _detail.rooms.map((r) => r.price).toList();
-    final minPrice = prices.isEmpty ? 0.0 : prices.reduce((a, b) => a < b ? a : b);
-    return Container(
-      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 12.h + MediaQuery.of(context).padding.bottom),
-      decoration: BoxDecoration(color: AppColors.backgroundCard, boxShadow: AppShadow.light),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: [
-            Text('¥${minPrice.toStringAsFixed(0)}', style: AppTextStyles.price.copyWith(fontSize: 20.sp)),
-            Text(' 起', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary)),
-            const Spacer(),
-            SizedBox(
-              width: 120.w,
-              child: AppButton(
-                label: l10n?.hotelBook ?? '预订',
-                onPressed: () => context.push('/hotels/${_detail.id}/order'),
-                minHeight: 44,
-                expand: true,
-              ),
-            ),
-          ],
-        ),
+class _AnimatedBookingBar extends StatelessWidget {
+  const _AnimatedBookingBar({required this.visible, required this.child});
+
+  final bool visible;
+  final Widget child;
+
+  static const _duration = Duration(milliseconds: 300);
+  static const _curve = Curves.easeInOut;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSlide(
+      offset: visible ? Offset.zero : const Offset(0, 1),
+      duration: _duration,
+      curve: _curve,
+      child: AnimatedOpacity(
+        opacity: visible ? 1 : 0,
+        duration: _duration,
+        child: child,
       ),
     );
   }

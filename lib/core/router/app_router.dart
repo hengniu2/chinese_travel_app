@@ -15,6 +15,17 @@ import '../../features/companions/presentation/pages/companion_order_page.dart';
 import '../../features/companions/presentation/pages/companions_shell_page.dart';
 import '../../features/content/presentation/pages/content_shell_page.dart';
 import '../../features/content/presentation/pages/forum_article_page.dart';
+import '../../features/travel/booking/booking_addons_page.dart';
+import '../../features/travel/booking/booking_confirmation_page.dart';
+import '../../features/travel/booking/booking_payment_page.dart';
+import '../../features/travel/booking/booking_review_page.dart';
+import '../../features/travel/booking/booking_select_date_page.dart';
+import '../../features/travel/booking/booking_travelers_page.dart';
+import '../../features/travel/detail/travel_detail_page.dart';
+import '../../features/travel/discovery/travel_discovery_page.dart';
+import '../../features/travel/landing/travel_landing_page.dart';
+import '../../features/travel/planner/planner_result_page.dart';
+import '../../features/travel/planner/travel_planner_page.dart';
 import '../../features/home/presentation/pages/activity_detail_page.dart';
 import '../../features/home/presentation/pages/blog_detail_page.dart';
 import '../../features/home/presentation/pages/card_gift_page.dart';
@@ -28,17 +39,41 @@ import '../../features/home/presentation/pages/surrounding_activities_page.dart'
 import '../../features/home/presentation/pages/seed_list_page.dart';
 import '../../features/home/presentation/pages/child_activity_list_page.dart';
 import '../../features/home/presentation/pages/nearby_activity_list_page.dart';
-import '../../features/hotels/presentation/pages/hotel_detail_page.dart';
-import '../../features/hotels/presentation/pages/hotel_order_page.dart';
-import '../../features/hotels/presentation/pages/hotels_shell_page.dart';
+import '../../features/hotel/pages/hotel_detail_page.dart';
+import '../../features/hotel/pages/hotel_shell_page.dart';
+import '../../features/hotels/presentation/pages/hotel_booking_confirm_page.dart';
+import '../../features/hotels/presentation/pages/hotel_booking_guest_page.dart';
+import '../../features/hotels/presentation/pages/hotel_booking_payment_page.dart';
+import '../../features/hotels/presentation/pages/hotel_booking_success_page.dart';
+import '../../features/hotels/presentation/pages/hotel_compare_page.dart';
+import '../../features/hotels/presentation/pages/hotel_map_page.dart';
 import '../../features/orders/presentation/pages/order_detail_page.dart';
 import '../../features/orders/presentation/pages/orders_shell_page.dart';
 import '../../features/orders/presentation/pages/payment_page.dart';
 import '../../features/profile/presentation/pages/profile_shell_page.dart';
 import '../../features/profile/presentation/pages/real_name_verify_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_addresses_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_clear_cache_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_coupons_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_course_orders_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_data_stats_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_feedback_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_flight_orders_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_flights_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_frequent_travelers_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_hotel_orders_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_hotels_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_invoice_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_invite_friends_page.dart';
+import '../../features/profile/presentation/pages/sub/membership_center_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_my_friends_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_prizes_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_referrer_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_travel_collection_page.dart';
 import '../../features/tours/presentation/pages/tour_detail_page.dart';
 import '../../features/tours/presentation/pages/tour_order_page.dart';
 import '../../features/tours/presentation/pages/tours_list_page.dart';
+import '../../features/travel_service/presentation/pages/travel_service_page.dart';
 import '../../shared/widgets/app_error_page.dart';
 import '../../shared/widgets/app_network_error_page.dart';
 import 'app_shell.dart';
@@ -55,6 +90,13 @@ class RouteNames {
 }
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+
+// Unique keys per shell branch to avoid HeroControllerScope key reservation conflicts.
+final GlobalKey<NavigatorState> _shellHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
+final GlobalKey<NavigatorState> _shellJoinUsKey = GlobalKey<NavigatorState>(debugLabel: 'shellJoinUs');
+final GlobalKey<NavigatorState> _shellPlannerKey = GlobalKey<NavigatorState>(debugLabel: 'shellPlanner');
+final GlobalKey<NavigatorState> _shellMessagesKey = GlobalKey<NavigatorState>(debugLabel: 'shellMessages');
+final GlobalKey<NavigatorState> _shellProfileKey = GlobalKey<NavigatorState>(debugLabel: 'shellProfile');
 
 GoRouter createAppRouter(Ref ref) {
   final refreshListenable = ref.watch(authRefreshListenableProvider);
@@ -76,6 +118,7 @@ GoRouter createAppRouter(Ref ref) {
         },
         branches: [
           StatefulShellBranch(
+            navigatorKey: _shellHomeKey,
             routes: [
               GoRoute(
                 path: '/${RouteNames.home}',
@@ -104,6 +147,7 @@ GoRouter createAppRouter(Ref ref) {
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: _shellJoinUsKey,
             routes: [
               GoRoute(
                 path: '/${RouteNames.joinUs}',
@@ -115,17 +159,122 @@ GoRouter createAppRouter(Ref ref) {
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: _shellPlannerKey,
             routes: [
               GoRoute(
                 path: '/${RouteNames.planner}',
                 name: RouteNames.planner,
                 pageBuilder: (context, state) => const NoTransitionPage(
-                  child: ContentShellPage(),
+                  child: TravelLandingPage(),
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'discovery',
+                    name: 'travelDiscovery',
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const TravelDiscoveryPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'detail/:id',
+                    name: 'travelDetail',
+                    pageBuilder: (context, state) {
+                      final id = state.pathParameters['id'] ?? '1';
+                      return slideTransitionPage(
+                        child: TravelDetailPage(packageId: id),
+                      );
+                    },
+                    routes: [
+                      GoRoute(
+                        path: 'booking',
+                        name: 'travelBooking',
+                        pageBuilder: (context, state) {
+                          final id = state.pathParameters['id'] ?? '1';
+                          return slideTransitionPage(
+                            child: BookingSelectDatePage(packageId: id),
+                          );
+                        },
+                        routes: [
+                          GoRoute(
+                            path: 'date',
+                            pageBuilder: (context, state) {
+                              final id = state.pathParameters['id'] ?? '1';
+                              return slideTransitionPage(
+                                child: BookingSelectDatePage(packageId: id),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'travelers',
+                            pageBuilder: (context, state) {
+                              final id = state.pathParameters['id'] ?? '1';
+                              return slideTransitionPage(
+                                child: BookingTravelersPage(packageId: id),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'addons',
+                            pageBuilder: (context, state) {
+                              final id = state.pathParameters['id'] ?? '1';
+                              return slideTransitionPage(
+                                child: BookingAddOnsPage(packageId: id),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'review',
+                            pageBuilder: (context, state) {
+                              final id = state.pathParameters['id'] ?? '1';
+                              return slideTransitionPage(
+                                child: BookingReviewPage(packageId: id),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'payment',
+                            pageBuilder: (context, state) {
+                              final id = state.pathParameters['id'] ?? '1';
+                              return slideTransitionPage(
+                                child: BookingPaymentPage(packageId: id),
+                              );
+                            },
+                          ),
+                          GoRoute(
+                            path: 'confirmation',
+                            pageBuilder: (context, state) {
+                              final id = state.pathParameters['id'] ?? '1';
+                              return slideTransitionPage(
+                                child: BookingConfirmationPage(packageId: id),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'planner',
+                    name: 'travelPlanner',
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const TravelPlannerPage(),
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'result',
+                        name: 'plannerResult',
+                        pageBuilder: (_, __) => slideTransitionPage(
+                          child: const PlannerResultPage(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: _shellMessagesKey,
             routes: [
               GoRoute(
                 path: '/${RouteNames.messages}',
@@ -147,6 +296,7 @@ GoRouter createAppRouter(Ref ref) {
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: _shellProfileKey,
             routes: [
               GoRoute(
                 path: '/${RouteNames.profile}',
@@ -154,6 +304,98 @@ GoRouter createAppRouter(Ref ref) {
                 pageBuilder: (context, state) => const NoTransitionPage(
                   child: ProfileShellPage(),
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'my-friends',
+                    name: 'profileMyFriends',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileMyFriendsPage()),
+                  ),
+                  GoRoute(
+                    path: 'coupons',
+                    name: 'profileCoupons',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileCouponsPage()),
+                  ),
+                  GoRoute(
+                    path: 'membership',
+                    name: 'profileMembership',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const MembershipCenterPage()),
+                  ),
+                  GoRoute(
+                    path: 'hotels',
+                    name: 'profileHotels',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileHotelsPage()),
+                  ),
+                  GoRoute(
+                    path: 'flights',
+                    name: 'profileFlights',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileFlightsPage()),
+                  ),
+                  GoRoute(
+                    path: 'invoice',
+                    name: 'profileInvoice',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileInvoicePage()),
+                  ),
+                  GoRoute(
+                    path: 'invite-friends',
+                    name: 'profileInviteFriends',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileInviteFriendsPage()),
+                  ),
+                  GoRoute(
+                    path: 'course-orders',
+                    name: 'profileCourseOrders',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileCourseOrdersPage()),
+                  ),
+                  GoRoute(
+                    path: 'flight-orders',
+                    name: 'profileFlightOrders',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileFlightOrdersPage()),
+                  ),
+                  GoRoute(
+                    path: 'hotel-orders',
+                    name: 'profileHotelOrders',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileHotelOrdersPage()),
+                  ),
+                  GoRoute(
+                    path: 'prizes',
+                    name: 'profilePrizes',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfilePrizesPage()),
+                  ),
+                  GoRoute(
+                    path: 'referrer',
+                    name: 'profileReferrer',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileReferrerPage()),
+                  ),
+                  GoRoute(
+                    path: 'feedback',
+                    name: 'profileFeedback',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileFeedbackPage()),
+                  ),
+                  GoRoute(
+                    path: 'travel-collection',
+                    name: 'profileTravelCollection',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileTravelCollectionPage()),
+                  ),
+                  GoRoute(
+                    path: 'data-stats',
+                    name: 'profileDataStats',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileDataStatsPage()),
+                  ),
+                  GoRoute(
+                    path: 'clear-cache',
+                    name: 'profileClearCache',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileClearCachePage()),
+                  ),
+                  GoRoute(
+                    path: 'frequent-travelers',
+                    name: 'profileFrequentTravelers',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileFrequentTravelersPage()),
+                  ),
+                  GoRoute(
+                    path: 'addresses',
+                    name: 'profileAddresses',
+                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileAddressesPage()),
+                  ),
+                ],
               ),
             ],
           ),
@@ -243,7 +485,7 @@ GoRouter createAppRouter(Ref ref) {
         name: 'companionDetail',
         pageBuilder: (context, state) {
           final id = state.pathParameters['id'] ?? '1';
-          return slideTransitionPage(child: CompanionDetailPage(id: id));
+          return companionDetailTransitionPage(child: CompanionDetailPage(id: id));
         },
         routes: [
           GoRoute(
@@ -257,6 +499,13 @@ GoRouter createAppRouter(Ref ref) {
             },
           ),
         ],
+      ),
+      GoRoute(
+        path: '/travel-service',
+        name: 'travelService',
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: TravelServicePage(),
+        ),
       ),
       GoRoute(
         path: '/tours',
@@ -314,8 +563,20 @@ GoRouter createAppRouter(Ref ref) {
         path: '/hotels',
         name: 'hotels',
         pageBuilder: (context, state) => const NoTransitionPage(
-          child: HotelsShellPage(),
+          child: HotelShellPage(),
         ),
+      ),
+      GoRoute(
+        path: '/hotels/compare',
+        name: 'hotelCompare',
+        pageBuilder: (_, __) =>
+            slideTransitionPage(child: const HotelComparePage()),
+      ),
+      GoRoute(
+        path: '/hotels/map',
+        name: 'hotelMap',
+        pageBuilder: (_, __) =>
+            slideTransitionPage(child: const HotelMapPage()),
       ),
       GoRoute(
         path: '/hotels/:id',
@@ -332,8 +593,28 @@ GoRouter createAppRouter(Ref ref) {
           final id = state.pathParameters['id'] ?? '1';
           final roomIndex = state.uri.queryParameters['roomIndex'];
           final index = roomIndex != null ? int.tryParse(roomIndex) : null;
-          return slideTransitionPage(child: HotelOrderPage(hotelId: id, roomIndex: index));
+          return slideTransitionPage(
+            child: HotelBookingConfirmPage(hotelId: id, roomIndex: index),
+          );
         },
+      ),
+      GoRoute(
+        path: '/hotels/booking/guest',
+        name: 'hotelBookingGuest',
+        pageBuilder: (_, __) =>
+            slideTransitionPage(child: const HotelBookingGuestPage()),
+      ),
+      GoRoute(
+        path: '/hotels/booking/payment',
+        name: 'hotelBookingPayment',
+        pageBuilder: (_, __) =>
+            slideTransitionPage(child: const HotelBookingPaymentPage()),
+      ),
+      GoRoute(
+        path: '/hotels/booking/success',
+        name: 'hotelBookingSuccess',
+        pageBuilder: (_, __) =>
+            slideTransitionPage(child: const HotelBookingSuccessPage()),
       ),
       GoRoute(
         path: '/orders',

@@ -8,6 +8,17 @@ enum RoomStockStatus {
   soldOut,
 }
 
+/// 房型价格方案（无早餐 / 免费取消 / 不可取消 等）
+class RoomPricePlan {
+  const RoomPricePlan({
+    required this.label,
+    this.price,
+  });
+
+  final String label;
+  final double? price;
+}
+
 /// 房型
 class RoomType {
   const RoomType({
@@ -19,6 +30,9 @@ class RoomType {
     this.area,
     this.remainingCount,
     this.breakfast,
+    this.imageUrl,
+    this.featuresSummary,
+    this.pricePlans = const [],
   });
 
   final String id;
@@ -30,6 +44,12 @@ class RoomType {
   /// 剩余间数（紧张时显示）
   final int? remainingCount;
   final String? breakfast;
+  /// 房型图片
+  final String? imageUrl;
+  /// 一行摘要：20平米 | 双床 | 可住2人
+  final String? featuresSummary;
+  /// 可展开的价格方案：无早餐、免费取消、不可取消等
+  final List<RoomPricePlan> pricePlans;
 }
 
 /// 酒店评价
@@ -61,8 +81,12 @@ class HotelDetail {
     required this.facilities,
     required this.reviews,
     this.imageUrl,
+    this.imageUrls = const [],
     this.score,
     this.tags = const [],
+    this.tagBadge,
+    this.policyCheckInOut,
+    this.policyReception,
   });
 
   final String id;
@@ -70,10 +94,18 @@ class HotelDetail {
   final int star;
   final String address;
   final String? imageUrl;
+  /// 轮播图列表（优先于 imageUrl）
+  final List<String> imageUrls;
   final double? score;
   final List<String> tags;
+  /// 标签：舒适 / 高端 / 热门
+  final String? tagBadge;
   final List<RoomType> rooms;
   final String cancellationPolicy;
+  /// 入离时间说明
+  final String? policyCheckInOut;
+  /// 接待政策说明
+  final String? policyReception;
   final List<String> facilities;
   final List<HotelReview> reviews;
 }

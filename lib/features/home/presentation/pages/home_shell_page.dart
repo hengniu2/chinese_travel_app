@@ -4,10 +4,17 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/router/app_router.dart';
 import '../../../../core/router/app_router_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../../shared/widgets/app_network_image.dart';
+import '../../../companions/data/companion_list_mock.dart';
+import '../../../companions/domain/companion_list_item.dart';
+import '../../../hotel/data/hotel_mock_data.dart';
+import '../../../hotel/data/hotel_model.dart';
+import '../../../tours/data/tour_list_mock.dart';
+import '../../../tours/domain/tour_item.dart';
 import '../../data/home_mock_data.dart';
 
 // ─── 中国卡通插画风 · 视觉常量 ─────────────────────────────────────────────
@@ -102,6 +109,7 @@ class _HomeShellPageState extends ConsumerState<HomeShellPage>
                         onGoTours: () => _safePush('/tours'),
                         onGoHotels: () => _safePush('/hotels'),
                         onGoOrders: () => _safePush('/orders'),
+                        onGoTravelService: () => _safePush('/travel-service'),
                       ),
                     ),
                     SliverToBoxAdapter(
@@ -123,6 +131,27 @@ class _HomeShellPageState extends ConsumerState<HomeShellPage>
                         contentController: _contentController,
                         index: 3,
                         child: _AroundActivitiesSection(onNavigate: _safePush),
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _SectionWarm(
+                        contentController: _contentController,
+                        index: 4,
+                        child: _HotelsSection(onNavigate: _safePush),
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _SectionLavender(
+                        contentController: _contentController,
+                        index: 5,
+                        child: _ToursSection(onNavigate: _safePush),
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _SectionMint(
+                        contentController: _contentController,
+                        index: 6,
+                        child: _CompanionsSection(onNavigate: _safePush),
                       ),
                     ),
                     SliverToBoxAdapter(child: SizedBox(height: 20)),
@@ -499,6 +528,7 @@ class _HomeContentCard extends StatelessWidget {
     required this.onGoTours,
     required this.onGoHotels,
     required this.onGoOrders,
+    required this.onGoTravelService,
   });
 
   final AnimationController contentController;
@@ -507,6 +537,7 @@ class _HomeContentCard extends StatelessWidget {
   final VoidCallback onGoTours;
   final VoidCallback onGoHotels;
   final VoidCallback onGoOrders;
+  final VoidCallback onGoTravelService;
 
   @override
   Widget build(BuildContext context) {
@@ -526,7 +557,7 @@ class _HomeContentCard extends StatelessWidget {
   }
 
   List<Widget> _buildGridRows(BuildContext context) {
-    // 10 个入口，中国风图标（圆角方形容器 + Icon）
+    // 11 个入口（含出行服务），中国风图标（圆角方形容器 + Icon）
     final items = [
       (icon: Icons.groups_rounded, label: '社交旅行', color: AppColors.tagGreen, badge: null, onTap: () => onNavigate('/social-travel')),
       (icon: Icons.family_restroom_rounded, label: '亲子旅行', color: AppColors.accentGold, badge: null, onTap: () => onNavigate('/family-travel')),
@@ -538,6 +569,7 @@ class _HomeContentCard extends StatelessWidget {
       (icon: Icons.explore_rounded, label: '周边活动', color: AppColors.accentWarm, badge: null, onTap: () => onNavigate('/surrounding-activities')),
       (icon: Icons.child_care_rounded, label: '亲子活动', color: AppColors.accentGold, badge: null, onTap: () => onNavigate('/family-travel')),
       (icon: Icons.menu_book_rounded, label: '游玩笔记', color: AppColors.accentCool, badge: null, onTap: () => onNavigate('/notes')),
+      (icon: Icons.flight_takeoff_rounded, label: '出行服务', color: AppColors.primary, badge: null, onTap: onGoTravelService),
     ];
     return [
       Row(
@@ -551,6 +583,12 @@ class _HomeContentCard extends StatelessWidget {
         children: [
           for (int i = 5; i < 10; i++)
             Expanded(child: _GridItem(item: items[i])),
+        ],
+      ),
+      SizedBox(height: _kGridRowGap),
+      Row(
+        children: [
+          Expanded(child: _GridItem(item: items[10])),
         ],
       ),
     ];
@@ -762,6 +800,102 @@ class _SectionBlue extends StatelessWidget {
   }
 }
 
+/// Warm (orange) section for Hotels
+class _SectionWarm extends StatelessWidget {
+  const _SectionWarm({
+    required this.contentController,
+    required this.index,
+    required this.child,
+  });
+
+  final AnimationController contentController;
+  final int index;
+  final Widget child;
+
+  static const _warmBg = Color(0xFFFFF3E0);
+
+  @override
+  Widget build(BuildContext context) {
+    return _AnimatedSection(
+      controller: contentController,
+      index: index,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: _warmBg,
+          border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+        ),
+        padding: EdgeInsets.fromLTRB(_kSectionPadH, _kSectionPadV, _kSectionPadH, _kSectionPadV),
+        child: child,
+      ),
+    );
+  }
+}
+
+/// Lavender section for Travel packages
+class _SectionLavender extends StatelessWidget {
+  const _SectionLavender({
+    required this.contentController,
+    required this.index,
+    required this.child,
+  });
+
+  final AnimationController contentController;
+  final int index;
+  final Widget child;
+
+  static const _lavenderBg = Color(0xFFF3E5F5);
+
+  @override
+  Widget build(BuildContext context) {
+    return _AnimatedSection(
+      controller: contentController,
+      index: index,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: _lavenderBg,
+          border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+        ),
+        padding: EdgeInsets.fromLTRB(_kSectionPadH, _kSectionPadV, _kSectionPadH, _kSectionPadV),
+        child: child,
+      ),
+    );
+  }
+}
+
+/// Mint/teal section for Companions
+class _SectionMint extends StatelessWidget {
+  const _SectionMint({
+    required this.contentController,
+    required this.index,
+    required this.child,
+  });
+
+  final AnimationController contentController;
+  final int index;
+  final Widget child;
+
+  static const _mintBg = Color(0xFFE0F2F1);
+
+  @override
+  Widget build(BuildContext context) {
+    return _AnimatedSection(
+      controller: contentController,
+      index: index,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: _mintBg,
+          border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+        ),
+        padding: EdgeInsets.fromLTRB(_kSectionPadH, _kSectionPadV, _kSectionPadH, _kSectionPadV),
+        child: child,
+      ),
+    );
+  }
+}
+
 // ─── 推荐区：类型 B 贴纸人物卡（阴影、圆角、两卡并排）────────────────────────────
 class _PeopleSection extends StatelessWidget {
   const _PeopleSection({required this.onNavigate});
@@ -777,7 +911,7 @@ class _PeopleSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.eco_rounded, size: 18.sp, color: AppColors.primary),
+            Icon(Icons.eco_rounded, size: 18.sp, color: AppColors.sectionSeed),
             SizedBox(width: 6),
             Expanded(
               child: Text(
@@ -796,7 +930,7 @@ class _PeopleSection extends StatelessWidget {
               child: Text(
                 '更多>',
                 style: AppTextStyles.caption.copyWith(
-                  color: AppColors.primary,
+                  color: AppColors.linkCta,
                   fontSize: 11.sp,
                   fontWeight: FontWeight.w600,
                 ),
@@ -918,7 +1052,7 @@ class _FamilyActivitiesSection extends StatelessWidget {
               child: Text(
                 '查看更多',
                 style: AppTextStyles.caption.copyWith(
-                  color: AppColors.primary,
+                  color: AppColors.linkCta,
                   fontSize: 12.sp,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1109,7 +1243,7 @@ class _PosterBadge extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: warm ? AppColors.homeChipRed.withValues(alpha: 0.95) : AppColors.primary.withValues(alpha: 0.95),
+        color: warm ? AppColors.homeChipRed.withValues(alpha: 0.95) : AppColors.accentWarm.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(6),
         boxShadow: [
           BoxShadow(
@@ -1190,7 +1324,7 @@ class _AroundActivitiesSection extends StatelessWidget {
                 child: Text(
                   '查看全部>',
                   style: AppTextStyles.caption.copyWith(
-                    color: AppColors.primary,
+                    color: AppColors.linkCta,
                     fontSize: 11.sp,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1330,6 +1464,523 @@ class _CardTypeC extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── 酒店横滑：精选酒店卡片，点击进入酒店详情或列表 ─────────────────────────────
+class _HotelsSection extends StatelessWidget {
+  const _HotelsSection({required this.onNavigate});
+
+  final void Function(String path) onNavigate;
+
+  @override
+  Widget build(BuildContext context) {
+    final hotels = getHotelListForDisplay(const HotelFilters()).take(4).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.hotel_rounded, size: 18.sp, color: AppColors.accentGold),
+            SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                '精选酒店',
+                style: AppTextStyles.headlineSmall.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                  fontSize: 15.sp,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            GestureDetector(
+              onTap: () => onNavigate('/hotels'),
+              child: Text(
+                '查看全部>',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.linkCta,
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: _kCardGap),
+        SizedBox(
+          height: 100.h,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: hotels.length,
+            itemBuilder: (context, index) {
+              final h = hotels[index];
+              return Padding(
+                padding: EdgeInsets.only(right: _kCardGap),
+                child: _HotelSlideCard(
+                  hotel: h,
+                  onTap: () => onNavigate('/hotels/${h.id}'),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Hotel card: horizontal layout (image left, info right) + tag badge — distinct from tour/companion.
+class _HotelSlideCard extends StatelessWidget {
+  const _HotelSlideCard({required this.hotel, required this.onTap});
+
+  final HotelItem hotel;
+  final VoidCallback onTap;
+
+  static const _cardRadius = 12.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final cardWidth = MediaQuery.sizeOf(context).width * 0.72;
+    return _TapScale(
+      onTap: onTap,
+      child: SizedBox(
+        width: cardWidth,
+        height: 100.h,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(_cardRadius),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Row(
+            children: [
+              Expanded(
+                flex: 5,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    hotel.imageUrl != null && hotel.imageUrl!.isNotEmpty
+                        ? AppNetworkImage(
+                            imageUrl: hotel.imageUrl!,
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                            fadeInDuration: const Duration(milliseconds: 300),
+                          )
+                        : Container(
+                            color: AppColors.homeSectionBlueStart,
+                            child: Icon(Icons.hotel_rounded, size: 28.sp, color: AppColors.accentGold.withValues(alpha: 0.5)),
+                          ),
+                    if (hotel.tagBadge != null)
+                      Positioned(
+                        left: 6,
+                        top: 6,
+                        child: _HotelTagChip(badge: hotel.tagBadge!),
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(
+                flex: 5,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        hotel.name,
+                        style: AppTextStyles.titleSmall.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11.sp,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 4.h),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ...List.generate(hotel.star.clamp(0, 5), (_) => Icon(Icons.star_rounded, size: 9.sp, color: AppColors.accentGold)),
+                          SizedBox(width: 4.w),
+                          Flexible(
+                            child: Text(
+                              '¥${hotel.price.toInt()}',
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.price,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11.sp,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HotelTagChip extends StatelessWidget {
+  const _HotelTagChip({required this.badge});
+  final HotelTagBadge badge;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = switch (badge) {
+      HotelTagBadge.premium => '高端',
+      HotelTagBadge.hot => '热门',
+      HotelTagBadge.comfort => '舒适',
+    };
+    final color = switch (badge) {
+      HotelTagBadge.premium => AppColors.accentGold,
+      HotelTagBadge.hot => AppColors.homeChipRed,
+      HotelTagBadge.comfort => AppColors.tagGreen,
+    };
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: Colors.white, fontSize: 9.sp, fontWeight: FontWeight.w700),
+        maxLines: 1,
+      ),
+    );
+  }
+}
+
+// ─── 旅行线路横滑：精选线路卡片，点击进入线路详情或列表 ─────────────────────────
+class _ToursSection extends StatelessWidget {
+  const _ToursSection({required this.onNavigate});
+
+  final void Function(String path) onNavigate;
+
+  @override
+  Widget build(BuildContext context) {
+    final tours = getTourList().take(4).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.tour_rounded, size: 18.sp, color: AppColors.tagGreen),
+            SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                '精选线路',
+                style: AppTextStyles.headlineSmall.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                  fontSize: 15.sp,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            GestureDetector(
+              onTap: () => onNavigate('/tours'),
+              child: Text(
+                '查看全部>',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.linkCta,
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: _kCardGap),
+        SizedBox(
+          height: 148.h,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: tours.length,
+            itemBuilder: (context, index) {
+              final t = tours[index];
+              return Padding(
+                padding: EdgeInsets.only(right: _kCardGap),
+                child: _TourSlideCard(
+                  tour: t,
+                  onTap: () => onNavigate('/tours/${t.id}'),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Tour card: poster style — full-bleed image + bottom gradient overlay, title & meta on top (no separate block).
+class _TourSlideCard extends StatelessWidget {
+  const _TourSlideCard({required this.tour, required this.onTap});
+
+  final TourItem tour;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cardWidth = MediaQuery.sizeOf(context).width * 0.48;
+    return _TapScale(
+      onTap: onTap,
+      child: SizedBox(
+        width: cardWidth,
+        height: 148.h,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              tour.imageUrl != null && tour.imageUrl!.isNotEmpty
+                  ? AppNetworkImage(
+                      imageUrl: tour.imageUrl!,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                      fadeInDuration: const Duration(milliseconds: 300),
+                    )
+                  : Container(
+                      color: AppColors.homeSectionGreen,
+                      child: Icon(Icons.tour_rounded, size: 32.sp, color: AppColors.accentWarm.withValues(alpha: 0.5)),
+                    ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(10, 28.h, 10, 10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.75),
+                      ],
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tour.title,
+                        style: AppTextStyles.titleSmall.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13.sp,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        '¥${tour.price.toInt()} · ${tour.days}天 · ${tour.city}',
+                        style: AppTextStyles.caption.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── 陪游/种草官横滑：推荐陪游卡片，点击进入陪游详情或 Join Us 列表 ─────────────
+class _CompanionsSection extends StatelessWidget {
+  const _CompanionsSection({required this.onNavigate});
+
+  final void Function(String path) onNavigate;
+
+  @override
+  Widget build(BuildContext context) {
+    final companions = getFeaturedCompanions();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.groups_rounded, size: 18.sp, color: AppColors.sectionCompanion),
+            SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                '享梦游陪游',
+                style: AppTextStyles.headlineSmall.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                  fontSize: 15.sp,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                final ctx = context;
+                if (ctx.mounted) ctx.go('/${RouteNames.joinUs}');
+              },
+              child: Text(
+                '查看全部>',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.linkCta,
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: _kCardGap),
+        SizedBox(
+          height: 118.h,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: companions.length,
+            itemBuilder: (context, index) {
+              final c = companions[index];
+              return Padding(
+                padding: EdgeInsets.only(right: _kCardGap),
+                child: _CompanionSlideCard(
+                  companion: c,
+                  onTap: () => onNavigate('/companions/${c.id}'),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Companion card: profile style — circular avatar, name, city + price in one line (distinct from hotel/tour).
+class _CompanionSlideCard extends StatelessWidget {
+  const _CompanionSlideCard({required this.companion, required this.onTap});
+
+  final CompanionListItem companion;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cardWidth = MediaQuery.sizeOf(context).width * 0.32;
+    final avatarSize = 52.0.r;
+    final imageUrl = companion.avatarUrl;
+    return _TapScale(
+      onTap: onTap,
+      child: SizedBox(
+        width: cardWidth,
+        height: 118.h,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border.withValues(alpha: 0.8)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: avatarSize,
+                  height: avatarSize,
+                  child: ClipOval(
+                    child: imageUrl.isNotEmpty
+                        ? AppNetworkImage(
+                            imageUrl: imageUrl,
+                            width: avatarSize,
+                            height: avatarSize,
+                            fit: BoxFit.cover,
+                            fadeInDuration: const Duration(milliseconds: 300),
+                          )
+                        : Container(
+                            color: AppColors.surface,
+                            child: Icon(Icons.person_rounded, size: 24.sp, color: AppColors.sectionCompanion.withValues(alpha: 0.6)),
+                          ),
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                Text(
+                  companion.name,
+                  style: AppTextStyles.titleSmall.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12.sp,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  '${companion.city} · ¥${companion.pricePerDay.toInt()}/起',
+                  style: AppTextStyles.overline.copyWith(
+                    color: AppColors.textTertiary,
+                    fontSize: 9.sp,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       ),
