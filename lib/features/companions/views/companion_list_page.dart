@@ -1,21 +1,406 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/micro_interactions/micro_interactions.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
+import '../components/companion_components.dart';
 import '../data/companion_list_mock.dart';
 import '../models/companion_list_item.dart';
 import '../widgets/rating_widget.dart';
 
+/// Companion card design system: radius 16–18, 1px border, soft shadow, layered feel
+const double _kCompanionCardRadius = 16;
+const List<BoxShadow> _kCompanionCardShadow = [
+  BoxShadow(
+    color: Colors.black12,
+    offset: Offset(0, 2),
+    blurRadius: 8,
+    spreadRadius: 0,
+  ),
+  BoxShadow(
+    color: Color(0x0A000000),
+    offset: Offset(0, 1),
+    blurRadius: 4,
+    spreadRadius: 0,
+  ),
+];
+
+// Helpers moved to companion_components (RankingBadge, CompactTag, GradientCTAButton, etc.)
+
+/// 等级徽章 LV1–LV5 + 进度条
+Widget _buildLevelBadge(int level, double progress) {
+  final clampedLevel = level.clamp(1, 5);
+  final clampedProgress = progress.clamp(0.0, 1.0);
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+        decoration: BoxDecoration(
+          color: AppColors.textTertiary.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(3),
+          border: Border.all(color: AppColors.textTertiary.withValues(alpha: 0.25), width: 0.5),
+        ),
+        child: Text(
+          'LV$clampedLevel',
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w600,
+            fontSize: 8,
+          ),
+        ),
+      ),
+      if (clampedProgress > 0 && clampedLevel < 5) ...[
+        const SizedBox(height: 2),
+        SizedBox(
+          width: 28,
+          height: 2,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(1),
+            child: LinearProgressIndicator(
+              value: clampedProgress,
+              backgroundColor: AppColors.textTertiary.withValues(alpha: 0.15),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                AppColors.primary.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+        ),
+      ],
+    ],
+  );
+}
+
+///  urgency: 今日仅剩N个名额
+Widget _buildUrgencyIndicator(int spotsLeft) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(
+      color: AppColors.price.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(4),
+      border: Border.all(color: AppColors.price.withValues(alpha: 0.35), width: 0.5),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.schedule_rounded, size: 10, color: AppColors.price),
+        const SizedBox(width: 3),
+        Text(
+          '今日仅剩$spotsLeft个名额',
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.price,
+            fontWeight: FontWeight.w600,
+            fontSize: 10,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// 快回复徽章：平均N分钟回复
+Widget _buildFastResponseBadge(int minutes) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+    decoration: BoxDecoration(
+      color: AppColors.success.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(4),
+      border: Border.all(color: AppColors.success.withValues(alpha: 0.35), width: 0.5),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.speed_rounded, size: 10, color: AppColors.success),
+        const SizedBox(width: 2),
+        Text(
+          '平均${minutes}分钟回复',
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.success,
+            fontWeight: FontWeight.w600,
+            fontSize: 10,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// 信任信号：平台保障 + 已实名认证
+Widget _buildTrustSignals({required bool isVerified, bool compact = false}) {
+  final size = compact ? 9.0 : 10.0;
+  final iconSize = compact ? 9.0 : 11.0;
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(Icons.shield_rounded, size: iconSize, color: AppColors.textTertiary),
+      SizedBox(width: compact ? 1 : 2),
+      Text(
+        '平台保障',
+        style: AppTextStyles.caption.copyWith(
+          color: AppColors.textTertiary,
+          fontSize: size,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      if (isVerified) ...[
+        SizedBox(width: compact ? 4 : 8),
+        Icon(Icons.verified_user_rounded, size: iconSize, color: AppColors.accentCool),
+        SizedBox(width: compact ? 1 : 2),
+        Text(
+          '已实名认证',
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.accentCool,
+            fontSize: size,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    ],
+  );
+}
+
+/// 转化 CTA：亮渐变 + 阴影光晕
+Widget _buildConversionCta({
+  required String label,
+  required VoidCallback onTap,
+  double fontSize = 13,
+  bool compact = false,
+}) {
+  return Material(
+    color: Colors.transparent,
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 12 : 16,
+          vertical: compact ? 6 : 8,
+        ),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFFFFD54F),
+              Color(0xFFFFB300),
+              Color(0xFFFF8F00),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFF8F00).withValues(alpha: 0.45),
+              offset: const Offset(0, 2),
+              blurRadius: 8,
+              spreadRadius: 0,
+            ),
+            BoxShadow(
+              color: const Color(0xFFFFB300).withValues(alpha: 0.3),
+              offset: const Offset(0, 1),
+              blurRadius: 4,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              color: const Color(0xFF1A1A1A),
+              fontWeight: FontWeight.w800,
+              fontSize: fontSize,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// 等级徽章（RankingBadge 封装）
+Widget _buildRankBadge(CompanionRankBadge b) {
+  return RankingBadge(badge: b);
+}
+
+/// 资深标签
+Widget _buildSeniorBadge() {
+  return CompactTag(type: CompactTagType.senior);
+}
+
+/// 人气飙升标签
+Widget _buildTrendingTag() {
+  return CompactTag(type: CompactTagType.trending);
+}
+
+/// 热门角标
+Widget _buildHotBadge() {
+  return CompactTag(type: CompactTagType.hot, compact: true);
+}
+
+/// 限时优惠/今日特价标签
+Widget _buildDiscountTag(CompanionDiscountTag tag) {
+  return CompactTag(
+    type: tag == CompanionDiscountTag.limitedTime
+        ? CompactTagType.discountLimited
+        : CompactTagType.discountToday,
+  );
+}
+
+/// 拼单优惠标签
+Widget _buildGroupDiscountTag() {
+  return CompactTag(type: CompactTagType.groupDiscount);
+}
+
+/// 套餐价格行（3h + 天 或 仅天）
+Widget _buildPackagePrices(CompanionListItem companion) {
+  final has3h = companion.pricePer3h != null;
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      if (has3h) ...[
+        _buildGradientPrice(companion.pricePer3h!, unit: '', fontSize: 12),
+        const SizedBox(width: 4),
+        Text(
+          '·',
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.textTertiary,
+            fontSize: 10,
+          ),
+        ),
+        const SizedBox(width: 4),
+      ],
+      _buildGradientPrice(
+        companion.pricePerDay,
+        unit: '/天',
+        fontSize: has3h ? 12 : 14,
+      ),
+    ],
+  );
+}
+
+/// 渐变价格文案
+Widget _buildGradientPrice(
+  double price, {
+  String unit = '',
+  double fontSize = 14,
+}) {
+  return ShaderMask(
+    blendMode: BlendMode.srcIn,
+    shaderCallback: (bounds) => const LinearGradient(
+      colors: [Color(0xFFFF8F00), Color(0xFFFFB300)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ).createShader(bounds),
+    child: Text(
+      '¥${price.toStringAsFixed(0)}$unit',
+      style: AppTextStyles.caption.copyWith(
+        fontWeight: FontWeight.w800,
+        fontSize: fontSize,
+        color: Colors.white,
+      ),
+    ),
+  );
+}
+
+/// 技能标签 → 图标（陪游常用）
 IconData _companionTagToIcon(String tag) {
-  if (tag.contains('摄影') || tag.contains('跟拍')) return Icons.camera_alt_rounded;
-  if (tag.contains('美食')) return Icons.restaurant_rounded;
-  if (tag.contains('讲解') || tag.contains('文化')) return Icons.menu_book_rounded;
-  if (tag.contains('路线') || tag.contains('规划')) return Icons.route_rounded;
-  if (tag.contains('方言') || tag.contains('沟通')) return Icons.translate_rounded;
-  return Icons.auto_awesome_rounded;
+  final lower = tag.toLowerCase();
+  if (lower.contains('摄影') || lower.contains('拍照')) return Icons.camera_alt_rounded;
+  if (lower.contains('翻译')) return Icons.translate_rounded;
+  if (lower.contains('导游') || lower.contains('导览')) return Icons.tour_rounded;
+  if (lower.contains('驾驶') || lower.contains('司机')) return Icons.directions_car_rounded;
+  if (lower.contains('美食') || lower.contains('餐饮')) return Icons.restaurant_rounded;
+  if (lower.contains('户外') || lower.contains('徒步')) return Icons.hiking_rounded;
+  return Icons.tag_rounded;
+}
+
+/// 收藏按钮：轻量动画（scale bounce）
+class _FavoriteButton extends StatefulWidget {
+  const _FavoriteButton({
+    required this.isFavorited,
+    required this.count,
+    required this.onTap,
+    this.size = 14,
+  });
+
+  final bool isFavorited;
+  final int count;
+  final VoidCallback onTap;
+  final double size;
+
+  @override
+  State<_FavoriteButton> createState() => _FavoriteButtonState();
+}
+
+class _FavoriteButtonState extends State<_FavoriteButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 180),
+    );
+    _scaleAnimation = Tween<double>(begin: 1, end: 1.35)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    widget.onTap();
+    _controller.forward().then((_) => _controller.reverse());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _handleTap,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedBuilder(
+            animation: _scaleAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _scaleAnimation.value,
+                child: child,
+              );
+            },
+            child: Icon(
+              widget.isFavorited ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              size: widget.size,
+              color: widget.isFavorited ? AppColors.accentWarm : AppColors.textTertiary,
+            ),
+          ),
+          if (widget.count > 0) ...[
+            const SizedBox(width: 2),
+            Text(
+              '${widget.count}',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textTertiary,
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 /// 找陪游 · 陪游发现页
@@ -30,20 +415,22 @@ class _CompanionListPageState extends State<CompanionListPage>
     with TickerProviderStateMixin {
   CompanionListFilters _filters = const CompanionListFilters();
   List<CompanionListItem> _list = [];
+  List<CompanionListItem> _sponsored = [];
   List<CompanionListItem> _featured = [];
+  List<CompanionListItem> _smartRecommendations = [];
   List<CompanionListItem> _recommended = [];
   bool _loading = true;
+  final Set<String> _favoritedIds = {};
   bool _loadingMore = false;
   int _loadedCount = 0;
   int _filterIndex = 0;
   static const int _pageSize = 10;
 
   static const List<String> _filterLabels = [
-    '全部',
-    '性别',
-    '价格区间',
+    '热度',
     '评分',
-    '距离',
+    '价格升序',
+    '价格降序',
   ];
 
   @override
@@ -80,9 +467,11 @@ class _CompanionListPageState extends State<CompanionListPage>
   }
 
   Future<void> _loadFeatured() async {
+    final sponsored = getSponsoredCompanions();
     final featured = getFeaturedCompanions();
     final recommended = getRecommendedCompanions();
     if (mounted) setState(() {
+      _sponsored = sponsored;
       _featured = featured;
       _recommended = recommended;
     });
@@ -113,6 +502,26 @@ class _CompanionListPageState extends State<CompanionListPage>
     setState(() {
       _filterIndex = index;
       _applyFilters();
+      _smartRecommendations = getSmartRecommendations(SmartRecommendationParams(
+        location: _filters.city ?? '杭州',
+        clickedIds: _favoritedIds.toList(),
+        preferHighRating: index == 1,
+      ));
+    });
+  }
+
+  void _toggleFavorite(String id) {
+    setState(() {
+      if (_favoritedIds.contains(id)) {
+        _favoritedIds.remove(id);
+      } else {
+        _favoritedIds.add(id);
+      }
+      _smartRecommendations = getSmartRecommendations(SmartRecommendationParams(
+        location: _filters.city ?? '杭州',
+        clickedIds: _favoritedIds.toList(),
+        preferHighRating: _filterIndex == 1,
+      ));
     });
   }
 
@@ -155,6 +564,17 @@ class _CompanionListPageState extends State<CompanionListPage>
   static bool _isCompact(BuildContext context) =>
       MediaQuery.sizeOf(context).width < 360;
 
+  /// Section separator: different color background only (no borders).
+  SliverToBoxAdapter _sectionSpacer(Color nextSectionColor) {
+    return SliverToBoxAdapter(
+      child: Container(
+        height: 14,
+        width: double.infinity,
+        color: nextSectionColor.withValues(alpha: 0.35),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -165,7 +585,7 @@ class _CompanionListPageState extends State<CompanionListPage>
     final searchBarTop = _headerHeight + topPadding - _searchBarHeight - searchBarOverlap;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.companionSectionBright,
       body: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -180,29 +600,54 @@ class _CompanionListPageState extends State<CompanionListPage>
               onRefresh: _onRefresh,
               color: AppColors.primary,
               child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                cacheExtent: 400,
                 clipBehavior: Clip.none,
                 slivers: [
                   _buildHeader(context, topPadding, l10n),
-                  SliverToBoxAdapter(
+                  const SliverToBoxAdapter(
                     child: SizedBox(height: 8),
                   ),
                   SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(
+                    child: Container(
+                      margin: EdgeInsets.fromLTRB(
                         compact ? 12 : 16,
                         0,
                         compact ? 12 : 16,
                         8,
                       ),
-                      child: _buildFilterCapsules(),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceWarmWhite,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: AppColors.sectionCompanion.withValues(alpha: 0.08),
+                          width: 0.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            offset: const Offset(0, 1),
+                            blurRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                        child: _buildFilterCapsules(),
+                      ),
                     ),
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                  ..._buildSponsoredSection(l10n),
+                  _sectionSpacer(AppColors.companionSectionBright),
                   ..._buildFeaturedSection(l10n),
-                  SliverToBoxAdapter(child: _SectionGradientDivider(tintColor: AppColors.accentWarm)),
+                  _sectionSpacer(AppColors.companionSectionBright),
+                  ..._buildSmartRecommendationSection(l10n),
+                  _sectionSpacer(AppColors.companionSectionBright),
                   ..._buildRecommendedSection(l10n),
-                  SliverToBoxAdapter(child: _SectionGradientDivider(tintColor: AppColors.primary)),
+                  _sectionSpacer(AppColors.companionSectionBright),
                   ..._buildAllSection(context, l10n),
                   if (_loadingMore) _buildLoadingMoreSliver(),
                   SliverToBoxAdapter(
@@ -518,11 +963,75 @@ class _CompanionListPageState extends State<CompanionListPage>
     );
   }
 
+  List<Widget> _buildSponsoredSection(AppLocalizations? l10n) {
+    if (_sponsored.isEmpty) return [];
+    return [
+      SliverStickyHeader.builder(
+        builder: (context, state) => CompanionSectionHeader(
+          title: '推荐置顶',
+          barColor: AppColors.accentGold,
+          icon: Icons.campaign_rounded,
+          isPinned: state.isPinned,
+          onSeeMore: _scrollToAllSection,
+        ),
+        overlapsContent: false,
+        sliver: SliverToBoxAdapter(
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+            decoration: BoxDecoration(
+              color: AppColors.companionSectionBright,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  offset: const Offset(0, 1),
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: SizedBox(
+              height: 172,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                itemCount: _sponsored.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (_, i) {
+                  final c = _sponsored[i];
+                  return RepaintBoundary(
+                    child: CompanionCard(
+                      config: CompanionCardConfig(
+                        companion: c,
+                        variant: CompanionCardVariant.featured,
+                        onTap: () => context.push('/companions/${c.id}'),
+                        showHotBadge: false,
+                        isSponsored: true,
+                        isFavorited: _favoritedIds.contains(c.id),
+                        onFavoriteTap: () => _toggleFavorite(c.id),
+                        isDarkSurface: true,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
   List<Widget> _buildFeaturedSection(AppLocalizations? l10n) {
     if (_featured.isEmpty) return [];
     return [
       SliverStickyHeader.builder(
-        builder: (context, state) => _StickySectionHeader(
+        builder: (context, state) => CompanionSectionHeader(
           title: l10n?.companionSectionFeatured ?? '热门陪游',
           barColor: AppColors.accentWarm,
           icon: Icons.local_fire_department_rounded,
@@ -531,21 +1040,92 @@ class _CompanionListPageState extends State<CompanionListPage>
         ),
         overlapsContent: false,
         sliver: SliverToBoxAdapter(
-          child: _CompanionSectionContainer(
-            tintColor: const Color(0xFFFFF5EB),
+          child: DecorativeSectionContainer(
+            tintColor: AppColors.companionSectionBright,
             accentColor: AppColors.accentWarm,
             child: SizedBox(
-              height: 158,
+              height: 172,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 itemCount: _featured.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (_, i) => _FeaturedCompanionCard(
-                  companion: _featured[i],
-                  onTap: () => context.push('/companions/${_featured[i].id}'),
-                  showHotBadge: i == 0,
+                itemBuilder: (_, i) {
+                  final c = _featured[i];
+                  return RepaintBoundary(
+                    child: CompanionCard(
+                      config: CompanionCardConfig(
+                        companion: c,
+                        variant: CompanionCardVariant.featured,
+                        onTap: () => context.push('/companions/${c.id}'),
+                        showHotBadge: i == 0,
+                        isFavorited: _favoritedIds.contains(c.id),
+                        onFavoriteTap: () => _toggleFavorite(c.id),
+                        isDarkSurface: true,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _buildSmartRecommendationSection(AppLocalizations? l10n) {
+    if (_smartRecommendations.isEmpty) return [];
+    final items = _smartRecommendations;
+    return [
+      SliverStickyHeader.builder(
+        builder: (context, state) => CompanionSectionHeader(
+          title: '为你推荐',
+          barColor: AppColors.accentGold,
+          icon: Icons.auto_awesome_rounded,
+          isPinned: state.isPinned,
+          onSeeMore: _scrollToAllSection,
+          subtitle: '根据你的浏览推荐',
+        ),
+        overlapsContent: false,
+        sliver: SliverToBoxAdapter(
+          child: DecorativeSectionContainer(
+            tintColor: AppColors.companionSectionBright,
+            accentColor: AppColors.accentCool,
+            borderRadius: 16,
+            margin: EdgeInsets.only(
+              left: MediaQuery.sizeOf(context).width < 360 ? 10 : 12,
+              right: MediaQuery.sizeOf(context).width < 360 ? 10 : 12,
+              bottom: 8,
+            ),
+            child: SizedBox(
+              height: 200,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
                 ),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                itemCount: items.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (_, i) {
+                  final c = items[i];
+                  return RepaintBoundary(
+                    child: CompanionCard(
+                      config: CompanionCardConfig(
+                        companion: c,
+                        variant: CompanionCardVariant.smart,
+                        onTap: () => context.push('/companions/${c.id}'),
+                        isFavorited: _favoritedIds.contains(c.id),
+                        onFavoriteTap: () => _toggleFavorite(c.id),
+                        isDarkSurface: true,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -559,7 +1139,7 @@ class _CompanionListPageState extends State<CompanionListPage>
     final items = _recommended;
     return [
       SliverStickyHeader.builder(
-        builder: (context, state) => _StickySectionHeader(
+        builder: (context, state) => CompanionSectionHeader(
           title: '推荐陪游',
           barColor: AppColors.primary,
           icon: Icons.thumb_up_rounded,
@@ -568,21 +1148,35 @@ class _CompanionListPageState extends State<CompanionListPage>
         ),
         overlapsContent: false,
         sliver: SliverToBoxAdapter(
-          child: _CompanionSectionContainer(
-            tintColor: const Color(0xFFF8FCE8),
+          child: DecorativeSectionContainer(
+            tintColor: AppColors.companionSectionBright,
             accentColor: AppColors.primary,
             child: SizedBox(
-              height: 158,
+              height: 172,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 itemCount: items.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (_, i) => _FeaturedCompanionCard(
-                  companion: items[i],
-                  onTap: () => context.push('/companions/${items[i].id}'),
-                  showHotBadge: false,
-                ),
+                itemBuilder: (_, i) {
+                  final c = items[i];
+                  return RepaintBoundary(
+                    child: CompanionCard(
+                      config: CompanionCardConfig(
+                        companion: c,
+                        variant: CompanionCardVariant.featured,
+                        onTap: () => context.push('/companions/${c.id}'),
+                        showHotBadge: false,
+                        isFavorited: _favoritedIds.contains(c.id),
+                        onFavoriteTap: () => _toggleFavorite(c.id),
+                        isDarkSurface: true,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -594,7 +1188,7 @@ class _CompanionListPageState extends State<CompanionListPage>
   List<Widget> _buildAllSection(BuildContext context, AppLocalizations? l10n) {
     return [
       SliverStickyHeader.builder(
-        builder: (context, state) => _StickySectionHeader(
+        builder: (context, state) => CompanionSectionHeader(
           title: l10n?.companionSectionAll ?? '全部陪游',
           barColor: AppColors.accentCool,
           icon: Icons.people_rounded,
@@ -604,56 +1198,72 @@ class _CompanionListPageState extends State<CompanionListPage>
         overlapsContent: false,
         sliver: SliverToBoxAdapter(
           key: _allSectionKey,
-          child: _CompanionSectionContainer(
-            tintColor: const Color(0xFFF0F7FF),
+          child: DecorativeSectionContainer(
+            tintColor: AppColors.companionSectionBright,
             accentColor: AppColors.accentCool,
             child: _loading
-              ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: 4,
-                    separatorBuilder: (_, __) => const SizedBox(height: 6),
-                    itemBuilder: (_, i) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: _CompanionListCardSkeleton(),
-                    ),
-                  ),
-                )
-              : _list.isEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: EmptyState(
-                        icon: Icon(
-                          Icons.person_search_rounded,
-                          size: 48,
-                          color: AppColors.textTertiary,
-                        ),
-                        message: l10n?.companionEmpty ?? '暂无符合条件的陪游',
-                        actionLabel: l10n?.companionFilterAll ?? '全部',
-                        onAction: _onRefresh,
-                      ),
-                    )
-                  : ListView.separated(
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      itemCount: _list.length,
+                      itemCount: 4,
                       separatorBuilder: (_, __) => const SizedBox(height: 6),
-                      itemBuilder: (_, index) {
-                        final companion = _list[index];
-                        return _CompanionListCard(
-                          companion: companion,
-                          onTap: () =>
-                              context.push('/companions/${companion.id}'),
-                          l10n: l10n,
-                        );
-                      },
+                      itemBuilder: (_, i) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: _CompanionListCardSkeleton(),
+                      ),
                     ),
+                  )
+                : _list.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: EmptyState(
+                          icon: Icon(
+                            Icons.person_search_rounded,
+                            size: 48,
+                            color: AppColors.textTertiary,
+                          ),
+                          message: l10n?.companionEmpty ?? '暂无符合条件的陪游',
+                          actionLabel: l10n?.companionFilterAll ?? '全部',
+                          onAction: _onRefresh,
+                        ),
+                      )
+                    : ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        itemCount: _list.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 6),
+                        itemBuilder: (_, index) {
+                          final companion = _list[index];
+                          return FadeIn(
+                            delay: Duration(milliseconds: (index % 8) * 35),
+                            offsetY: 6,
+                            child: RepaintBoundary(
+                              child: CompanionCard(
+                                config: CompanionCardConfig(
+                                  companion: companion,
+                                  variant: CompanionCardVariant.list,
+                                  onTap: () =>
+                                      context.push('/companions/${companion.id}'),
+                                  isFavorited: _favoritedIds.contains(companion.id),
+                                  onFavoriteTap: () =>
+                                      _toggleFavorite(companion.id),
+                                  bookNowLabel: l10n?.companionBookNow ?? '立即预约',
+                                  pricePerDaySuffix: l10n?.companionPricePerDay ?? '/天',
+                                  serviceCountFormat: l10n?.companionServiceCount != null
+                                      ? (count) => l10n!.companionServiceCount(count)
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
           ),
         ),
       ),
@@ -754,6 +1364,7 @@ class _StickySectionHeader extends StatelessWidget {
     required this.icon,
     this.onSeeMore,
     required this.isPinned,
+    this.subtitle,
   });
 
   final String title;
@@ -761,6 +1372,7 @@ class _StickySectionHeader extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onSeeMore;
   final bool isPinned;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -772,9 +1384,13 @@ class _StickySectionHeader extends StatelessWidget {
         top: 4,
         bottom: 4,
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          Row(
+            children: [
+              Container(
             width: 5,
             height: 18,
             decoration: BoxDecoration(
@@ -807,6 +1423,8 @@ class _StickySectionHeader extends StatelessWidget {
           AppTapScale(
             onTap: onSeeMore,
             pressedScale: 0.96,
+            useRipple: true,
+            borderRadius: BorderRadius.circular(8),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               child: Row(
@@ -830,13 +1448,29 @@ class _StickySectionHeader extends StatelessWidget {
               ),
             ),
           ),
+            ],
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            Padding(
+              padding: EdgeInsets.only(left: compact ? 27 : 31),
+              child: Text(
+                subtitle!,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textTertiary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
         color: isPinned ? AppColors.card : Colors.transparent,
         boxShadow: isPinned
@@ -849,7 +1483,11 @@ class _StickySectionHeader extends StatelessWidget {
               ]
             : null,
       ),
-      child: content,
+      child: FadeIn(
+        duration: const Duration(milliseconds: 250),
+        offsetY: 4,
+        child: content,
+      ),
     );
   }
 }
@@ -881,10 +1519,6 @@ class _CompanionSectionContainer extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(_radius),
         color: tintColor,
-        border: Border.all(
-          color: accent.withValues(alpha: 0.15),
-          width: 1,
-        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -928,241 +1562,616 @@ class _SectionShapesPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class _SectionGradientDivider extends StatelessWidget {
-  const _SectionGradientDivider({this.tintColor});
+// ─── Smart recommendation section: premium gradient, gold accent ───
+class _SmartRecommendationSectionContainer extends StatelessWidget {
+  const _SmartRecommendationSectionContainer({required this.child});
 
-  final Color? tintColor;
+  final Widget child;
+
+  static const double _radius = 16;
 
   @override
   Widget build(BuildContext context) {
-    final color = tintColor ?? AppColors.divider;
+    final compact = MediaQuery.sizeOf(context).width < 360;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 2),
-      height: 1,
-      color: color.withValues(alpha: 0.5),
+      margin: EdgeInsets.only(
+        left: compact ? 10 : 12,
+        right: compact ? 10 : 12,
+        bottom: 8,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(_radius),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFFDF8F0),
+            Color(0xFFFFF9F0),
+            Color(0xFFFFF5E8),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accentGold.withValues(alpha: 0.06),
+            offset: const Offset(0, 2),
+            blurRadius: 12,
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            offset: const Offset(0, 2),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(_radius),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _SectionShapesPainter(accentColor: AppColors.accentGold),
+              ),
+            ),
+            child,
+          ],
+        ),
+      ),
     );
   }
 }
 
-// ─── Featured horizontal card: elevated style, accent ring, ribbon, skill icons, quick-book ───
-class _FeaturedCompanionCard extends StatelessWidget {
-  const _FeaturedCompanionCard({
+// ─── Smart recommendation card: larger, premium feel ───
+class _SmartRecommendationCard extends StatelessWidget {
+  const _SmartRecommendationCard({
     required this.companion,
     required this.onTap,
-    this.showHotBadge = false,
+    this.isFavorited = false,
+    this.onFavoriteTap,
   });
 
   final CompanionListItem companion;
   final VoidCallback onTap;
-  final bool showHotBadge;
+  final bool isFavorited;
+  final VoidCallback? onFavoriteTap;
 
-  static const double _avatarSize = 42;
-  static const double _cardRadius = 14;
-  static const double _cardWidth = 124;
+  static const double _avatarSize = 52;
+  static const double _cardWidth = 156;
+
+  bool get _isSenior => companion.experienceYears >= 5;
 
   @override
   Widget build(BuildContext context) {
     final skills = companion.tags.take(3).toList();
+    final displayBadges = companion.rankBadges.isNotEmpty
+        ? companion.rankBadges.take(2).toList()
+        : <CompanionRankBadge>[
+            if (companion.isVerified) CompanionRankBadge.verified,
+          ];
+    final useSeniorFallback = companion.rankBadges.isEmpty && _isSenior;
+
     return AppTapScale(
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(_cardRadius),
-        child: Container(
-          width: _cardWidth,
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(_cardRadius),
-            border: Border.all(color: AppColors.accentWarm.withValues(alpha: 0.25), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                offset: const Offset(0, 4),
-                blurRadius: 12,
-              ),
-              BoxShadow(
-                color: AppColors.accentWarm.withValues(alpha: 0.06),
-                offset: const Offset(0, 2),
-                blurRadius: 8,
+      enableHover: kIsWeb,
+      child: Container(
+        width: _cardWidth,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: AppColors.accentGold.withValues(alpha: 0.2),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.accentGold.withValues(alpha: 0.08),
+              offset: const Offset(0, 2),
+              blurRadius: 10,
+              spreadRadius: 0,
+            ),
+            const BoxShadow(
+              color: Color(0x0A000000),
+              offset: Offset(0, 2),
+              blurRadius: 6,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.bottomRight,
+              children: [
+                Hero(
+                  tag: 'companion_avatar_${companion.id}',
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.accentGold.withValues(alpha: 0.35),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: ClipOval(
+                      child: companion.avatarUrl.isNotEmpty
+                          ? Image.network(
+                              companion.avatarUrl,
+                              width: _avatarSize,
+                              height: _avatarSize,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _avatarPlaceholder(),
+                            )
+                          : _avatarPlaceholder(),
+                    ),
+                  ),
+                ),
+                if (companion.isOnline) _buildOnlineDot(),
+              ],
+            ),
+            if (companion.achievementIcons.isNotEmpty) ...[
+              const SizedBox(height: 3),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: companion.achievementIcons.take(3).map((icon) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 1),
+                    child: Icon(icon, size: 11, color: AppColors.accentGold),
+                  );
+                }).toList(),
               ),
             ],
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-            return SingleChildScrollView(
-              physics: const NeverScrollableScrollPhysics(),
-              clipBehavior: Clip.hardEdge,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Stack(
-                    clipBehavior: Clip.none,
-                    alignment: Alignment.bottomRight,
+            const SizedBox(height: 3),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    companion.name,
+                    style: AppTextStyles.headlineSmall.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                if (displayBadges.isNotEmpty)
+                  ...displayBadges.expand((b) => [
+                        const SizedBox(width: 2),
+                        _buildRankBadge(b),
+                      ]),
+                if (useSeniorFallback) ...[
+                  const SizedBox(width: 2),
+                  _buildSeniorBadge(),
+                ],
+                if (companion.isTrending) ...[
+                  const SizedBox(width: 2),
+                  _buildTrendingTag(),
+                ],
+              ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildLevelBadge(companion.level, companion.levelProgress),
+                const SizedBox(width: 6),
+                if (onFavoriteTap != null)
+                  _FavoriteButton(
+                    isFavorited: isFavorited,
+                    count: companion.favoritesCount + (isFavorited ? 1 : 0),
+                    onTap: onFavoriteTap!,
+                    size: 12,
+                  )
+                else if (companion.favoritesCount > 0)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.accentWarm.withValues(alpha: showHotBadge ? 0 : 0.5),
-                            width: showHotBadge ? 0 : 2,
-                          ),
-                          boxShadow: showHotBadge ? null : [
-                            BoxShadow(
-                              color: AppColors.accentWarm.withValues(alpha: 0.15),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: ClipOval(
-                          child: companion.avatarUrl.isNotEmpty
-                            ? Image.network(
-                                companion.avatarUrl,
-                                width: _avatarSize,
-                                height: _avatarSize,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => _avatarPlaceholder(),
-                              )
-                            : _avatarPlaceholder(),
+                      Icon(Icons.favorite_border_rounded, size: 9, color: AppColors.textTertiary),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${companion.favoritesCount}',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.textTertiary,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                      if (companion.isOnline) _buildOnlineDot(),
-                      if (showHotBadge) _buildHotRibbon(),
                     ],
                   ),
-                  const SizedBox(height: 1),
-                  SizedBox(
-                    width: double.infinity,
-                    child: Text(
-                      companion.name,
-                      style: AppTextStyles.headlineSmall.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        color: AppColors.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  if (skills.isNotEmpty) ...[
-                    const SizedBox(height: 1),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        for (var i = 0; i < skills.length && i < 3; i++) ...[
-                          if (i > 0) const SizedBox(width: 2),
-                          Icon(
-                            _companionTagToIcon(skills[i]),
-                            size: 10,
-                            color: AppColors.accentWarm.withValues(alpha: 0.9),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                  const SizedBox(height: 1),
-                  ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
-                      colors: [
-                        AppColors.accentWarm,
-                        const Color(0xFFE85A4A),
-                      ],
-                      stops: const [0.0, 1.0],
-                    ).createShader(bounds),
-                    child: Text(
-                      '¥${companion.pricePerDay.toStringAsFixed(0)}/天',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 1),
-                  SizedBox(
-                    width: double.infinity,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: onTap,
-                        borderRadius: BorderRadius.circular(6),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.primary,
-                                AppColors.primaryDark,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(6),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.35),
-                                offset: const Offset(0, 2),
-                                blurRadius: 6,
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              '立即预约',
-                              style: AppTextStyles.caption.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                if (companion.viewCount > 0) ...[
+                  if (onFavoriteTap != null || companion.favoritesCount > 0) const SizedBox(width: 6),
+                  Text(
+                    '${companion.viewCount}浏览',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textTertiary,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
+              ],
+            ),
+            const SizedBox(height: 3),
+            RatingWidget(
+              rating: companion.rating,
+              iconSize: 11,
+              fontSize: 11,
+              suffix: '${companion.reviewCount}条',
+              starColor: AppColors.textTertiary,
+            ),
+            if (skills.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var i = 0; i < skills.length && i < 3; i++) ...[
+                    if (i > 0) const SizedBox(width: 2),
+                    Icon(_companionTagToIcon(skills[i]), size: 11, color: AppColors.textTertiary),
+                  ],
+                ],
               ),
-            );
-            },
-          ),
+            ],
+            const SizedBox(height: 3),
+            _buildPackagePrices(companion),
+            if (companion.spotsLeftToday != null && companion.spotsLeftToday! <= 3) ...[
+              const SizedBox(height: 2),
+              Center(child: _buildUrgencyIndicator(companion.spotsLeftToday!)),
+            ],
+            if (companion.responseTimeMinutes != null && companion.responseTimeMinutes! <= 10) ...[
+              const SizedBox(height: 2),
+              Center(child: _buildFastResponseBadge(companion.responseTimeMinutes!)),
+            ],
+            const SizedBox(height: 6),
+            SizedBox(
+              width: double.infinity,
+              child: _buildConversionCta(
+                label: '立即预约',
+                onTap: onTap,
+                fontSize: 13,
+                compact: true,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Center(
+              child: _buildTrustSignals(isVerified: companion.isVerified, compact: true),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHotRibbon() {
+  Widget _buildOnlineDot() {
     return Positioned(
-      top: -2,
-      right: -2,
+      right: 2,
+      bottom: 2,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        width: 12,
+        height: 12,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppColors.accentWarm, const Color(0xFFE85A4A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(6),
+          shape: BoxShape.circle,
+          color: AppColors.success,
+          border: Border.all(color: AppColors.card, width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: AppColors.accentWarm.withValues(alpha: 0.4),
+              color: AppColors.success.withValues(alpha: 0.7),
               blurRadius: 4,
-              offset: const Offset(0, 1),
+              spreadRadius: 0.5,
             ),
           ],
         ),
-        child: const Text(
-          '热门',
+      ),
+    );
+  }
+
+  Widget _avatarPlaceholder() {
+    final initial = companion.name.isNotEmpty ? companion.name[0] : '?';
+    final hue = (companion.name.hashCode % 360).toDouble();
+    final color = HSLColor.fromAHSL(1, hue, 0.4, 0.65).toColor();
+    return Container(
+      width: _avatarSize,
+      height: _avatarSize,
+      color: color.withValues(alpha: 0.3),
+      child: Center(
+        child: Text(
+          initial,
           style: TextStyle(
-            color: Colors.white,
+            fontSize: 22,
             fontWeight: FontWeight.w700,
-            fontSize: 10,
+            color: color,
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ─── Featured horizontal card: rank, badges, monetization, package prices ───
+class _FeaturedCompanionCard extends StatelessWidget {
+  const _FeaturedCompanionCard({
+    required this.companion,
+    required this.onTap,
+    this.showHotBadge = false,
+    this.isSponsored = false,
+    this.isFavorited = false,
+    this.onFavoriteTap,
+  });
+
+  final CompanionListItem companion;
+  final VoidCallback onTap;
+  final bool showHotBadge;
+  final bool isSponsored;
+  final bool isFavorited;
+  final VoidCallback? onFavoriteTap;
+
+  static const double _avatarSize = 42;
+  static const double _cardWidth = 124;
+
+  bool get _isSenior => companion.experienceYears >= 5;
+
+  @override
+  Widget build(BuildContext context) {
+    final skills = companion.tags.take(3).toList();
+    final displayBadges = companion.rankBadges.isNotEmpty
+        ? companion.rankBadges.take(2).toList()
+        : <CompanionRankBadge>[
+            if (companion.isVerified) CompanionRankBadge.verified,
+          ];
+    final useSeniorFallback = companion.rankBadges.isEmpty && _isSenior;
+
+    return AppTapScale(
+      onTap: onTap,
+      enableHover: kIsWeb,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: _cardWidth,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(_kCompanionCardRadius),
+              border: Border.all(color: AppColors.border, width: 1),
+              boxShadow: _kCompanionCardShadow,
+            ),
+            child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // 1. Avatar + Hot badge + achievement icons under
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    Hero(
+                      tag: 'companion_avatar_${companion.id}',
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.border, width: 1),
+                        ),
+                        child: ClipOval(
+                          child: companion.avatarUrl.isNotEmpty
+                              ? Image.network(
+                                  companion.avatarUrl,
+                                  width: _avatarSize,
+                                  height: _avatarSize,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => _avatarPlaceholder(),
+                                )
+                              : _avatarPlaceholder(),
+                        ),
+                      ),
+                    ),
+                    if (companion.isOnline) _buildOnlineDot(),
+                    if (showHotBadge)
+                      Positioned(top: -1, right: -1, child: _buildHotBadge()),
+                    if (isSponsored)
+                      Positioned(
+                        top: -1,
+                        left: -1,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppColors.textTertiary.withValues(alpha: 0.7),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Text(
+                            '广告',
+                            style: AppTextStyles.caption.copyWith(
+                              color: Colors.white,
+                              fontSize: 8,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                if (companion.achievementIcons.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: companion.achievementIcons.take(3).map((icon) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 1),
+                        child: Icon(icon, size: 10, color: AppColors.accentGold),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 2),
+            if (companion.cityRank != null && showHotBadge)
+              Text(
+                '#${companion.cityRank} · ${companion.city}',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textTertiary,
+                  fontSize: 9,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            const SizedBox(height: 2),
+            // 2. Name + rank badges + 人气飙升
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    companion.name,
+                    style: AppTextStyles.headlineSmall.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                if (displayBadges.isNotEmpty)
+                  ...displayBadges.expand((b) => [
+                        const SizedBox(width: 2),
+                        _buildRankBadge(b),
+                      ]),
+                if (useSeniorFallback) ...[
+                  const SizedBox(width: 2),
+                  _buildSeniorBadge(),
+                ],
+                if (companion.isTrending) ...[
+                  const SizedBox(width: 2),
+                  _buildTrendingTag(),
+                ],
+              ],
+            ),
+            // 2b. Level + 收藏(可点击) + 浏览量
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildLevelBadge(companion.level, companion.levelProgress),
+                const SizedBox(width: 6),
+                if (onFavoriteTap != null)
+                  _FavoriteButton(
+                    isFavorited: isFavorited,
+                    count: companion.favoritesCount + (isFavorited ? 1 : 0),
+                    onTap: onFavoriteTap!,
+                    size: 12,
+                  )
+                else if (companion.favoritesCount > 0)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.favorite_border_rounded, size: 9, color: AppColors.textTertiary),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${companion.favoritesCount}',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.textTertiary,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                if (companion.viewCount > 0) ...[
+                  if (onFavoriteTap != null || companion.favoritesCount > 0) const SizedBox(width: 6),
+                  Text(
+                    '${companion.viewCount}浏览',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textTertiary,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            // 3. Compact rating row
+            const SizedBox(height: 2),
+            RatingWidget(
+              rating: companion.rating,
+              iconSize: 10,
+              fontSize: 10,
+              suffix: '${companion.reviewCount}条',
+              starColor: AppColors.textTertiary,
+            ),
+            // 4. Skill icons (neutral)
+            if (skills.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var i = 0; i < skills.length && i < 3; i++) ...[
+                    if (i > 0) const SizedBox(width: 2),
+                    Icon(_companionTagToIcon(skills[i]), size: 10, color: AppColors.textTertiary),
+                  ],
+                ],
+              ),
+            ],
+            const SizedBox(height: 2),
+            if (companion.discountTag != null || companion.hasGroupDiscount)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (companion.discountTag != null)
+                      _buildDiscountTag(companion.discountTag!),
+                    if (companion.discountTag != null && companion.hasGroupDiscount)
+                      const SizedBox(width: 4),
+                    if (companion.hasGroupDiscount) _buildGroupDiscountTag(),
+                  ],
+                ),
+              ),
+            // 5. Package prices (3h | 1d) — Price hierarchy
+            _buildPackagePrices(companion),
+            if (companion.spotsLeftToday != null && companion.spotsLeftToday! <= 3) ...[
+              const SizedBox(height: 2),
+              Center(child: _buildUrgencyIndicator(companion.spotsLeftToday!)),
+            ],
+            if (companion.responseTimeMinutes != null && companion.responseTimeMinutes! <= 10) ...[
+              const SizedBox(height: 2),
+              Center(child: _buildFastResponseBadge(companion.responseTimeMinutes!)),
+            ],
+            const SizedBox(height: 4),
+            // 6. CTA (bright gradient + glow)
+            SizedBox(
+              width: double.infinity,
+              child: _buildConversionCta(
+                label: '立即预约',
+                onTap: onTap,
+                fontSize: 12,
+                compact: true,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Center(
+              child: _buildTrustSignals(isVerified: companion.isVerified, compact: true),
+            ),
+          ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1215,295 +2224,360 @@ class _FeaturedCompanionCard extends StatelessWidget {
   }
 }
 
-// ─── All companions list card: radius 16–18, structured, compact, no overflow ───
+// ─── All companions list card: radius 16, badges, gradient price, tinted sections ───
 class _CompanionListCard extends StatelessWidget {
   const _CompanionListCard({
     required this.companion,
     required this.onTap,
     this.l10n,
+    this.isFavorited = false,
+    this.onFavoriteTap,
   });
 
   final CompanionListItem companion;
   final VoidCallback onTap;
   final AppLocalizations? l10n;
+  final bool isFavorited;
+  final VoidCallback? onFavoriteTap;
 
   static const double _avatarSize = 72;
-  static const double _cardRadius = 17;
+
+  bool get _isSenior => companion.experienceYears >= 5;
 
   @override
   Widget build(BuildContext context) {
     return AppTapScale(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(_cardRadius),
-          border: Border.all(color: AppColors.border, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              offset: const Offset(0, 2),
-              blurRadius: 6,
+      enableHover: kIsWeb,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: companion.isSponsored
+                  ? AppColors.accentGold.withValues(alpha: 0.04)
+                  : AppColors.card,
+              borderRadius: BorderRadius.circular(_kCompanionCardRadius),
+              border: Border.all(
+                color: companion.isSponsored
+                    ? AppColors.accentGold.withValues(alpha: 0.2)
+                    : AppColors.border,
+                width: 1,
+              ),
+              boxShadow: _kCompanionCardShadow,
             ),
-          ],
-        ),
-        child: Column(
+            child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top row: Avatar | Name + badge, City + experience
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    ClipOval(
-                      child: companion.avatarUrl.isNotEmpty
-                          ? Image.network(
-                              companion.avatarUrl,
-                              width: _avatarSize,
-                              height: _avatarSize,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _avatarPlaceholder(),
-                            )
-                          : _avatarPlaceholder(),
-                    ),
-                    if (companion.isOnline)
-                      Positioned(
-                        right: 2,
-                        bottom: 2,
-                        child: Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.success,
-                            border: Border.all(
-                              color: AppColors.card,
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.success.withValues(alpha: 0.6),
-                                blurRadius: 3,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            // Section 1: Header row — Avatar | Name + small badges
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Row(
+                      Stack(
+                        clipBehavior: Clip.none,
+                        alignment: Alignment.bottomRight,
                         children: [
-                          Flexible(
-                            child: Text(
-                              companion.name,
-                              style: AppTextStyles.headlineSmall.copyWith(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                                color: AppColors.textPrimary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          Hero(
+                            tag: 'companion_avatar_${companion.id}',
+                            child: ClipOval(
+                              child: companion.avatarUrl.isNotEmpty
+                                  ? Image.network(
+                                      companion.avatarUrl,
+                                      width: _avatarSize,
+                                      height: _avatarSize,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => _avatarPlaceholder(),
+                                    )
+                                  : _avatarPlaceholder(),
                             ),
                           ),
-                          if (companion.isVerified) ...[
-                            const SizedBox(width: 6),
+                          if (companion.isOnline) _buildOnlineBadge(),
+                        ],
+                      ),
+                      if (companion.achievementIcons.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: companion.achievementIcons.take(3).map((icon) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 1),
+                              child: Icon(icon, size: 12, color: AppColors.accentGold),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
                             Flexible(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                decoration: BoxDecoration(
-                                  color: AppColors.accentCool.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(6),
+                              child: Text(
+                                companion.name,
+                                style: AppTextStyles.headlineSmall.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                  color: AppColors.textPrimary,
                                 ),
-                                child: Row(
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (companion.rankBadges.isNotEmpty)
+                              ...companion.rankBadges.take(3).expand((b) => [
+                                    const SizedBox(width: 4),
+                                    _buildRankBadge(b),
+                                  ]),
+                            if (companion.rankBadges.isEmpty && companion.isVerified) ...[
+                              const SizedBox(width: 4),
+                              _buildRankBadge(CompanionRankBadge.verified),
+                            ],
+                            if (companion.rankBadges.isEmpty && _isSenior) ...[
+                              const SizedBox(width: 4),
+                              _buildSeniorBadge(),
+                            ],
+                            if (companion.isTrending) ...[
+                              const SizedBox(width: 4),
+                              _buildTrendingTag(),
+                            ],
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildLevelBadge(companion.level, companion.levelProgress),
+                            if (companion.favoritesCount > 0 || companion.viewCount > 0) ...[
+                              const SizedBox(width: 8),
+                              if (onFavoriteTap != null)
+                                _FavoriteButton(
+                                  isFavorited: isFavorited,
+                                  count: companion.favoritesCount + (isFavorited ? 1 : 0),
+                                  onTap: onFavoriteTap!,
+                                  size: 14,
+                                )
+                              else if (companion.favoritesCount > 0)
+                                Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.verified_rounded, size: 12, color: AppColors.accentCool),
+                                    Icon(Icons.favorite_border_rounded, size: 11, color: AppColors.textTertiary),
                                     const SizedBox(width: 2),
-                                    Flexible(
-                                      child: Text(
-                                        '已认证',
-                                        style: AppTextStyles.caption.copyWith(
-                                          color: AppColors.accentCool,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 10,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                    Text(
+                                      '${companion.favoritesCount}',
+                                      style: AppTextStyles.caption.copyWith(
+                                        color: AppColors.textTertiary,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ),
+                              if (companion.viewCount > 0) ...[
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${companion.viewCount}浏览',
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: AppColors.textTertiary,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ],
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${companion.city} · ${companion.experienceYears}年经验',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            // Middle: Skills as small icon + text tags (radius 12)
-            if (companion.tags.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 4,
-                runSpacing: 4,
-              children: companion.tags.take(4).map((tag) {
-                return ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 72),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.accentWarm.withValues(alpha: 0.1),
-                          AppColors.accentWarm.withValues(alpha: 0.05),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.accentWarm.withValues(alpha: 0.25),
-                        width: 0.5,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _companionTagToIcon(tag),
-                          size: 12,
-                          color: AppColors.accentWarm.withValues(alpha: 0.9),
-                        ),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            tag,
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.textSecondary,
-                              fontSize: 11,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        if (companion.discountTag != null || companion.hasGroupDiscount) ...[
+                          const SizedBox(height: 2),
+                          Wrap(
+                            spacing: 4,
+                            runSpacing: 2,
+                            children: [
+                              if (companion.discountTag != null)
+                                _buildDiscountTag(companion.discountTag!),
+                              if (companion.hasGroupDiscount) _buildGroupDiscountTag(),
+                            ],
                           ),
+                        ],
+                        const SizedBox(height: 2),
+                        Text(
+                          companion.cityRank != null
+                              ? '#${companion.cityRank} ${companion.city} · ${companion.experienceYears}年经验'
+                              : '${companion.city} · ${companion.experienceYears}年经验',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.textTertiary,
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
-                );
-                }).toList(),
+                ],
               ),
-            ],
-            // Bottom: Rating | Orders | Price | [spacer] | Small booking button (right)
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Flexible(
-                  flex: 0,
-                  fit: FlexFit.loose,
-                  child: RatingWidget(
-                    rating: companion.rating,
-                    iconSize: 11,
-                    fontSize: 10,
-                    suffix: '${companion.reviewCount}条',
-                  ),
+            ),
+            // Section 2: Skills — neutral small badges, tinted background
+            if (companion.tags.isNotEmpty) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.surface.withValues(alpha: 0.5),
                 ),
-                const SizedBox(width: 2),
-                Flexible(
-                  child: Text(
-                    l10n?.companionServiceCount(companion.completedOrders) ??
-                        '已服务${companion.completedOrders}次',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textTertiary,
-                      fontSize: 10,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                Flexible(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: ShaderMask(
-                          shaderCallback: (bounds) => LinearGradient(
-                            colors: [AppColors.accentWarm, const Color(0xFFE85A4A)],
-                            stops: const [0.0, 1.0],
-                          ).createShader(bounds),
-                          child: Text(
-                            '¥${companion.pricePerDay.toStringAsFixed(0)}',
-                            style: AppTextStyles.titleMedium.copyWith(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                              color: Colors.white,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                child: Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: companion.tags.take(4).map((tag) {
+                    return ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 72),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.card,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.border,
+                            width: 0.5,
                           ),
                         ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _companionTagToIcon(tag),
+                              size: 10,
+                              color: AppColors.textTertiary,
+                            ),
+                            const SizedBox(width: 3),
+                            Flexible(
+                              child: Text(
+                                tag,
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 10,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+            // Section 3: Conversion — Price → CTA → Trust (hierarchy)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primaryPale.withValues(alpha: 0.5),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(_kCompanionCardRadius),
+                  bottomRight: Radius.circular(_kCompanionCardRadius),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Metadata (neutral, compact)
+                  Row(
+                    children: [
+                      RatingWidget(
+                        rating: companion.rating,
+                        iconSize: 10,
+                        fontSize: 9,
+                        suffix: '${companion.reviewCount}条',
+                        starColor: AppColors.textTertiary,
+                      ),
+                      const SizedBox(width: 6),
                       Text(
-                        l10n?.companionPricePerDay ?? '/天',
+                        l10n?.companionServiceCount(companion.completedOrders) ??
+                            '已服务${companion.completedOrders}次',
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.textTertiary,
-                          fontSize: 10,
+                          fontSize: 9,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
-                ),
-                const Spacer(),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: onTap,
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryPale,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        l10n?.companionBookNow ?? '预约',
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
-                      ),
+                  const SizedBox(height: 4),
+                  // Row 1: Price (eye focus) + Urgency + Fast response
+                  Row(
+                    children: [
+                      if (companion.pricePer3h != null)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('3h ', style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary, fontSize: 10)),
+                            _buildGradientPrice(companion.pricePer3h!, unit: '', fontSize: 14),
+                            Text(' · ', style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary, fontSize: 10)),
+                            _buildGradientPrice(companion.pricePerDay, unit: l10n?.companionPricePerDay ?? '/天', fontSize: 16),
+                          ],
+                        )
+                      else
+                        _buildGradientPrice(companion.pricePerDay, unit: l10n?.companionPricePerDay ?? '/天', fontSize: 18),
+                      const SizedBox(width: 8),
+                      if (companion.spotsLeftToday != null && companion.spotsLeftToday! <= 3)
+                        _buildUrgencyIndicator(companion.spotsLeftToday!),
+                      if (companion.responseTimeMinutes != null && companion.responseTimeMinutes! <= 10) ...[
+                        const SizedBox(width: 6),
+                        _buildFastResponseBadge(companion.responseTimeMinutes!),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Row 2: CTA (bright gradient + glow)
+                  SizedBox(
+                    width: double.infinity,
+                    child: _buildConversionCta(
+                      label: l10n?.companionBookNow ?? '立即预约',
+                      onTap: onTap,
+                      fontSize: 13,
+                      compact: true,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  // Row 3: Trust signal
+                  _buildTrustSignals(isVerified: companion.isVerified),
+                ],
+              ),
             ),
           ],
+        ),
+      ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOnlineBadge() {
+    return Positioned(
+      right: 2,
+      bottom: 2,
+      child: Container(
+        width: 10,
+        height: 10,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.success,
+          border: Border.all(color: AppColors.card, width: 1.5),
         ),
       ),
     );
@@ -1538,15 +2612,9 @@ class _CompanionListCardSkeleton extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(17),
+        borderRadius: BorderRadius.circular(_kCompanionCardRadius),
         border: Border.all(color: AppColors.border, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-          ),
-        ],
+        boxShadow: _kCompanionCardShadow,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

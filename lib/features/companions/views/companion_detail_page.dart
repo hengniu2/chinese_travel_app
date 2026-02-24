@@ -4,9 +4,24 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../shared/design_system/design_system.dart';
 import '../data/companion_detail_mock.dart';
+import '../data/companion_list_mock.dart';
 import '../models/companion_detail.dart';
+import '../models/companion_list_item.dart';
+import '../widgets/rating_widget.dart';
 
-/// 陪游详情页 — 结构：SliverAppBar + 模块化 Sliver 区块 + 底部固定预订栏
+IconData _skillTagToIcon(String tag) {
+  if (tag.contains('摄影') || tag.contains('跟拍')) return Icons.camera_alt_rounded;
+  if (tag.contains('美食')) return Icons.restaurant_rounded;
+  if (tag.contains('讲解') || tag.contains('文化')) return Icons.menu_book_rounded;
+  if (tag.contains('路线') || tag.contains('规划')) return Icons.route_rounded;
+  if (tag.contains('方言') || tag.contains('沟通')) return Icons.translate_rounded;
+  if (tag.contains('历史')) return Icons.account_balance_rounded;
+  if (tag.contains('园林') || tag.contains('古镇')) return Icons.park_rounded;
+  if (tag.contains('夜景')) return Icons.nightlight_rounded;
+  return Icons.auto_awesome_rounded;
+}
+
+/// 陪游详情页 — 大封面 + 分层区块 + 底部固定预订栏
 class CompanionDetailPage extends StatefulWidget {
   const CompanionDetailPage({super.key, required this.id});
 
@@ -22,22 +37,18 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
   bool _bioExpanded = false;
   late AnimationController _avatarFadeController;
   late Animation<double> _avatarFade;
-  late PageController _galleryController;
-  int _galleryPage = 0;
   int _selectedDateIndex = 0;
+  int _reviewFilterIndex = 0; // 0=全部 1=5星 2=4星 3=有图
 
-  static const double _expandedHeight = 260;
+  static const double _expandedHeight = 200;
   static const List<String> _weekdayLabels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-  static const double _galleryHeight = 220;
-  static const double _galleryRadius = 20;
-  static const double _heroAvatarSize = 100;
-  static const double _sectionPaddingH = 16;
-  static const double _sectionSpacing = 24;
-  static const double _bottomBarHeight = 76;
+  static const double _heroAvatarSize = 64;
+  static const double _sectionPaddingH = 14;
+  static const double _sectionSpacing = 14;
+  static const double _bottomBarHeight = 72;
 
-  /// Light yellow gradient for hero background
-  static const Color _heroGradientStart = Color(0xFFFFF4D6);
-  static const Color _heroGradientEnd = Color(0xFFFFC83D);
+  static const Color _coverGradientStart = Color(0x00000000);
+  static const Color _coverGradientEnd = Color(0xE6000000);
 
   @override
   void initState() {
@@ -51,7 +62,6 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
       parent: _avatarFadeController,
       curve: Curves.easeOut,
     );
-    _galleryController = PageController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _avatarFadeController.forward();
     });
@@ -60,7 +70,6 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
   @override
   void dispose() {
     _avatarFadeController.dispose();
-    _galleryController.dispose();
     super.dispose();
   }
 
@@ -75,21 +84,23 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.warmBackground,
       body: CustomScrollView(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        cacheExtent: 400,
         slivers: [
-          _buildSliverAppBar(),
-          SliverToBoxAdapter(child: _buildGallerySection()),
-          SliverToBoxAdapter(child: _buildProfileSection()),
-          SliverToBoxAdapter(child: _buildServiceTagsSection()),
-          SliverToBoxAdapter(child: _buildAboutSection()),
-          SliverToBoxAdapter(child: _buildPricingSection()),
-          SliverToBoxAdapter(child: _buildAvailabilitySection()),
-          SliverToBoxAdapter(child: _buildTrustSafetySection()),
-          SliverToBoxAdapter(child: _buildServiceDetailsSection()),
-          SliverToBoxAdapter(child: _buildReviewsPreviewSection()),
+          _buildCoverSliverAppBar(),
+          SliverToBoxAdapter(child: _wrapSection(0, _buildProfileSection())),
+          SliverToBoxAdapter(child: _wrapSection(1, _buildSkillSection())),
+          SliverToBoxAdapter(child: _wrapSection(2, _buildPackagesTableSection())),
+          SliverToBoxAdapter(child: _wrapSection(3, _buildAvailabilitySection())),
+          SliverToBoxAdapter(child: _wrapSection(4, _buildAboutSection())),
+          SliverToBoxAdapter(child: _wrapSection(5, _buildReviewsSection())),
+          SliverToBoxAdapter(child: _wrapSection(6, _buildSimilarCompanionsSection())),
+          SliverToBoxAdapter(child: _wrapSection(7, _buildTrustSafetySection())),
+          SliverToBoxAdapter(child: _wrapSection(8, _buildServiceDetailsSection())),
           SliverPadding(
-            padding: EdgeInsets.only(bottom: _bottomBarHeight.h + MediaQuery.of(context).padding.bottom),
+            padding: EdgeInsets.only(bottom: _bottomBarHeight.h + MediaQuery.of(context).padding.bottom + 12),
           ),
         ],
       ),
@@ -97,45 +108,54 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
     );
   }
 
-  /// 1. SliverAppBar — expanded 260, light yellow gradient, soft abstract bg, bottom-aligned hero content
-  Widget _buildSliverAppBar() {
+  static Color _sectionColor(int index) {
+    const colors = [
+      AppColors.homeSectionGreen,
+      AppColors.homeSectionYellow,
+      AppColors.homeSectionBlueStart,
+      Color(0xFFFFF3E0),
+      Color(0xFFF3E5F5),
+      Color(0xFFE0F2F1),
+      AppColors.companionSectionWarm,
+      AppColors.companionSectionLavender,
+      AppColors.companionSectionBlue,
+    ];
+    return colors[index % colors.length];
+  }
+
+  Widget _wrapSection(int index, Widget child) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: _sectionColor(index),
+        border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+      ),
+      padding: EdgeInsets.only(top: 6.h, bottom: 6.h),
+      child: child,
+    );
+  }
+
+  String get _coverImageUrl {
+    final imgs = _galleryImages;
+    if (imgs.isNotEmpty) return imgs.first;
+    return _detail.avatar;
+  }
+
+  /// 1. Large cover image with gradient overlay
+  Widget _buildCoverSliverAppBar() {
     return SliverAppBar(
       expandedHeight: _expandedHeight.h,
       pinned: true,
       stretch: true,
-      backgroundColor: _heroGradientEnd,
+      backgroundColor: AppColors.surface,
       leading: Padding(
         padding: EdgeInsets.only(left: 8.w),
         child: AppTapScale(
           child: IconButton(
             icon: Container(
-            padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  offset: const Offset(0, 2),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-            child: Icon(Icons.arrow_back_ios_new_rounded, size: 18.sp, color: AppColors.textPrimary),
-          ),
-          onPressed: () => context.pop(),
-        ),
-        ),
-      ),
-      actions: [
-        Padding(
-          padding: EdgeInsets.only(right: 8.w),
-          child: AppTapScale(
-            child: IconButton(
-            icon: Container(
               padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white.withValues(alpha: 0.95),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
@@ -145,159 +165,140 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
                   ),
                 ],
               ),
-              child: Icon(Icons.share_rounded, size: 20.sp, color: AppColors.textPrimary),
+              child: Icon(Icons.arrow_back_ios_new_rounded, size: 18.sp, color: AppColors.textPrimary),
             ),
-            onPressed: () {},
+            onPressed: () => context.pop(),
           ),
+        ),
+      ),
+      actions: [
+        Padding(
+          padding: EdgeInsets.only(right: 8.w),
+          child: AppTapScale(
+            child: IconButton(
+              icon: Container(
+                padding: EdgeInsets.all(8.w),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      offset: const Offset(0, 2),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: Icon(Icons.share_rounded, size: 20.sp, color: AppColors.textPrimary),
+              ),
+              onPressed: () {},
+            ),
           ),
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        stretchModes: [
-          StretchMode.zoomBackground,
-          StretchMode.fadeTitle,
-        ],
+        stretchModes: [StretchMode.zoomBackground, StretchMode.fadeTitle],
         background: Stack(
           fit: StackFit.expand,
           children: [
-            // Soft abstract yellow gradient background (elegant, no heavy image)
+            if (_coverImageUrl.isNotEmpty)
+              Image.network(
+                _coverImageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildCoverPlaceholder(),
+              )
+            else
+              _buildCoverPlaceholder(),
+            // Gradient overlay
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [_heroGradientStart, _heroGradientEnd],
+                  colors: [_coverGradientStart, _coverGradientEnd],
                 ),
               ),
             ),
-            // Subtle radial/decoration for warmth (optional soft circles or gradient overlay)
-            Positioned(
-              top: -80.h,
-              right: -60.w,
-              child: Container(
-                width: 200.w,
-                height: 200.w,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.15),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -40.h,
-              left: -40.w,
-              child: Container(
-                width: 160.w,
-                height: 160.w,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.1),
-                ),
-              ),
-            ),
-            // Foreground content — bottom aligned
+            // Bottom profile strip
             Positioned(
               left: 0,
               right: 0,
               bottom: 0,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 20.h),
+                padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 10.h),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    // Large circular avatar (100px) — fade-in
-                    FadeTransition(
-                      opacity: _avatarFade,
-                      child: CircleAvatar(
-                        radius: (_heroAvatarSize / 2).r,
-                        backgroundColor: Colors.white,
+                    Hero(
+                      tag: 'companion_avatar_${widget.id}',
+                      child: FadeTransition(
+                        opacity: _avatarFade,
                         child: CircleAvatar(
-                          radius: (_heroAvatarSize / 2 - 3).r,
-                          backgroundColor: AppColors.surface,
-                          backgroundImage: _detail.avatar.isNotEmpty
-                              ? NetworkImage(_detail.avatar)
-                              : null,
-                          child: _detail.avatar.isEmpty
-                              ? Icon(Icons.person_rounded, size: 48.sp, color: AppColors.textTertiary)
-                              : null,
+                          radius: (_heroAvatarSize / 2).r,
+                          backgroundColor: Colors.white,
+                          child: CircleAvatar(
+                            radius: (_heroAvatarSize / 2 - 2).r,
+                            backgroundColor: AppColors.surface,
+                            backgroundImage: _detail.avatar.isNotEmpty
+                                ? NetworkImage(_detail.avatar)
+                                : (_coverImageUrl.isNotEmpty ? NetworkImage(_coverImageUrl) : null),
+                            child: _detail.avatar.isEmpty && _coverImageUrl.isEmpty
+                                ? Icon(Icons.person_rounded, size: 40.sp, color: AppColors.textTertiary)
+                                : null,
+                          ),
                         ),
                       ),
                     ),
-                    SizedBox(width: 16.w),
-                    // Right column: name, city, rating, online
+                    SizedBox(width: 12.w),
                     Expanded(
                       child: Padding(
-                        padding: EdgeInsets.only(bottom: 4.h),
+                        padding: EdgeInsets.only(bottom: 0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Row 1: Name · Age + verified badge
                             Row(
                               children: [
                                 Flexible(
                                   child: Text(
                                     '${_detail.name} · ${_detail.age}岁',
                                     style: AppTextStyles.headlineMedium.copyWith(
-                                      color: AppColors.textPrimary,
+                                      color: Colors.white,
                                       fontWeight: FontWeight.w700,
+                                      fontSize: 16.sp,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 if (_detail.isVerified) ...[
-                                  SizedBox(width: 6.w),
-                                  Icon(Icons.verified_rounded, size: 20.sp, color: AppColors.accentCool),
+                                  SizedBox(width: 4.w),
+                                  Icon(Icons.verified_rounded, size: 18.sp, color: Colors.white),
                                 ],
                               ],
                             ),
-                            SizedBox(height: 6.h),
-                            // Row 2: City · X年陪游经验
+                            SizedBox(height: 4.h),
                             Text(
                               _detail.experienceYears != null
-                                  ? '${_detail.city} · ${_detail.experienceYears}年陪游经验'
+                                  ? '${_detail.city} · ${_detail.experienceYears}年经验'
                                   : _detail.city,
-                              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 12.sp,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            SizedBox(height: 6.h),
-                            // Row 3: ⭐ Rating (reviewCount条评价)  已服务 X次
+                            SizedBox(height: 4.h),
                             Row(
                               children: [
-                                Icon(Icons.star_rounded, size: 16.sp, color: AppColors.accentGold),
+                                Icon(Icons.star_rounded, size: 14.sp, color: AppColors.accentGold),
                                 SizedBox(width: 4.w),
-                                Expanded(
-                                  child: Text(
-                                    '${(_detail.rating ?? 0).toStringAsFixed(1)} (${_detail.reviewCount ?? _detail.reviews.length}条评价)${_detail.completedOrders != null ? "  已服务 ${_detail.completedOrders}次" : ""}',
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      color: AppColors.textPrimary,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 6.h),
-                            // Row 4: Online indicator — green dot + 在线/忙碌
-                            Row(
-                              children: [
-                                Container(
-                                  width: 8.w,
-                                  height: 8.w,
-                                  decoration: BoxDecoration(
-                                    color: _detail.isOnline ? AppColors.primary : AppColors.textTertiary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                SizedBox(width: 6.w),
                                 Text(
-                                  _detail.isOnline ? '在线' : '忙碌',
-                                  style: AppTextStyles.overline.copyWith(
-                                    color: _detail.isOnline ? AppColors.primary : AppColors.textSecondary,
+                                  '${(_detail.rating ?? 0).toStringAsFixed(1)} · ${_detail.reviewCount ?? _detail.reviews.length}条评价',
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.95),
+                                    fontSize: 12.sp,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -318,508 +319,262 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
     );
   }
 
-  /// Premium gallery — horizontal carousel below SliverAppBar
-  Widget _buildGallerySection() {
-    final images = _galleryImages;
-    final count = images.isEmpty ? 1 : images.length;
-    final showBadge = images.isNotEmpty && images != [_detail.avatar];
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(_sectionPaddingH.w, 16.h, _sectionPaddingH.w, 0),
-      child: SizedBox(
-        height: _galleryHeight.h,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(_galleryRadius.r),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              PageView.builder(
-                controller: _galleryController,
-                onPageChanged: (int i) => setState(() => _galleryPage = i),
-                itemCount: count,
-                itemBuilder: (context, index) {
-                  if (images.isEmpty) {
-                    return _buildGalleryAvatarFallback();
-                  }
-                  return _buildGalleryImage(images[index]);
-                },
-              ),
-              if (showBadge)
-                Positioned(
-                  top: 10.h,
-                  right: 12.w,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.35),
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
-                    child: Text(
-                      '真实照片',
-                      style: AppTextStyles.overline.copyWith(
-                        color: Colors.white,
-                        fontSize: 11.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 12.h,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    count,
-                    (i) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOut,
-                      margin: EdgeInsets.symmetric(horizontal: 3.w),
-                      width: _galleryPage == i ? 18.w : 8.w,
-                      height: 8.h,
-                      decoration: BoxDecoration(
-                        color: _galleryPage == i
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(4.r),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGalleryImage(String url) {
-    return Image.network(
-      url,
-      fit: BoxFit.cover,
-      width: double.infinity,
-      height: double.infinity,
-      errorBuilder: (_, __, ___) => _buildGalleryAvatarFallback(),
-    );
-  }
-
-  Widget _buildGalleryAvatarFallback() {
-    if (_detail.avatar.trim().isNotEmpty) {
-      return Image.network(
-        _detail.avatar,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-        errorBuilder: (_, __, ___) => _buildGalleryPlaceholderBox(),
-      );
-    }
-    return _buildGalleryPlaceholderBox();
-  }
-
-  Widget _buildGalleryPlaceholderBox() {
+  Widget _buildCoverPlaceholder() {
     return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [_heroGradientStart, _heroGradientEnd],
-        ),
-      ),
-      child: _buildGalleryPlaceholder(),
-    );
-  }
-
-  Widget _buildGalleryPlaceholder() {
-    return Center(
-      child: Icon(
-        Icons.person_rounded,
-        size: 80.sp,
-        color: Colors.white.withValues(alpha: 0.7),
+      color: AppColors.primaryPale,
+      child: Center(
+        child: Icon(Icons.person_rounded, size: 80.sp, color: AppColors.primary.withValues(alpha: 0.4)),
       ),
     );
   }
 
-  /// 2. Profile Section
+  /// 2. Profile Section — compact meta row
   Widget _buildProfileSection() {
+    final hasMeta = (_detail.responseTime != null && _detail.responseTime!.isNotEmpty) ||
+        (_detail.acceptRate != null && _detail.acceptRate!.isNotEmpty) ||
+        (_detail.languages != null && _detail.languages!.isNotEmpty);
+    if (!hasMeta) return const SizedBox.shrink();
+
+    return _buildSection(
+      child: Wrap(
+        spacing: 8.w,
+        runSpacing: 6.h,
+        children: [
+          if (_detail.responseTime != null && _detail.responseTime!.isNotEmpty)
+            _buildMetaChip(Icons.speed_rounded, '平均${_detail.responseTime}回复'),
+          if (_detail.acceptRate != null && _detail.acceptRate!.isNotEmpty)
+            _buildMetaChip(Icons.percent_rounded, '接单率${_detail.acceptRate}'),
+          if (_detail.languages != null && _detail.languages!.isNotEmpty)
+            _buildMetaChip(Icons.language_rounded, _detail.languages!.join(' / ')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetaChip(IconData icon, String text) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: AppColors.primaryPale.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14.sp, color: AppColors.textSecondary),
+          SizedBox(width: 4.w),
+          Text(
+            text,
+            style: AppTextStyles.bodySmall.copyWith(fontSize: 12.sp, color: AppColors.textPrimary),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSection({required Widget child, String? title}) {
     return Padding(
       padding: EdgeInsets.fromLTRB(_sectionPaddingH.w, _sectionSpacing.h, _sectionPaddingH.w, 0),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(14.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(color: AppColors.border, width: 0.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              offset: const Offset(0, 2),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (title != null) ...[
+              Text(
+                title,
+                style: AppTextStyles.titleMedium.copyWith(fontSize: 15.sp),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: 10.h),
+            ],
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 3. Skill Section — 技能标签 with icons
+  Widget _buildSkillSection() {
+    if (_detail.skillTags.isEmpty) return const SizedBox.shrink();
+    return _buildSection(
+      title: '技能标签',
+      child: Wrap(
+        spacing: 8.w,
+        runSpacing: 8.h,
+        children: _detail.skillTags.map((tag) {
+          return Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: AppColors.primaryPale.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(color: AppColors.border, width: 0.5),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(_skillTagToIcon(tag), size: 14.sp, color: AppColors.textSecondary),
+                SizedBox(width: 6.w),
+                Text(
+                  tag,
+                  style: AppTextStyles.bodySmall.copyWith(fontSize: 12.sp, color: AppColors.textPrimary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  /// 7. About Section
+  static const int _bioMaxLinesCollapsed = 4;
+
+  Widget _buildAboutSection() {
+    return _buildSection(
+      title: '关于我',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 32.r,
-                backgroundColor: AppColors.surface,
-                backgroundImage: _detail.avatar.isNotEmpty
-                    ? NetworkImage(_detail.avatar)
-                    : null,
-                child: _detail.avatar.isEmpty
-                    ? Icon(Icons.person_rounded, size: 32.sp, color: AppColors.textTertiary)
-                    : null,
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
+          Text(
+            _detail.bio,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textPrimary,
+              height: 1.5,
+              fontSize: 13.sp,
+            ),
+            maxLines: _bioExpanded ? null : _bioMaxLinesCollapsed,
+            overflow: _bioExpanded ? null : TextOverflow.ellipsis,
+          ),
+          SizedBox(height: 6.h),
+          GestureDetector(
+            onTap: () => setState(() => _bioExpanded = !_bioExpanded),
+            child: Text(
+              _bioExpanded ? '收起' : '展开',
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 12.sp),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 5. Service packages comparison table
+  Widget _buildPackagesTableSection() {
+    if (_detail.packages.isEmpty) return const SizedBox.shrink();
+    return _buildSection(
+      title: '套餐对比',
+      child: Column(
+        children: [
+          // Table header
+          Container(
+            padding: EdgeInsets.symmetric(vertical: 8.h),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Row(
+              children: [
+                Expanded(flex: 2, child: Text('套餐', style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600, fontSize: 12.sp))),
+                Expanded(flex: 2, child: Text('说明', style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600, fontSize: 12.sp))),
+                SizedBox(width: 8.w),
+                Text('价格', style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600, fontSize: 12.sp)),
+              ],
+            ),
+          ),
+          SizedBox(height: 6.h),
+          ..._detail.packages.asMap().entries.map((e) {
+            final p = e.value;
+            final isLast = e.key == _detail.packages.length - 1;
+            return Padding(
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 8.h),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryPale.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(color: AppColors.border.withValues(alpha: 0.5), width: 0.5),
+                ),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      _detail.name,
-                      style: AppTextStyles.headlineMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      '${_detail.city} · ${_detail.age}岁',
-                      style: AppTextStyles.bodySmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (_detail.responseHint != null && _detail.responseHint!.isNotEmpty) ...[
-                      SizedBox(height: 4.h),
-                      Text(
-                        _detail.responseHint!,
-                        style: AppTextStyles.overline,
-                        maxLines: 1,
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        p.name,
+                        style: AppTextStyles.bodySmall.copyWith(fontSize: 12.sp, fontWeight: FontWeight.w500),
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ],
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        p.desc,
+                        style: AppTextStyles.bodySmall.copyWith(fontSize: 11.sp, color: AppColors.textSecondary),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(
+                      '¥${p.price.toStringAsFixed(0)}${p.unit}',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.price,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
-            ],
-          ),
+            );
+          }),
         ],
       ),
     );
   }
 
-  /// 3. Service Capability Section — 服务内容: tags (light yellow) + info rows
-  Widget _buildServiceTagsSection() {
-    final hasTags = _detail.skillTags.isNotEmpty;
-    final hasInfo = (_detail.languages != null && _detail.languages!.isNotEmpty) ||
-        (_detail.responseTime != null && _detail.responseTime!.isNotEmpty) ||
-        (_detail.acceptRate != null && _detail.acceptRate!.isNotEmpty);
-    if (!hasTags && !hasInfo) return const SizedBox.shrink();
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(_sectionPaddingH.w, _sectionSpacing.h, _sectionPaddingH.w, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '服务内容',
-            style: AppTextStyles.titleMedium,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 10.h),
-          if (hasTags)
-            Wrap(
-              spacing: 8.w,
-              runSpacing: 8.h,
-              children: _detail.skillTags
-                  .map((tag) => Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryPale,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          tag,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            fontSize: 12.sp,
-                            color: AppColors.textPrimary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ))
-                  .toList(),
-            ),
-          if (hasTags && hasInfo) SizedBox(height: 12.h),
-          if (hasInfo)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (_detail.languages != null && _detail.languages!.isNotEmpty) ...[
-                  _buildServiceInfoRow(Icons.language_rounded, '语言：${_detail.languages!.join(' / ')}'),
-                  SizedBox(height: 6.h),
-                ],
-                if (_detail.responseTime != null && _detail.responseTime!.isNotEmpty) ...[
-                  _buildServiceInfoRow(Icons.schedule_rounded, '平均回复：${_detail.responseTime}'),
-                  SizedBox(height: 6.h),
-                ],
-                if (_detail.acceptRate != null && _detail.acceptRate!.isNotEmpty)
-                  _buildServiceInfoRow(Icons.percent_rounded, '接单率：${_detail.acceptRate}'),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildServiceInfoRow(IconData icon, String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Icon(icon, size: 14.sp, color: AppColors.textTertiary),
-        SizedBox(width: 6.w),
-        Expanded(
-          child: Text(
-            text,
-            style: AppTextStyles.bodySmall.copyWith(
-              fontSize: 12.sp,
-              color: AppColors.textSecondary,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// 4. About Section — 关于我, expandable bio in card
-  static const int _bioMaxLinesCollapsed = 4;
-  static const Color _aboutTextColor = Color(0xFF2B2B2B);
-
-  Widget _buildAboutSection() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(_sectionPaddingH.w, 16.h, _sectionPaddingH.w, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '关于我',
-            style: AppTextStyles.titleMedium,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 10.h),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  offset: const Offset(0, 2),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _detail.bio,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: _aboutTextColor,
-                    height: 1.55,
-                    fontSize: 14.sp,
-                  ),
-                  maxLines: _bioExpanded ? null : _bioMaxLinesCollapsed,
-                  overflow: _bioExpanded ? null : TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 8.h),
-                GestureDetector(
-                  onTap: () => setState(() => _bioExpanded = !_bioExpanded),
-                  child: Text(
-                    _bioExpanded ? '收起' : '展开',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 12.h),
-        ],
-      ),
-    );
-  }
-
-  /// 5. Pricing & Service Details — 服务价格 card
-  static const List<String> _includes = ['8小时陪同', '行程规划', '基础摄影'];
-  static const List<String> _excludes = ['门票', '交通费', '餐费'];
-
-  Widget _buildPricingSection() {
-    final pricePerDay = _detail.packages.isEmpty
-        ? 0.0
-        : _detail.packages.map((e) => e.price).reduce((a, b) => a < b ? a : b);
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(_sectionPaddingH.w, 16.h, _sectionPaddingH.w, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '服务价格',
-            style: AppTextStyles.titleMedium,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 10.h),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  offset: const Offset(0, 2),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Row 1: ¥298 / 天 — large bold yellow
-                Text(
-                  '¥${pricePerDay.toStringAsFixed(0)} / 天',
-                  style: AppTextStyles.headlineLarge.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 24.sp,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 12.h),
-                // Row 2: 包含：• bullets
-                Text(
-                  '包含：',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 6.h),
-                ..._includes.map(
-                  (item) => Padding(
-                    padding: EdgeInsets.only(left: 8.w, bottom: 4.h),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '• ',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.textSecondary,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            item,
-                            style: AppTextStyles.bodySmall.copyWith(
-                              fontSize: 12.sp,
-                              color: AppColors.textSecondary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10.h),
-                // Row 3: 不包含：• bullets
-                Text(
-                  '不包含：',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 6.h),
-                ..._excludes.map(
-                  (item) => Padding(
-                    padding: EdgeInsets.only(left: 8.w, bottom: 4.h),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '• ',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.textSecondary,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            item,
-                            style: AppTextStyles.bodySmall.copyWith(
-                              fontSize: 12.sp,
-                              color: AppColors.textSecondary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 12.h),
-        ],
-      ),
-    );
-  }
-
-  /// Availability preview — 可预约时间 (next 7 days, horizontal date selector)
+  /// 6. Availability calendar preview
   Widget _buildAvailabilitySection() {
     final today = DateTime.now();
-    return Padding(
-      padding: EdgeInsets.fromLTRB(_sectionPaddingH.w, 16.h, _sectionPaddingH.w, 0),
+    return _buildSection(
+      title: '可预约时间',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            '可预约时间',
-            style: AppTextStyles.titleMedium,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 10.h),
           SizedBox(
-            height: 70.h,
+            height: 64.h,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
               itemCount: 7,
-              separatorBuilder: (_, __) => SizedBox(width: 10.w),
+              separatorBuilder: (_, __) => SizedBox(width: 8.w),
               itemBuilder: (context, i) {
                 final d = today.add(Duration(days: i));
                 final weekday = _weekdayLabels[d.weekday - 1];
@@ -836,14 +591,10 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
           SizedBox(height: 8.h),
           Text(
             '本周已预约 3 次',
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
-              fontSize: 12.sp,
-            ),
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 11.sp),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          SizedBox(height: 12.h),
         ],
       ),
     );
@@ -859,8 +610,8 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        width: 60.w,
-        height: 70.h,
+        width: 56.w,
+        height: 64.h,
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : Colors.white,
           borderRadius: BorderRadius.circular(12.r),
@@ -905,185 +656,130 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
     );
   }
 
-  /// Trust & Safety — 保障服务 (3 items: icon + text, yellow theme, center aligned)
+  /// Trust & Safety
   Widget _buildTrustSafetySection() {
     const items = [
       (icon: Icons.badge_rounded, label: '实名认证'),
       (icon: Icons.shield_rounded, label: '平台担保'),
       (icon: Icons.cancel_outlined, label: '无理由取消'),
     ];
-    return Padding(
-      padding: EdgeInsets.fromLTRB(_sectionPaddingH.w, 16.h, _sectionPaddingH.w, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+    return _buildSection(
+      title: '保障服务',
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text(
-            '保障服务',
-            style: AppTextStyles.titleMedium,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 12.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              for (final item in items)
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        item.icon,
-                        size: 28.sp,
-                        color: AppColors.primary,
-                      ),
-                      SizedBox(height: 6.h),
-                      Text(
-                        item.label,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textPrimary,
-                          fontSize: 12.sp,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+          for (final item in items)
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(item.icon, size: 24.sp, color: AppColors.primary),
+                  SizedBox(height: 4.h),
+                  Text(
+                    item.label,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textPrimary,
+                      fontSize: 11.sp,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-        ],
-      ),
-    );
-  }
-
-  /// 6. Service Details Section
-  Widget _buildServiceDetailsSection() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(_sectionPaddingH.w, _sectionSpacing.h, _sectionPaddingH.w, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '服务说明',
-            style: AppTextStyles.titleMedium,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            _detail.serviceDesc,
-            style: AppTextStyles.bodyMedium,
-            maxLines: 20,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (_detail.packages.isNotEmpty) ...[
-            SizedBox(height: 16.h),
-            Text(
-              '套餐',
-              style: AppTextStyles.titleMedium,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            SizedBox(height: 8.h),
-            ..._detail.packages.map(
-              (p) => Padding(
-                padding: EdgeInsets.only(bottom: 8.h),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${p.name} · ${p.desc}',
-                        style: AppTextStyles.bodySmall,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Text(
-                      '¥${p.price.toStringAsFixed(0)}${p.unit}',
-                      style: AppTextStyles.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+                ],
               ),
             ),
           ],
-        ],
+        ),
+      );
+  }
+
+  /// Service Details Section
+  Widget _buildServiceDetailsSection() {
+    return _buildSection(
+      title: '服务说明',
+      child: Text(
+        _detail.serviceDesc,
+        style: AppTextStyles.bodyMedium.copyWith(fontSize: 13.sp, height: 1.5),
+        maxLines: 20,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
 
-  /// 7. Reviews Preview Section — 用户评价
-  Widget _buildReviewsPreviewSection() {
+  /// 8. Reviews Section with filtering
+  List<CompanionReview> get _filteredReviews {
+    var list = _detail.reviews;
+    switch (_reviewFilterIndex) {
+      case 1:
+        list = list.where((r) => r.rating >= 4.5).toList(); // 5星
+        break;
+      case 2:
+        list = list.where((r) => r.rating >= 4 && r.rating < 4.5).toList(); // 4星
+        break;
+      case 3:
+        list = list.where((r) => r.hasImage).toList(); // 有图
+        break;
+      default:
+        break;
+    }
+    return list;
+  }
+
+  Widget _buildReviewsSection() {
     final rating = _detail.rating ??
         (_detail.reviews.isEmpty ? 0.0 : _detail.reviews.map((e) => e.rating).reduce((a, b) => a + b) / _detail.reviews.length);
     final count = _detail.reviewCount ?? _detail.reviews.length;
-    final previewReviews = _detail.reviews.take(2).toList();
+    final filtered = _filteredReviews;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(_sectionPaddingH.w, _sectionSpacing.h, _sectionPaddingH.w, 0),
+    return _buildSection(
+      title: '用户评价',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            '用户评价',
-            style: AppTextStyles.titleMedium,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 10.h),
-          // Overall rating row: ⭐ 4.9 · Based on X条评价
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Icon(Icons.star_rounded, size: 22.sp, color: AppColors.accentGold),
+              Icon(Icons.star_rounded, size: 20.sp, color: AppColors.accentGold),
               SizedBox(width: 4.w),
               Text(
                 rating.toStringAsFixed(1),
                 style: AppTextStyles.titleMedium.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
+                  fontSize: 18.sp,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: 6.w),
               Text(
-                'Based on ${count}条评价',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
-                  fontSize: 12.sp,
-                ),
+                '共${count}条',
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 12.sp),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
+          SizedBox(height: 10.h),
+          // Filter chips
+          Row(
+            children: [
+              _buildReviewFilterChip('全部', 0),
+              SizedBox(width: 8.w),
+              _buildReviewFilterChip('5星', 1),
+              SizedBox(width: 8.w),
+              _buildReviewFilterChip('4星', 2),
+              SizedBox(width: 8.w),
+              _buildReviewFilterChip('有图', 3),
+            ],
+          ),
           SizedBox(height: 12.h),
-          if (previewReviews.isEmpty)
-            Container(
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    offset: const Offset(0, 2),
-                    blurRadius: 8,
-                  ),
-                ],
-              ),
+          if (filtered.isEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.h),
               child: Center(
                 child: Text(
                   '暂无评价',
@@ -1094,38 +790,151 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
               ),
             )
           else
-            ...previewReviews.map((r) => _buildReviewCard(r)),
-          if (_detail.reviews.isNotEmpty) ...[
-            SizedBox(height: 12.h),
-            AppTapScale(
-              onTap: () {},
-              child: TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 0),
-                  minimumSize: Size(0, 32.h),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  '查看全部评价 →',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+            ...filtered.map((r) => _buildReviewCard(r)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewFilterChip(String label, int index) {
+    final selected = _reviewFilterIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _reviewFilterIndex = index),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary : AppColors.surface,
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.border,
+            width: 0.5,
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppTextStyles.bodySmall.copyWith(
+            fontSize: 11.sp,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            color: selected ? AppColors.textPrimary : AppColors.textSecondary,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+
+  /// 9. Similar companions section
+  Widget _buildSimilarCompanionsSection() {
+    final similar = getSimilarCompanions(widget.id, _detail.city);
+    if (similar.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(_sectionPaddingH.w, _sectionSpacing.h, _sectionPaddingH.w, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '相似陪游',
+            style: AppTextStyles.titleMedium.copyWith(fontSize: 15.sp),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: 10.h),
+          SizedBox(
+            height: 140.h,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: similar.length,
+              separatorBuilder: (_, __) => SizedBox(width: 10.w),
+              itemBuilder: (context, i) {
+                final c = similar[i];
+                return _buildSimilarCard(c);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimilarCard(CompanionListItem c) {
+    return GestureDetector(
+      onTap: () => context.push('/companions/${c.id}'),
+      child: Container(
+        width: 110.w,
+        padding: EdgeInsets.all(10.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: AppColors.border, width: 0.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              offset: const Offset(0, 2),
+              blurRadius: 6,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10.r),
+              child: Image.network(
+                c.avatarUrl,
+                width: 56.w,
+                height: 56.w,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 56.w,
+                  height: 56.w,
+                  color: AppColors.surface,
+                  child: Icon(Icons.person_rounded, size: 28.sp, color: AppColors.textTertiary),
                 ),
               ),
             ),
+            SizedBox(height: 6.h),
+            Text(
+              c.name,
+              style: AppTextStyles.bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 12.sp,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 2.h),
+            RatingWidget(
+              rating: c.rating,
+              iconSize: 10,
+              fontSize: 10,
+              suffix: '',
+              starColor: AppColors.accentGold,
+            ),
+            SizedBox(height: 2.h),
+            Text(
+              '¥${c.pricePerDay.toStringAsFixed(0)}/天',
+              style: AppTextStyles.bodySmall.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.price,
+                fontSize: 11.sp,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildReviewCard(CompanionReview r) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 10.h),
+      padding: EdgeInsets.only(bottom: 8.h),
       child: Container(
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
@@ -1276,42 +1085,34 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
               AppTapScale(
                 onTap: () => context.push('/companions/${widget.id}/order'),
                 pressedScale: 0.97,
-                child: SizedBox(
+                child: Container(
                   height: 48.h,
                   width: 160.w,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => context.push('/companions/${widget.id}/order'),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        gradient: LinearGradient(
-                          colors: AppGradients.brand,
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.35),
-                            offset: const Offset(0, 2),
-                            blurRadius: 8,
-                          ),
-                        ],
-                        ),
-                        child: Text(
-                          '立即预约',
-                          style: AppTextStyles.titleMedium.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14.r),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFD54F), Color(0xFFFFB300), Color(0xFFFF8F00)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFF8F00).withValues(alpha: 0.4),
+                        offset: const Offset(0, 2),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '立即预约',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: const Color(0xFF1A1A1A),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15.sp,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),

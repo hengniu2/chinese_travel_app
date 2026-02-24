@@ -51,6 +51,7 @@ class HotelCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(HotelUIConstants.cardRadius),
+            border: Border.all(color: AppColors.border, width: 1),
             boxShadow: isDark
                 ? null
                 : AppShadow.cardElevated,

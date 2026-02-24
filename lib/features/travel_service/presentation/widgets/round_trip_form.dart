@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/design_system/app_colors.dart';
+import '../../../../core/analytics/analytics.dart';
+import '../../../../core/micro_interactions/micro_interactions.dart';
+import '../../theme/luxury_travel_theme.dart';
 
-/// Round-trip (往返) booking form: same structure as 单程 but with
-/// 去程日期 and 返程日期. Search navigates to RoundTripResultPage.
+/// Round-trip (往返) booking form — luxury theme. 去程/返程日期. Search → RoundTripResultPage.
 class RoundTripForm extends StatefulWidget {
   const RoundTripForm({
     super.key,
@@ -25,6 +26,10 @@ class _RoundTripFormState extends State<RoundTripForm>
   static const Color _unselectedGrey = Color(0xFF8E8E8E);
   static const Color _warmCard = Color(0xFFFFFEFC);
   static const List<String> _cabinLabels = ['经济', '商务', '头等'];
+  static Border get _fieldBorder => Border.all(
+    color: LuxuryTravelTheme.border,
+    width: 1.5,
+  );
 
   late AnimationController _swapRotationController;
 
@@ -66,9 +71,8 @@ class _RoundTripFormState extends State<RoundTripForm>
   String _formatDate(DateTime d) => '${d.month}月${d.day}日';
 
   void _openPassengerSheet() {
-    showModalBottomSheet<void>(
+    showAppBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) => _RoundTripPassengerSheet(
         adults: _adults,
@@ -85,6 +89,11 @@ class _RoundTripFormState extends State<RoundTripForm>
   }
 
   void _onSearch() {
+    context.analytics.logEvent(SearchClickEvent(
+      departure: _departure,
+      arrival: _arrival,
+      tripType: 'round',
+    ));
     context.push('/travel-service/round-trip-result');
   }
 
@@ -130,20 +139,24 @@ class _RoundTripFormState extends State<RoundTripForm>
   }
 
   Widget _buildCityRow() {
-    return Material(
-      color: _fieldBg,
-      borderRadius: BorderRadius.circular(_fieldRadius),
-      elevation: 0,
-      child: InkWell(
-        onTap: () {},
+    return Container(
+      decoration: BoxDecoration(
+        color: _fieldBg,
         borderRadius: BorderRadius.circular(_fieldRadius),
-        child: Padding(
+        border: _fieldBorder,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {},
+          borderRadius: BorderRadius.circular(_fieldRadius),
+          child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
             children: [
               const SizedBox(width: 16),
               Icon(Icons.flight_takeoff_rounded,
-                  size: 24, color: AppColors.textSecondary),
+                  size: 24, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -153,7 +166,7 @@ class _RoundTripFormState extends State<RoundTripForm>
                     Text(
                       '出发城市',
                       style: TextStyle(
-                          fontSize: 12, color: AppColors.textTertiary),
+                          fontSize: 12, color: LuxuryTravelTheme.textTertiary),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -161,7 +174,7 @@ class _RoundTripFormState extends State<RoundTripForm>
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: LuxuryTravelTheme.darkText,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -185,7 +198,7 @@ class _RoundTripFormState extends State<RoundTripForm>
                       child: Icon(
                         Icons.swap_vert_rounded,
                         size: 28,
-                        color: AppColors.textSecondary,
+                        color: LuxuryTravelTheme.textSecondary,
                       ),
                     ),
                   ),
@@ -199,7 +212,7 @@ class _RoundTripFormState extends State<RoundTripForm>
                     Text(
                       '到达城市',
                       style: TextStyle(
-                          fontSize: 12, color: AppColors.textTertiary),
+                          fontSize: 12, color: LuxuryTravelTheme.textTertiary),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -207,7 +220,7 @@ class _RoundTripFormState extends State<RoundTripForm>
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: LuxuryTravelTheme.darkText,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -218,6 +231,7 @@ class _RoundTripFormState extends State<RoundTripForm>
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -237,100 +251,112 @@ class _RoundTripFormState extends State<RoundTripForm>
           child: Row(
             children: [
               Icon(Icons.calendar_today_rounded,
-                  size: 20, color: AppColors.textSecondary),
+                  size: 20, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 8),
               Text(
                 '日期',
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary),
+                    color: LuxuryTravelTheme.textSecondary),
               ),
             ],
           ),
         ),
-        Material(
-          color: _fieldBg,
-          borderRadius: BorderRadius.circular(_fieldRadius),
-          child: InkWell(
-            onTap: () async {
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: outbound,
-                firstDate: today,
-                lastDate: today.add(const Duration(days: 365)),
-              );
-              if (picked != null) setState(() => _outboundDate = picked);
-            },
+        Container(
+          decoration: BoxDecoration(
+            color: _fieldBg,
             borderRadius: BorderRadius.circular(_fieldRadius),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-              child: Row(
-                children: [
-                  Text(
-                    '去程日期',
-                    style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    _formatDate(outbound),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+            border: _fieldBorder,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: outbound,
+                  firstDate: today,
+                  lastDate: today.add(const Duration(days: 365)),
+                );
+                if (picked != null) setState(() => _outboundDate = picked);
+              },
+              borderRadius: BorderRadius.circular(_fieldRadius),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                child: Row(
+                  children: [
+                    Text(
+                      '去程日期',
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: LuxuryTravelTheme.textSecondary),
                     ),
-                  ),
-                  const Spacer(),
-                  Icon(Icons.calendar_month_rounded,
-                      size: 22, color: AppColors.textTertiary),
-                ],
+                    const SizedBox(width: 12),
+                    Text(
+                      _formatDate(outbound),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: LuxuryTravelTheme.darkText,
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(Icons.calendar_month_rounded,
+                        size: 22, color: LuxuryTravelTheme.textTertiary),
+                  ],
+                ),
               ),
             ),
           ),
         ),
         const SizedBox(height: 10),
-        Material(
-          color: _fieldBg,
-          borderRadius: BorderRadius.circular(_fieldRadius),
-          child: InkWell(
-            onTap: () async {
-              final first = _outboundDate ?? today;
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: returnDate.isBefore(first)
-                    ? first.add(const Duration(days: 1))
-                    : returnDate,
-                firstDate: first,
-                lastDate: today.add(const Duration(days: 365)),
-              );
-              if (picked != null) setState(() => _returnDate = picked);
-            },
+        Container(
+          decoration: BoxDecoration(
+            color: _fieldBg,
             borderRadius: BorderRadius.circular(_fieldRadius),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-              child: Row(
-                children: [
-                  Text(
-                    '返程日期',
-                    style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    _formatDate(returnDate),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+            border: _fieldBorder,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () async {
+                final first = _outboundDate ?? today;
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: returnDate.isBefore(first)
+                      ? first.add(const Duration(days: 1))
+                      : returnDate,
+                  firstDate: first,
+                  lastDate: today.add(const Duration(days: 365)),
+                );
+                if (picked != null) setState(() => _returnDate = picked);
+              },
+              borderRadius: BorderRadius.circular(_fieldRadius),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                child: Row(
+                  children: [
+                    Text(
+                      '返程日期',
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: LuxuryTravelTheme.textSecondary),
                     ),
-                  ),
-                  const Spacer(),
-                  Icon(Icons.calendar_month_rounded,
-                      size: 22, color: AppColors.textTertiary),
-                ],
+                    const SizedBox(width: 12),
+                    Text(
+                      _formatDate(returnDate),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: LuxuryTravelTheme.darkText,
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(Icons.calendar_month_rounded,
+                        size: 22, color: LuxuryTravelTheme.textTertiary),
+                  ],
+                ),
               ),
             ),
           ),
@@ -344,40 +370,46 @@ class _RoundTripFormState extends State<RoundTripForm>
         ? '$_adults 成人 · $_children 儿童'
         : '$_adults 人';
 
-    return Material(
-      color: _fieldBg,
-      borderRadius: BorderRadius.circular(_fieldRadius),
-      child: InkWell(
-        onTap: _openPassengerSheet,
+    return Container(
+      decoration: BoxDecoration(
+        color: _fieldBg,
         borderRadius: BorderRadius.circular(_fieldRadius),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          child: Row(
-            children: [
-              Icon(Icons.person_outline_rounded,
-                  size: 24, color: AppColors.textSecondary),
-              const SizedBox(width: 14),
-              Text(
-                '乘客数量',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
+        border: _fieldBorder,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _openPassengerSheet,
+          borderRadius: BorderRadius.circular(_fieldRadius),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            child: Row(
+              children: [
+                Icon(Icons.person_outline_rounded,
+                    size: 24, color: LuxuryTravelTheme.textSecondary),
+                const SizedBox(width: 14),
+                Text(
+                  '乘客数量',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: LuxuryTravelTheme.textSecondary,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                const Spacer(),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: LuxuryTravelTheme.darkText,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 6),
-              Icon(Icons.keyboard_arrow_down_rounded,
-                  size: 26, color: AppColors.textTertiary),
-            ],
+                const SizedBox(width: 6),
+                Icon(Icons.keyboard_arrow_down_rounded,
+                    size: 26, color: LuxuryTravelTheme.textTertiary),
+              ],
+            ),
           ),
         ),
       ),
@@ -394,14 +426,14 @@ class _RoundTripFormState extends State<RoundTripForm>
           child: Row(
             children: [
               Icon(Icons.airline_seat_recline_extra_rounded,
-                  size: 20, color: AppColors.textSecondary),
+                  size: 20, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 8),
               Text(
                 '舱位',
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary),
+                    color: LuxuryTravelTheme.textSecondary),
               ),
             ],
           ),
@@ -411,6 +443,7 @@ class _RoundTripFormState extends State<RoundTripForm>
           decoration: BoxDecoration(
             color: _fieldBg,
             borderRadius: BorderRadius.circular(16),
+            border: _fieldBorder,
           ),
           child: Row(
             children: List.generate(3, (i) {
@@ -445,7 +478,7 @@ class _RoundTripFormState extends State<RoundTripForm>
                           fontWeight:
                               selected ? FontWeight.w600 : FontWeight.w500,
                           color: selected
-                              ? AppColors.textPrimary
+                              ? LuxuryTravelTheme.darkText
                               : _unselectedGrey,
                         ),
                       ),
@@ -461,48 +494,31 @@ class _RoundTripFormState extends State<RoundTripForm>
   }
 
   Widget _buildSearchButton() {
-    const Color gradientStart = Color(0xFFFFD54F);
-    const Color gradientEnd = Color(0xFFFFC107);
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: _onSearch,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(24),
           child: Container(
             height: 56,
             width: double.infinity,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [gradientStart, gradientEnd],
-              ),
-              borderRadius: BorderRadius.circular(30),
+              color: const Color(0xFFC6A769),
+              borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: gradientEnd.withValues(alpha: 0.4),
-                  offset: const Offset(0, 6),
-                  blurRadius: 16,
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  offset: const Offset(0, 2),
-                  blurRadius: 8,
+                  color: const Color(0xFF000000).withValues(alpha: 0.08),
+                  offset: const Offset(0, 4),
+                  blurRadius: 12,
                 ),
               ],
             ),
             alignment: Alignment.center,
-            child: const Text(
+            child: Text(
               '搜索',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-                letterSpacing: 0.5,
-              ),
+              style: LuxuryTravelTheme.buttonLabel(Colors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w600),
             ),
           ),
         ),
@@ -544,7 +560,7 @@ class _RoundTripPassengerSheetState extends State<_RoundTripPassengerSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: LuxuryTravelTheme.cardBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(
@@ -562,7 +578,7 @@ class _RoundTripPassengerSheetState extends State<_RoundTripPassengerSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: LuxuryTravelTheme.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -573,7 +589,7 @@ class _RoundTripPassengerSheetState extends State<_RoundTripPassengerSheet> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: LuxuryTravelTheme.darkText,
             ),
           ),
           const SizedBox(height: 24),
@@ -600,8 +616,8 @@ class _RoundTripPassengerSheetState extends State<_RoundTripPassengerSheet> {
             child: FilledButton(
               onPressed: () => widget.onConfirm(_adults, _children),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFFFC107),
-                foregroundColor: Colors.black87,
+                backgroundColor: LuxuryTravelTheme.primaryGold,
+                foregroundColor: LuxuryTravelTheme.darkText,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(26),
                 ),
@@ -639,7 +655,7 @@ class _RoundTripCounterRow extends StatelessWidget {
           label,
           style: const TextStyle(
             fontSize: 16,
-            color: AppColors.textPrimary,
+            color: LuxuryTravelTheme.darkText,
           ),
         ),
         const Spacer(),
@@ -656,7 +672,7 @@ class _RoundTripCounterRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: LuxuryTravelTheme.darkText,
               ),
             ),
             const SizedBox(width: 20),
@@ -678,7 +694,7 @@ class _RoundTripCounterBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     final enabled = onPressed != null;
     return Material(
-      color: enabled ? const Color(0xFFF5F5F5) : Colors.grey.shade200,
+      color: enabled ? LuxuryTravelTheme.surfaceMuted : LuxuryTravelTheme.border,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onPressed,
@@ -687,7 +703,7 @@ class _RoundTripCounterBtn extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Icon(icon,
               size: 24,
-              color: enabled ? AppColors.textPrimary : Colors.grey),
+              color: enabled ? LuxuryTravelTheme.darkText : LuxuryTravelTheme.textTertiary),
         ),
       ),
     );

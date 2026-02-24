@@ -38,10 +38,10 @@ class _ToursListPageState extends State<ToursListPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.warmBackground,
       appBar: AppBar(
         title: Text(l10n?.toursTitle ?? '精选旅行线路'),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.homeSearchCapsule,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -52,39 +52,46 @@ class _ToursListPageState extends State<ToursListPage> {
           ),
         ],
       ),
-      body: AppGradientBackground(
-        colors: AppGradientBackground.pageGradient,
-        stops: AppGradientBackground.pageGradientStops,
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        child: Column(
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TourFilterBar(
-            filters: _filters,
-            onFiltersChanged: _applyFilters,
-            cities: mockCities,
-            types: mockTypes,
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.homeSearchCapsule,
+              border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
+            ),
+            child: TourFilterBar(
+              filters: _filters,
+              onFiltersChanged: _applyFilters,
+              cities: mockCities,
+              types: mockTypes,
+            ),
           ),
           Expanded(
-            child: _tours.isEmpty
-                ? _buildEmpty(context)
-                : ListView.separated(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                    cacheExtent: 200,
-                    itemCount: _tours.length,
-                    separatorBuilder: (_, __) => SizedBox(height: 16.h),
-                    itemBuilder: (context, index) {
-                      final tour = _tours[index];
-                      return TourCard(
-                        tour: tour,
-                        onTap: () => context.push('/tours/${tour.id}'),
-                      );
-                    },
-                  ),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.homeSectionYellow,
+                border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+              ),
+              child: _tours.isEmpty
+                  ? _buildEmpty(context)
+                  : ListView.separated(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                      cacheExtent: 200,
+                      itemCount: _tours.length,
+                      separatorBuilder: (_, __) => SizedBox(height: 16.h),
+                      itemBuilder: (context, index) {
+                        final tour = _tours[index];
+                        return TourCard(
+                          tour: tour,
+                          onTap: () => context.push('/tours/${tour.id}'),
+                        );
+                      },
+                    ),
+            ),
           ),
         ],
-        ),
       ),
     );
   }

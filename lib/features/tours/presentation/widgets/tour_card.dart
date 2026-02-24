@@ -28,6 +28,7 @@ class TourCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(_cardRadius),
+            border: Border.all(color: AppColors.border, width: 1),
             boxShadow: AppShadow.card,
           ),
           clipBehavior: Clip.antiAlias,

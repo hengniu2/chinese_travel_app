@@ -157,6 +157,9 @@ flutter pub get
 # 运行（调试）
 flutter run
 
+# 性能分析（Profile 模式，用于测试滚动、动画、无 Jank）
+flutter run --profile
+
 # 构建 Release
 flutter build apk
 flutter build ios

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/design_system/app_colors.dart';
+import '../../../../core/analytics/analytics.dart';
+import '../../../../core/micro_interactions/micro_interactions.dart';
+import '../../theme/luxury_travel_theme.dart';
 
-/// Full one-way (单程) booking form: 出发/到达 cities, date chips, passenger count,
-/// cabin segment, search button. Navigates to FlightResultPage on search.
+/// Full one-way (单程) booking form — luxury theme: 出发/到达, date chips, passenger, cabin, search.
 class SingleTripForm extends StatefulWidget {
   const SingleTripForm({
     super.key,
@@ -21,9 +22,9 @@ class _SingleTripFormState extends State<SingleTripForm>
     with SingleTickerProviderStateMixin {
   static const double _fieldRadius = 18;
   static const double _verticalGap = 18;
-  static const Color _fieldBg = Color(0xFFF8F7F5);
-  static const Color _unselectedGrey = Color(0xFF8E8E8E);
-  static const Color _warmCard = Color(0xFFFFFEFC);
+  static Color get _fieldBg => LuxuryTravelTheme.surfaceMuted;
+  static Color get _unselectedGrey => LuxuryTravelTheme.textTertiary;
+  static Color get _warmCard => LuxuryTravelTheme.cardBackground;
   static const List<String> _cabinLabels = ['经济', '商务', '头等'];
 
   late AnimationController _swapRotationController;
@@ -75,9 +76,8 @@ class _SingleTripFormState extends State<SingleTripForm>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
   void _openPassengerSheet() {
-    showModalBottomSheet<void>(
+    showAppBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) => _PassengerSheet(
         adults: _adults,
@@ -94,6 +94,11 @@ class _SingleTripFormState extends State<SingleTripForm>
   }
 
   void _onSearch() {
+    context.analytics.logEvent(SearchClickEvent(
+      departure: _departure,
+      arrival: _arrival,
+      tripType: 'single',
+    ));
     context.push('/travel-service/flight-result');
   }
 
@@ -138,22 +143,31 @@ class _SingleTripFormState extends State<SingleTripForm>
     );
   }
 
+  static Border get _fieldBorder => Border.all(
+    color: LuxuryTravelTheme.border,
+    width: 1.5,
+  );
+
   /// 1. 出发城市 / 2. 到达城市 with swap (rotation animation)
   Widget _buildCityRow() {
-    return Material(
-      color: _fieldBg,
-      borderRadius: BorderRadius.circular(_fieldRadius),
-      elevation: 0,
-      child: InkWell(
-        onTap: () {},
+    return Container(
+      decoration: BoxDecoration(
+        color: _fieldBg,
         borderRadius: BorderRadius.circular(_fieldRadius),
-        child: Padding(
+        border: _fieldBorder,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {},
+          borderRadius: BorderRadius.circular(_fieldRadius),
+          child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
             children: [
               const SizedBox(width: 16),
               Icon(Icons.flight_takeoff_rounded,
-                  size: 24, color: AppColors.textSecondary),
+                  size: 24, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -163,7 +177,7 @@ class _SingleTripFormState extends State<SingleTripForm>
                     Text(
                       '出发城市',
                       style: TextStyle(
-                          fontSize: 12, color: AppColors.textTertiary),
+                          fontSize: 12, color: LuxuryTravelTheme.textTertiary),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -171,7 +185,7 @@ class _SingleTripFormState extends State<SingleTripForm>
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: LuxuryTravelTheme.darkText,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -195,7 +209,7 @@ class _SingleTripFormState extends State<SingleTripForm>
                       child: Icon(
                         Icons.swap_vert_rounded,
                         size: 28,
-                        color: AppColors.textSecondary,
+                        color: LuxuryTravelTheme.textSecondary,
                       ),
                     ),
                   ),
@@ -209,7 +223,7 @@ class _SingleTripFormState extends State<SingleTripForm>
                     Text(
                       '到达城市',
                       style: TextStyle(
-                          fontSize: 12, color: AppColors.textTertiary),
+                          fontSize: 12, color: LuxuryTravelTheme.textTertiary),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -217,7 +231,7 @@ class _SingleTripFormState extends State<SingleTripForm>
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: LuxuryTravelTheme.darkText,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -228,6 +242,7 @@ class _SingleTripFormState extends State<SingleTripForm>
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -248,14 +263,14 @@ class _SingleTripFormState extends State<SingleTripForm>
           child: Row(
             children: [
               Icon(Icons.calendar_today_rounded,
-                  size: 20, color: AppColors.textSecondary),
+                  size: 20, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 8),
               Text(
                 '日期',
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary),
+                    color: LuxuryTravelTheme.textSecondary),
               ),
             ],
           ),
@@ -282,36 +297,42 @@ class _SingleTripFormState extends State<SingleTripForm>
           ],
         ),
         const SizedBox(height: 10),
-        Material(
-          color: _fieldBg,
-          borderRadius: BorderRadius.circular(_fieldRadius),
-          child: InkWell(
-            onTap: () async {
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: selected,
-                firstDate: today,
-                lastDate: today.add(const Duration(days: 365)),
-              );
-              if (picked != null) setState(() => _selectedDate = picked);
-            },
+        Container(
+          decoration: BoxDecoration(
+            color: _fieldBg,
             borderRadius: BorderRadius.circular(_fieldRadius),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-              child: Row(
-                children: [
-                  Text(
-                    _formatDate(selected),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+            border: _fieldBorder,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: selected,
+                  firstDate: today,
+                  lastDate: today.add(const Duration(days: 365)),
+                );
+                if (picked != null) setState(() => _selectedDate = picked);
+              },
+              borderRadius: BorderRadius.circular(_fieldRadius),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                child: Row(
+                  children: [
+                    Text(
+                      _formatDate(selected),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: LuxuryTravelTheme.darkText,
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  Icon(Icons.calendar_month_rounded,
-                      size: 22, color: AppColors.textTertiary),
-                ],
+                    const Spacer(),
+                    Icon(Icons.calendar_month_rounded,
+                        size: 22, color: LuxuryTravelTheme.textTertiary),
+                  ],
+                ),
               ),
             ),
           ),
@@ -326,40 +347,46 @@ class _SingleTripFormState extends State<SingleTripForm>
         ? '$_adults 成人 · $_children 儿童'
         : '$_adults 人';
 
-    return Material(
-      color: _fieldBg,
-      borderRadius: BorderRadius.circular(_fieldRadius),
-      child: InkWell(
-        onTap: _openPassengerSheet,
+    return Container(
+      decoration: BoxDecoration(
+        color: _fieldBg,
         borderRadius: BorderRadius.circular(_fieldRadius),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          child: Row(
-            children: [
-              Icon(Icons.person_outline_rounded,
-                  size: 24, color: AppColors.textSecondary),
-              const SizedBox(width: 14),
-              Text(
-                '乘客数量',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
+        border: _fieldBorder,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _openPassengerSheet,
+          borderRadius: BorderRadius.circular(_fieldRadius),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            child: Row(
+              children: [
+                Icon(Icons.person_outline_rounded,
+                    size: 24, color: LuxuryTravelTheme.textSecondary),
+                const SizedBox(width: 14),
+                Text(
+                  '乘客数量',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: LuxuryTravelTheme.textSecondary,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                const Spacer(),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: LuxuryTravelTheme.darkText,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 6),
-              Icon(Icons.keyboard_arrow_down_rounded,
-                  size: 26, color: AppColors.textTertiary),
-            ],
+                const SizedBox(width: 6),
+                Icon(Icons.keyboard_arrow_down_rounded,
+                    size: 26, color: LuxuryTravelTheme.textTertiary),
+              ],
+            ),
           ),
         ),
       ),
@@ -377,14 +404,14 @@ class _SingleTripFormState extends State<SingleTripForm>
           child: Row(
             children: [
               Icon(Icons.airline_seat_recline_extra_rounded,
-                  size: 20, color: AppColors.textSecondary),
+                  size: 20, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 8),
               Text(
                 '舱位',
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary),
+                    color: LuxuryTravelTheme.textSecondary),
               ),
             ],
           ),
@@ -394,6 +421,7 @@ class _SingleTripFormState extends State<SingleTripForm>
           decoration: BoxDecoration(
             color: _fieldBg,
             borderRadius: BorderRadius.circular(16),
+            border: _fieldBorder,
           ),
           child: Row(
             children: List.generate(3, (i) {
@@ -428,7 +456,7 @@ class _SingleTripFormState extends State<SingleTripForm>
                           fontWeight:
                               selected ? FontWeight.w600 : FontWeight.w500,
                           color: selected
-                              ? AppColors.textPrimary
+                              ? LuxuryTravelTheme.darkText
                               : _unselectedGrey,
                         ),
                       ),
@@ -443,50 +471,33 @@ class _SingleTripFormState extends State<SingleTripForm>
     );
   }
 
-  /// 6. 搜索 — large yellow gradient, radius 30, soft shadow, → FlightResultPage
+  /// 6. 搜索 — gold background, black text, subtle shadow
   Widget _buildSearchButton() {
-    const Color gradientStart = Color(0xFFFFD54F);
-    const Color gradientEnd = Color(0xFFFFC107);
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: _onSearch,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(24),
           child: Container(
             height: 56,
             width: double.infinity,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [gradientStart, gradientEnd],
-              ),
-              borderRadius: BorderRadius.circular(30),
+              color: const Color(0xFFC6A769),
+              borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: gradientEnd.withValues(alpha: 0.4),
-                  offset: const Offset(0, 6),
-                  blurRadius: 16,
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  offset: const Offset(0, 2),
-                  blurRadius: 8,
+                  color: const Color(0xFF000000).withValues(alpha: 0.08),
+                  offset: const Offset(0, 4),
+                  blurRadius: 12,
                 ),
               ],
             ),
             alignment: Alignment.center,
-            child: const Text(
+            child: Text(
               '搜索',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-                letterSpacing: 0.5,
-              ),
+              style: LuxuryTravelTheme.buttonLabel(Colors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w600),
             ),
           ),
         ),
@@ -508,13 +519,10 @@ class _DateChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  static const Color _yellowAccent = Color(0xFFFFEE58);
-  static const Color _yellowBg = Color(0xFFFFF9C4);
-
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? _yellowBg : const Color(0xFFF5F5F5),
+      color: selected ? LuxuryTravelTheme.primaryGold.withValues(alpha: 0.15) : LuxuryTravelTheme.surfaceMuted,
       borderRadius: BorderRadius.circular(22),
       child: InkWell(
         onTap: onTap,
@@ -523,19 +531,12 @@ class _DateChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
-            border: selected
-                ? Border.all(color: _yellowAccent, width: 2)
-                : null,
+            border: selected ? Border.all(color: LuxuryTravelTheme.primaryGold, width: 2) : null,
           ),
           child: Text(
             label,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-              color: selected
-                  ? AppColors.textPrimary
-                  : AppColors.textSecondary,
-            ),
+            style: LuxuryTravelTheme.bodyMedium(selected ? LuxuryTravelTheme.darkText : LuxuryTravelTheme.textSecondary)
+                .copyWith(fontSize: 15, fontWeight: selected ? FontWeight.w600 : FontWeight.w500),
           ),
         ),
       ),
@@ -573,7 +574,7 @@ class _PassengerSheetState extends State<_PassengerSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: LuxuryTravelTheme.cardBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(
@@ -602,7 +603,7 @@ class _PassengerSheetState extends State<_PassengerSheet> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: LuxuryTravelTheme.darkText,
             ),
           ),
           const SizedBox(height: 24),
@@ -629,8 +630,8 @@ class _PassengerSheetState extends State<_PassengerSheet> {
             child: FilledButton(
               onPressed: () => widget.onConfirm(_adults, _children),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFFFC107),
-                foregroundColor: Colors.black87,
+                backgroundColor: LuxuryTravelTheme.primaryGold,
+                foregroundColor: LuxuryTravelTheme.darkText,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(26),
                 ),
@@ -668,7 +669,7 @@ class _CounterRow extends StatelessWidget {
           label,
           style: const TextStyle(
             fontSize: 16,
-            color: AppColors.textPrimary,
+            color: LuxuryTravelTheme.darkText,
           ),
         ),
         const Spacer(),
@@ -685,7 +686,7 @@ class _CounterRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: LuxuryTravelTheme.darkText,
               ),
             ),
             const SizedBox(width: 20),
@@ -716,7 +717,7 @@ class _CounterBtn extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Icon(icon,
               size: 24,
-              color: enabled ? AppColors.textPrimary : Colors.grey),
+              color: enabled ? LuxuryTravelTheme.darkText : LuxuryTravelTheme.textTertiary),
         ),
       ),
     );

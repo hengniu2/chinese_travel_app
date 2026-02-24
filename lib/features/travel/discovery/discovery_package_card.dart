@@ -30,6 +30,7 @@ class DiscoveryPackageCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: TravelDesignTokens.card,
             borderRadius: BorderRadius.circular(TravelDesignTokens.radiusMedium),
+            border: Border.all(color: AppColors.border, width: 1),
             boxShadow: TravelDesignTokens.shadowLevel1,
           ),
           clipBehavior: Clip.antiAlias,

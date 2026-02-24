@@ -44,12 +44,12 @@ class TravelDesignTokens {
   static const double screenHorizontal = 16;
   /// Card inner padding
   static const double cardPadding = 16;
-  /// Between sections
-  static const double sectionGap = 20;
+  /// Between sections (Chinese commercial dense: 16–20 max)
+  static const double sectionGap = 16;
 
   static EdgeInsets get paddingScreen => const EdgeInsets.symmetric(horizontal: 16);
-  static EdgeInsets get paddingCard => const EdgeInsets.all(16);
-  static EdgeInsets get paddingSection => const EdgeInsets.symmetric(vertical: 20);
+  static EdgeInsets get paddingCard => const EdgeInsets.all(14);
+  static EdgeInsets get paddingSection => const EdgeInsets.symmetric(vertical: 16);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Shadow — soft only, tinted, blur 20–30, Y 8–12 (delegate to AppShadow)

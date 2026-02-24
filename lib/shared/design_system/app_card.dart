@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../core/micro_interactions/luxury_constants.dart';
 import 'app_colors.dart';
 import 'app_radius.dart';
 import 'app_shadow.dart';
 import 'app_spacing.dart';
 
-/// 统一卡片（立体阴影 + 可选点击动效）
+/// 统一卡片：点击时上浮 4px（luxury curve），可选悬停上浮。
 class AppCard extends StatefulWidget {
   const AppCard({
     super.key,
@@ -18,6 +19,8 @@ class AppCard extends StatefulWidget {
     this.elevated = true,
     this.boxShadow,
     this.animateTap = true,
+    /// 桌面/Web 悬停时轻微上浮（lift）
+    this.enableHover = false,
   });
 
   final Widget child;
@@ -30,40 +33,57 @@ class AppCard extends StatefulWidget {
   /// 自定义阴影；为 null 时由 elevated 决定（true 用 cardElevated，false 无阴影）
   final List<BoxShadow>? boxShadow;
   final bool animateTap;
+  final bool enableHover;
 
   @override
   State<AppCard> createState() => _AppCardState();
 }
 
-class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scale;
+class _AppCardState extends State<AppCard> with TickerProviderStateMixin {
+  late AnimationController _pressController;
+  late Animation<double> _pressLift;
+  late AnimationController _hoverController;
+  late Animation<double> _hoverTranslate;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 120),
+    _pressController = AnimationController(
+      duration: LuxuryInteractions.duration,
       vsync: this,
     );
-    _scale = Tween<double>(begin: 1, end: 0.98).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _pressLift = Tween<double>(begin: 0, end: -LuxuryInteractions.cardLiftPx).animate(
+      CurvedAnimation(parent: _pressController, curve: LuxuryInteractions.luxuryCurve),
+    );
+    _hoverController = AnimationController(
+      duration: LuxuryInteractions.duration,
+      vsync: this,
+    );
+    _hoverTranslate = Tween<double>(begin: 0, end: -LuxuryInteractions.cardLiftPx).animate(
+      CurvedAnimation(parent: _hoverController, curve: LuxuryInteractions.luxuryCurve),
     );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _pressController.dispose();
+    _hoverController.dispose();
     super.dispose();
   }
 
   List<BoxShadow>? get _effectiveShadow {
     if (widget.boxShadow != null) return widget.boxShadow;
     if (!widget.elevated) return null;
-    if (widget.animateTap && widget.onTap != null && _controller.value > 0) {
-      return AppShadow.cardHover;
-    }
+    final isHovered = widget.enableHover && _hoverController.value > 0;
+    final isPressed = widget.animateTap && widget.onTap != null && _pressController.value > 0;
+    if (isHovered || isPressed) return AppShadow.cardHover;
     return AppShadow.cardElevated;
+  }
+
+  double get _liftY {
+    final pressLift = (widget.animateTap && widget.onTap != null) ? _pressLift.value : 0.0;
+    final hoverLift = widget.enableHover ? _hoverTranslate.value : 0.0;
+    return pressLift != 0 ? pressLift : hoverLift;
   }
 
   Widget _buildContent() {
@@ -84,25 +104,51 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
     Widget content = _buildContent();
 
     if (widget.onTap != null) {
-      final child = widget.animateTap
+      final hasHoverOrPress = widget.animateTap || widget.enableHover;
+      final child = hasHoverOrPress
           ? AnimatedBuilder(
-              animation: _controller,
-              builder: (_, child) => Transform.scale(
-                scale: _scale.value,
+              animation: Listenable.merge([_pressController, _hoverController]),
+              builder: (_, __) => Transform.translate(
+                offset: Offset(0, _liftY),
                 child: _buildContent(),
               ),
             )
           : content;
       content = Listener(
-        onPointerDown: widget.animateTap ? (_) => _controller.forward() : null,
-        onPointerUp: widget.animateTap ? (_) => _controller.reverse() : null,
-        onPointerCancel: widget.animateTap ? (_) => _controller.reverse() : null,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: widget.onTap,
-            borderRadius: AppRadius.cardRadius,
-            child: child,
+        onPointerDown: widget.animateTap ? (_) => _pressController.forward() : null,
+        onPointerUp: widget.animateTap ? (_) => _pressController.reverse() : null,
+        onPointerCancel: widget.animateTap ? (_) => _pressController.reverse() : null,
+        child: widget.enableHover
+            ? MouseRegion(
+                onEnter: (_) => _hoverController.forward(),
+                onExit: (_) => _hoverController.reverse(),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: widget.onTap,
+                    borderRadius: AppRadius.cardRadius,
+                    child: child,
+                  ),
+                ),
+              )
+            : Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: widget.onTap,
+                  borderRadius: AppRadius.cardRadius,
+                  child: child,
+                ),
+              ),
+      );
+    } else if (widget.enableHover) {
+      content = MouseRegion(
+        onEnter: (_) => _hoverController.forward(),
+        onExit: (_) => _hoverController.reverse(),
+        child: AnimatedBuilder(
+          animation: _hoverController,
+          builder: (_, __) => Transform.translate(
+            offset: Offset(0, _hoverTranslate.value),
+            child: _buildContent(),
           ),
         ),
       );

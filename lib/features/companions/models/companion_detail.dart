@@ -53,12 +53,14 @@ class CompanionPackage {
     required this.desc,
     required this.price,
     required this.unit,
+    this.duration,
   });
 
   final String name;
   final String desc;
   final double price;
   final String unit;
+  final String? duration;
 }
 
 class CompanionReview {
@@ -68,6 +70,7 @@ class CompanionReview {
     required this.rating,
     required this.content,
     required this.date,
+    this.hasImage = false,
   });
 
   final String userName;
@@ -75,4 +78,5 @@ class CompanionReview {
   final double rating;
   final String content;
   final String date;
+  final bool hasImage;
 }

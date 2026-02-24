@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// 过渡时长（商业感：略慢、顺滑）
-const Duration _kTransitionDuration = Duration(milliseconds: 320);
-const Duration _kReverseDuration = Duration(milliseconds: 260);
+import '../micro_interactions/luxury_constants.dart';
+
+/// Luxury page transition: slow fade + slide, 250ms, easeInOutCubic (60fps, no bounce).
+const Duration _kTransitionDuration = LuxuryInteractions.duration;
+const Duration _kReverseDuration = LuxuryInteractions.durationReverse;
 
 /// 详情页过渡（更顺滑、略长）
-const Duration _kDetailTransitionDuration = Duration(milliseconds: 360);
-const Duration _kDetailReverseDuration = Duration(milliseconds: 280);
+const Duration _kDetailTransitionDuration = Duration(milliseconds: 300);
+const Duration _kDetailReverseDuration = Duration(milliseconds: 240);
 
-/// 右滑进入 + 淡入（中国主流 App 风格）
+/// Slide from right + fade (250ms, easeInOutCubic).
 CustomTransitionPage<T> slideTransitionPage<T>({
   required Widget child,
   LocalKey? key,
@@ -22,11 +24,11 @@ CustomTransitionPage<T> slideTransitionPage<T>({
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       const begin = Offset(1.0, 0.0);
       const end = Offset.zero;
-      const curve = Curves.easeOutCubic;
+      const curve = LuxuryInteractions.luxuryCurve;
 
       final slideTween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
       final fadeTween = Tween<double>(begin: 0.0, end: 1.0).chain(
-        CurveTween(curve: const Interval(0.0, 0.6, curve: Curves.easeOut)),
+        CurveTween(curve: const Interval(0.0, 0.65, curve: curve)),
       );
 
       return SlideTransition(
@@ -53,11 +55,11 @@ CustomTransitionPage<T> slideTransitionPageSmooth<T>({
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       const begin = Offset(1.0, 0.0);
       const end = Offset.zero;
-      const curve = Curves.easeOutCubic;
+      const curve = LuxuryInteractions.luxuryCurve;
 
       final slideTween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
       final fadeTween = Tween<double>(begin: 0.0, end: 1.0).chain(
-        CurveTween(curve: const Interval(0.0, 0.5, curve: Curves.easeOut)),
+        CurveTween(curve: const Interval(0.0, 0.5, curve: curve)),
       );
 
       return SlideTransition(
@@ -82,7 +84,7 @@ CustomTransitionPage<T> companionDetailTransitionPage<T>({
     transitionDuration: _kDetailTransitionDuration,
     reverseTransitionDuration: _kDetailReverseDuration,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      const curve = Curves.easeOutCubic;
+      const curve = LuxuryInteractions.luxuryCurve;
       final slideTween = Tween<Offset>(
         begin: const Offset(0.06, 0),
         end: Offset.zero,
@@ -115,7 +117,7 @@ CustomTransitionPage<T> fadeTransitionPage<T>({
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       final curve = CurvedAnimation(
         parent: animation,
-        curve: Curves.easeOutCubic,
+        curve: LuxuryInteractions.luxuryCurve,
       );
       return FadeTransition(
         opacity: curve,
@@ -136,12 +138,13 @@ CustomTransitionPage<T> slideUpFadeTransitionPage<T>({
     transitionDuration: _kTransitionDuration,
     reverseTransitionDuration: _kReverseDuration,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const curve = LuxuryInteractions.luxuryCurve;
       final slideTween = Tween<Offset>(
         begin: const Offset(0, 0.04),
         end: Offset.zero,
-      ).chain(CurveTween(curve: Curves.easeOutCubic));
+      ).chain(CurveTween(curve: curve));
       final fadeTween = Tween<double>(begin: 0.0, end: 1.0).chain(
-        CurveTween(curve: Curves.easeOut),
+        CurveTween(curve: curve),
       );
       return FadeTransition(
         opacity: animation.drive(fadeTween),

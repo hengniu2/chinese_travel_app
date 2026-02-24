@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/design_system/app_colors.dart';
-import '../../../../shared/design_system/app_shadow.dart';
+import '../../theme/luxury_travel_theme.dart';
 
 /// Round-trip flight result page: outbound + return grouped, combined price, book button.
 class RoundTripResultPage extends StatelessWidget {
@@ -11,15 +10,15 @@ class RoundTripResultPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: LuxuryTravelTheme.background,
       appBar: AppBar(
         title: const Text('往返航班搜索结果'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => context.pop(),
         ),
-        backgroundColor: AppColors.card,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: LuxuryTravelTheme.cardBackground,
+        foregroundColor: LuxuryTravelTheme.darkText,
         elevation: 0,
         scrolledUnderElevation: 1,
       ),
@@ -156,9 +155,9 @@ class _RoundTripCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: LuxuryTravelTheme.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: AppShadow.light,
+        boxShadow: LuxuryTravelTheme.softShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -177,22 +176,18 @@ class _RoundTripCard extends StatelessWidget {
             children: [
               Text(
                 '¥${option.combinedPrice}',
-                style: const TextStyle(
+                style: LuxuryTravelTheme.headlineMedium(LuxuryTravelTheme.price).copyWith(
                   fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.price,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              const Text(
+              Text(
                 ' 往返总价',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textTertiary,
-                ),
+                style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textTertiary),
               ),
               const Spacer(),
               Material(
-                color: AppColors.primary,
+                color: LuxuryTravelTheme.primaryGold,
                 borderRadius: BorderRadius.circular(22),
                 child: InkWell(
                   onTap: onBook,
@@ -200,12 +195,10 @@ class _RoundTripCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 22, vertical: 10),
-                    child: const Text(
+                    child: Text(
                       '预订',
-                      style: TextStyle(
+                      style: LuxuryTravelTheme.buttonLabel(LuxuryTravelTheme.darkText).copyWith(
                         fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -221,10 +214,8 @@ class _RoundTripCard extends StatelessWidget {
   Widget _buildSectionLabel(String text) {
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 13,
+      style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textSecondary).copyWith(
         fontWeight: FontWeight.w600,
-        color: AppColors.textSecondary,
       ),
     );
   }
@@ -244,16 +235,14 @@ class _LegRow extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: LuxuryTravelTheme.surfaceMuted,
             borderRadius: BorderRadius.circular(10),
           ),
           alignment: Alignment.center,
           child: Text(
             leg.airlineCode,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textSecondary,
+            style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textSecondary).copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
@@ -264,10 +253,9 @@ class _LegRow extends StatelessWidget {
             children: [
               Text(
                 leg.airlineName,
-                style: const TextStyle(
+                style: LuxuryTravelTheme.titleSmall(LuxuryTravelTheme.darkText).copyWith(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -278,18 +266,16 @@ class _LegRow extends StatelessWidget {
                     children: [
                       Text(
                         leg.departureTime,
-                        style: const TextStyle(
+                        style: LuxuryTravelTheme.headlineMedium(LuxuryTravelTheme.darkText).copyWith(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         leg.departureCity,
-                        style: TextStyle(
+                        style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textTertiary).copyWith(
                           fontSize: 11,
-                          color: AppColors.textTertiary,
                         ),
                       ),
                     ],
@@ -301,9 +287,8 @@ class _LegRow extends StatelessWidget {
                         children: [
                           Text(
                             leg.duration,
-                            style: TextStyle(
+                            style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textTertiary).copyWith(
                               fontSize: 11,
-                              color: AppColors.textTertiary,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -316,7 +301,7 @@ class _LegRow extends StatelessWidget {
                                 width: 3,
                                 height: 3,
                                 decoration: const BoxDecoration(
-                                  color: AppColors.textTertiary,
+                                  color: LuxuryTravelTheme.textTertiary,
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -331,18 +316,16 @@ class _LegRow extends StatelessWidget {
                     children: [
                       Text(
                         leg.arrivalTime,
-                        style: const TextStyle(
+                        style: LuxuryTravelTheme.headlineMedium(LuxuryTravelTheme.darkText).copyWith(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         leg.arrivalCity,
-                        style: TextStyle(
+                        style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textTertiary).copyWith(
                           fontSize: 11,
-                          color: AppColors.textTertiary,
                         ),
                       ),
                     ],

@@ -21,7 +21,7 @@ CompanionDetail getCompanionDetail(String id) {
 final CompanionDetail _companion1 = CompanionDetail(
   id: '1',
   name: '林小游',
-  avatar: '',
+  avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
   images: [
     'https://picsum.photos/600/400?random=lin1',
     'https://picsum.photos/600/400?random=lin2',
@@ -39,7 +39,7 @@ final CompanionDetail _companion1 = CompanionDetail(
     CompanionPackage(name: '两日定制', desc: '可含周边古镇或自然景区', price: 1088, unit: '/人'),
   ],
   reviews: [
-    CompanionReview(userName: '旅行者A', avatar: '', rating: 5, content: '林老师非常专业，讲解细致，拍照角度也很棒，西湖一日游体验很好！', date: '2025-01-15'),
+    CompanionReview(userName: '旅行者A', avatar: '', rating: 5, content: '林老师非常专业，讲解细致，拍照角度也很棒，西湖一日游体验很好！', date: '2025-01-15', hasImage: true),
     CompanionReview(userName: '旅行者B', avatar: '', rating: 5, content: '沟通顺畅，行程安排合理，下次来杭州还会约。', date: '2025-01-08'),
   ],
   rating: 4.9,
@@ -57,8 +57,12 @@ final CompanionDetail _companion1 = CompanionDetail(
 final CompanionDetail _companion2 = CompanionDetail(
   id: '2',
   name: '陈漫行',
-  avatar: '',
-  images: ['', '', ''],
+  avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+  images: [
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600',
+    'https://picsum.photos/600/400?random=chen1',
+    'https://picsum.photos/600/400?random=chen2',
+  ],
   age: 32,
   city: '北京',
   bio: '北京土著，专注故宫、胡同与长城线路，历史与摄影双修，带您读懂皇城根下的烟火气。历史系出身，在故宫做过志愿讲解，对明清史和建筑细节如数家珍。',
@@ -85,8 +89,11 @@ final CompanionDetail _companion2 = CompanionDetail(
 final CompanionDetail _companion3 = CompanionDetail(
   id: '3',
   name: '苏江南',
-  avatar: '',
-  images: ['', '', ''],
+  avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+  images: [
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600',
+    'https://picsum.photos/600/400?random=su1',
+  ],
   age: 26,
   city: '苏州',
   bio: '园林与昆曲爱好者，熟悉拙政园、虎丘、周庄等，可带您品茶听曲、寻味苏帮菜。',
@@ -105,8 +112,11 @@ final CompanionDetail _companion3 = CompanionDetail(
 final CompanionDetail _companion4 = CompanionDetail(
   id: '4',
   name: '王西安',
-  avatar: '',
-  images: ['', '', ''],
+  avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+  images: [
+    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600',
+    'https://picsum.photos/600/400?random=wang1',
+  ],
   age: 30,
   city: '西安',
   bio: '西安本地人，兵马俑、城墙、回民街熟门熟路，历史与美食兼顾，夜景跟拍拿手。',
@@ -125,8 +135,10 @@ final CompanionDetail _companion4 = CompanionDetail(
 final CompanionDetail _companion5 = CompanionDetail(
   id: '5',
   name: '李蓉城',
-  avatar: '',
-  images: ['', '', ''],
+  avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+  images: [
+    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=600',
+  ],
   age: 27,
   city: '成都',
   bio: '成都生活多年，熊猫基地、宽窄巷子、火锅串串一条龙，川剧变脸与茶馆体验可安排。',
@@ -145,8 +157,11 @@ final CompanionDetail _companion5 = CompanionDetail(
 final CompanionDetail _companion6 = CompanionDetail(
   id: '6',
   name: '张小沪',
-  avatar: '',
-  images: ['', '', ''],
+  avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+  images: [
+    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600',
+    'https://picsum.photos/600/400?random=zhang1',
+  ],
   age: 29,
   city: '上海',
   bio: '上海本地人，外滩、豫园、武康路、迪士尼周边都熟，摄影与美食路线均可定制。',

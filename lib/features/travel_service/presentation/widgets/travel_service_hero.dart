@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-/// Premium Hero for Travel Service: high-res Chinese cartoon background
-/// (airplane, train, clouds), title "出行服务" + handwritten "Travel",
-/// dynamic subtitle, parallax-ready.
+import '../../theme/luxury_travel_theme.dart';
+
+/// Luxury hero section for Travel Service main page: full-width background image,
+/// subtle dark gradient at bottom, elegant title, gold divider, subtitle, parallax.
+/// Height 300px. No emoji, no cartoon icons.
 class TravelServiceHero extends StatelessWidget {
   const TravelServiceHero({
     super.key,
     this.height = 300,
     this.parallaxOffset = 0,
+    this.backgroundImage = 'assets/header_travel_service.png',
   });
 
   final double height;
+  /// Scroll offset passed from parent for parallax (e.g. from ScrollController).
   final double parallaxOffset;
+  final String backgroundImage;
+
+  static const double _goldDividerHeight = 1.5;
+  static const double _goldDividerWidth = 48;
 
   @override
   Widget build(BuildContext context) {
@@ -25,32 +32,24 @@ class TravelServiceHero extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // 1) High-res background illustration (yellow–green, airplane, train, clouds)
+          // 1) Full-width background image with parallax (moves slower than scroll)
           Positioned.fill(
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(radius),
                 bottomRight: Radius.circular(radius),
               ),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  image: const DecorationImage(
-                    image: AssetImage('assets/header_travel_service.png'),
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      offset: const Offset(0, 4),
-                      blurRadius: 12,
-                    ),
-                  ],
+              child: Transform.translate(
+                offset: Offset(0, parallaxOffset * 0.25),
+                child: Image.asset(
+                  backgroundImage,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
                 ),
               ),
             ),
           ),
-          // 2) Light gradient overlay for title readability
+          // 2) Subtle dark gradient overlay at bottom for readability
           Positioned.fill(
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
@@ -63,54 +62,44 @@ class TravelServiceHero extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.white.withValues(alpha: 0.25),
                       Colors.transparent,
-                      Colors.white.withValues(alpha: 0.12),
+                      Colors.black.withValues(alpha: 0.15),
+                      Colors.black.withValues(alpha: 0.45),
                     ],
+                    stops: const [0.0, 0.5, 1.0],
                   ),
                 ),
               ),
             ),
           ),
-          // 3) Content with subtle parallax
+          // 3) Content with slight parallax
           Positioned.fill(
             child: Transform.translate(
-              offset: Offset(0, parallaxOffset * 0.2),
+              offset: Offset(0, parallaxOffset * 0.15),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 48, 20, 28),
+                padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // Chinese title
-                    const Text(
+                    Text(
                       '出行服务',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A),
-                        letterSpacing: 0.5,
+                      style: LuxuryTravelTheme.displayLarge(Colors.white),
+                    ),
+                    const SizedBox(height: LuxuryTravelTheme.spacingSm),
+                    Container(
+                      height: _goldDividerHeight,
+                      width: _goldDividerWidth,
+                      decoration: BoxDecoration(
+                        color: LuxuryTravelTheme.primaryGold,
+                        borderRadius: BorderRadius.circular(_goldDividerHeight / 2),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    // Handwritten accent English
+                    const SizedBox(height: LuxuryTravelTheme.spacingSm),
                     Text(
-                      'Travel',
-                      style: GoogleFonts.caveat(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black.withValues(alpha: 0.65),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    // Dynamic subtitle
-                    Text(
-                      '机票 · 定制 · 团队 · 高端出行',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.black.withValues(alpha: 0.6),
-                        letterSpacing: 0.3,
-                      ),
+                      'Premium Travel Experience',
+                      style: LuxuryTravelTheme.caption(Colors.white.withValues(alpha: 0.9))
+                          .copyWith(fontSize: 14, letterSpacing: 0.5),
                     ),
                   ],
                 ),

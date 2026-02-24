@@ -38,6 +38,8 @@ class TravelCard extends StatelessWidget {
     if (onTap != null) {
       return AppTapScale(
         onTap: onTap,
+        enableHover: true,
+        cardStyleTap: true,
         child: container,
       );
     }

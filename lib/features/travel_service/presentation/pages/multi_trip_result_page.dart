@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/design_system/app_colors.dart';
-import '../../../../shared/design_system/app_shadow.dart';
+import '../../theme/luxury_travel_theme.dart';
+import '../widgets/flight_detail_booking_bar.dart';
 
 /// Multi-city flight result page: segments summary, total price, confirm booking button.
 class MultiTripResultPage extends StatelessWidget {
@@ -11,15 +11,15 @@ class MultiTripResultPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: LuxuryTravelTheme.background,
       appBar: AppBar(
         title: const Text('多程航班搜索结果'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => context.pop(),
         ),
-        backgroundColor: AppColors.card,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: LuxuryTravelTheme.cardBackground,
+        foregroundColor: LuxuryTravelTheme.darkText,
         elevation: 0,
         scrolledUnderElevation: 1,
       ),
@@ -34,86 +34,18 @@ class MultiTripResultPage extends StatelessWidget {
               ],
             ),
           ),
-          _buildBottomBar(context),
+          FlightDetailBookingBar(
+            totalPrice: _multiTripOption.totalPrice,
+            onReserveTap: () {
+              // TODO: Confirm booking
+            },
+            buttonLabel: '确认预订',
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildBottomBar(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        12,
-        16,
-        12 + MediaQuery.paddingOf(context).bottom,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            offset: const Offset(0, -2),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '总价',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '¥${_multiTripOption.totalPrice}',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.price,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Material(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(26),
-                child: InkWell(
-                  onTap: () {
-                    // TODO: Confirm booking
-                  },
-                  borderRadius: BorderRadius.circular(26),
-                  child: Container(
-                    height: 52,
-                    alignment: Alignment.center,
-                    child: const Text(
-                      '确认预订',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 // ——— Data ———
@@ -198,9 +130,9 @@ class _MultiTripSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: LuxuryTravelTheme.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: AppShadow.light,
+        boxShadow: LuxuryTravelTheme.softShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -208,14 +140,12 @@ class _MultiTripSummaryCard extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.flight_rounded,
-                  size: 20, color: AppColors.textSecondary),
+                  size: 20, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 8),
               Text(
                 '行程概览（${option.segments.length}段）',
-                style: const TextStyle(
-                  fontSize: 15,
+                style: LuxuryTravelTheme.titleSmall(LuxuryTravelTheme.darkText).copyWith(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
                 ),
               ),
             ],
@@ -236,15 +166,12 @@ class _MultiTripSummaryCard extends StatelessWidget {
                         Container(
                           width: 2,
                           height: 16,
-                          color: AppColors.divider,
+                          color: LuxuryTravelTheme.divider,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           '转机',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textTertiary,
-                          ),
+                          style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textTertiary),
                         ),
                       ],
                     ),
@@ -260,17 +187,15 @@ class _MultiTripSummaryCard extends StatelessWidget {
             children: [
               Text(
                 '合计',
-                style: TextStyle(
+                style: LuxuryTravelTheme.bodyMedium(LuxuryTravelTheme.textSecondary).copyWith(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
                 ),
               ),
               Text(
                 '¥${option.totalPrice}',
-                style: const TextStyle(
+                style: LuxuryTravelTheme.headlineMedium(LuxuryTravelTheme.price).copyWith(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.price,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -295,16 +220,14 @@ class _SegmentRow extends StatelessWidget {
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: AppColors.primaryPale,
+            color: LuxuryTravelTheme.primaryGoldPale,
             borderRadius: BorderRadius.circular(8),
           ),
           alignment: Alignment.center,
           child: Text(
             '${segment.segmentIndex}',
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+            style: LuxuryTravelTheme.caption(LuxuryTravelTheme.darkText).copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
@@ -315,10 +238,9 @@ class _SegmentRow extends StatelessWidget {
             children: [
               Text(
                 '第${segment.segmentIndex}段  ${segment.departureCity} → ${segment.arrivalCity}',
-                style: const TextStyle(
+                style: LuxuryTravelTheme.titleSmall(LuxuryTravelTheme.darkText).copyWith(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 6),
@@ -328,59 +250,49 @@ class _SegmentRow extends StatelessWidget {
                     width: 36,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: LuxuryTravelTheme.surfaceMuted,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       segment.airlineCode,
-                      style: const TextStyle(
+                      style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textSecondary).copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
                       ),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Text(
                     segment.departureTime,
-                    style: const TextStyle(
+                    style: LuxuryTravelTheme.titleSmall(LuxuryTravelTheme.darkText).copyWith(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
                     ),
                   ),
                   Text(
                     ' ${segment.departureCity}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textTertiary,
-                    ),
+                    style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textTertiary),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: Text(
                       segment.duration,
-                      style: TextStyle(
+                      style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textTertiary).copyWith(
                         fontSize: 11,
-                        color: AppColors.textTertiary,
                       ),
                     ),
                   ),
                   Text(
                     segment.arrivalTime,
-                    style: const TextStyle(
+                    style: LuxuryTravelTheme.titleSmall(LuxuryTravelTheme.darkText).copyWith(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
                     ),
                   ),
                   Text(
                     ' ${segment.arrivalCity}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textTertiary,
-                    ),
+                    style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textTertiary),
                   ),
                 ],
               ),

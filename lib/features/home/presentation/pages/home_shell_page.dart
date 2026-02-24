@@ -9,6 +9,7 @@ import '../../../../core/router/app_router_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../../shared/widgets/app_network_image.dart';
+import '../../../companions/components/companion_components.dart';
 import '../../../companions/data/companion_list_mock.dart';
 import '../../../companions/models/companion_list_item.dart';
 import '../../../hotel/data/hotel_mock_data.dart';
@@ -106,7 +107,21 @@ class _HomeShellPageState extends ConsumerState<HomeShellPage>
               child: SlideTransition(
                 position: _pageSlide,
                 child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ),
+                  cacheExtent: 300,
                   slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: InviteFriendsBanner(
+                          onShare: () {
+                            // TODO: open share sheet / deep link
+                          },
+                        ),
+                      ),
+                    ),
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.only(top: 16),
@@ -1942,7 +1957,9 @@ class _TourSlideCard extends StatelessWidget {
   }
 }
 
-// ─── 陪游/种草官横滑：推荐陪游卡片，点击进入陪游详情或 Join Us 列表 ─────────────
+// ─── 陪游/种草官横滑：与陪游主屏一致的 CompanionCard (featured)，避免 overflow ─────────────
+const double _kCompanionSlideHeight = 172;
+
 class _CompanionsSection extends StatelessWidget {
   const _CompanionsSection({required this.onNavigate});
 
@@ -1955,142 +1972,112 @@ class _CompanionsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          children: [
-            Icon(Icons.groups_rounded, size: 18.sp, color: AppColors.sectionCompanion),
-            SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                '享梦游陪游',
-                style: AppTextStyles.headlineSmall.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                  fontSize: 15.sp,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                AppColors.sectionCompanion.withValues(alpha: 0.12),
+                AppColors.companionSectionGold.withValues(alpha: 0.5),
+                Colors.transparent,
+              ],
+              stops: const [0.0, 0.35, 1.0],
             ),
-            GestureDetector(
-              onTap: () {
-                final ctx = context;
-                if (ctx.mounted) ctx.go('/${RouteNames.joinUs}');
-              },
-              child: Text(
-                '查看全部>',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.linkCta,
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.w600,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(6.r),
+                decoration: BoxDecoration(
+                  color: AppColors.sectionCompanion.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.groups_rounded, size: 20.sp, color: AppColors.sectionCompanion),
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '享梦游陪游',
+                      style: AppTextStyles.headlineSmall.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                        fontSize: 16.sp,
+                        letterSpacing: 0.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      '专业陪游 · 安心出行',
+                      style: AppTextStyles.overline.copyWith(
+                        color: AppColors.textTertiary,
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+              GestureDetector(
+                onTap: () {
+                  final ctx = context;
+                  if (ctx.mounted) ctx.go('/${RouteNames.joinUs}');
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.sectionCompanion.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '查看全部',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.sectionCompanion,
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        SizedBox(height: _kCardGap),
+        SizedBox(height: 12.h),
         SizedBox(
-          height: 118.h,
+          height: _kCompanionSlideHeight,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
             itemCount: companions.length,
             itemBuilder: (context, index) {
               final c = companions[index];
               return Padding(
-                padding: EdgeInsets.only(right: _kCardGap),
-                child: _CompanionSlideCard(
-                  companion: c,
-                  onTap: () => onNavigate('/companions/${c.id}'),
+                padding: EdgeInsets.only(right: 8.w),
+                child: CompanionCard(
+                  config: CompanionCardConfig(
+                    companion: c,
+                    variant: CompanionCardVariant.featured,
+                    onTap: () => onNavigate('/companions/${c.id}'),
+                    showHotBadge: index == 0,
+                    isDarkSurface: false,
+                  ),
                 ),
               );
             },
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Companion card: profile style — circular avatar, name, city + price in one line (distinct from hotel/tour).
-class _CompanionSlideCard extends StatelessWidget {
-  const _CompanionSlideCard({required this.companion, required this.onTap});
-
-  final CompanionListItem companion;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final cardWidth = MediaQuery.sizeOf(context).width * 0.32;
-    final avatarSize = 52.0.r;
-    final imageUrl = companion.avatarUrl;
-    return _TapScale(
-      onTap: onTap,
-      child: SizedBox(
-        width: cardWidth,
-        height: 118.h,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border.withValues(alpha: 0.8)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: avatarSize,
-                  height: avatarSize,
-                  child: ClipOval(
-                    child: imageUrl.isNotEmpty
-                        ? AppNetworkImage(
-                            imageUrl: imageUrl,
-                            width: avatarSize,
-                            height: avatarSize,
-                            fit: BoxFit.cover,
-                            fadeInDuration: const Duration(milliseconds: 300),
-                          )
-                        : Container(
-                            color: AppColors.surface,
-                            child: Icon(Icons.person_rounded, size: 24.sp, color: AppColors.sectionCompanion.withValues(alpha: 0.6)),
-                          ),
-                  ),
-                ),
-                SizedBox(height: 6.h),
-                Text(
-                  companion.name,
-                  style: AppTextStyles.titleSmall.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12.sp,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  '${companion.city} · ¥${companion.pricePerDay.toInt()}/起',
-                  style: AppTextStyles.overline.copyWith(
-                    color: AppColors.textTertiary,
-                    fontSize: 9.sp,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

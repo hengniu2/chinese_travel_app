@@ -23,6 +23,7 @@ class TravelLandingPage extends ConsumerStatefulWidget {
 
 class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
   bool _entranceAnimated = false;
+  List<String> _selectedThemes = ['亲子'];
 
   static const _entranceDuration = Duration(milliseconds: 400);
   static const _entranceCurve = Curves.easeOut;
@@ -81,45 +82,58 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _wrapEntrance(_buildHeader(l10n)),
+                _wrapEntrance(_buildHeader(l10n, _selectedThemes)),
                 Expanded(
                   child: SingleChildScrollView(
                     child: SafeArea(
                       top: false,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 8,
+                          horizontal: 16,
+                          vertical: 6,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 6),
                             _wrapEntrance(CustomTravelSection(
                               onSubmit: _onCustomTravelSubmit,
+                              initialThemes: _selectedThemes,
+                              onThemesChanged: (t) => setState(() => _selectedThemes = t),
                             )),
                             const SizedBox(height: TravelDesignTokens.sectionGap),
                             _wrapEntrance(AiSmartRecommendationSection(
                               items: _aiRecommendationItems,
-                              onItemTap: (_) {},
+                              onItemTap: (index) {
+                                final item = _aiRecommendationItems[index];
+                                final id = item.id ?? '1';
+                                context.push('/planner/detail/$id');
+                              },
                             )),
                             const SizedBox(height: TravelDesignTokens.sectionGap),
                             _wrapEntrance(const LimitedTimeDealsBanner()),
                             const SizedBox(height: TravelDesignTokens.sectionGap),
-                            _wrapEntrance(_buildCaseShowcaseSection(
-                              title: '经典案例',
-                              items: _classicCaseItems,
-                            )),
+                            _wrapSection(
+                              sectionColor: AppColors.homeSectionGreen,
+                              child: _buildCaseShowcaseSection(
+                                title: '经典案例',
+                                items: _classicCaseItems,
+                              ),
+                            ),
+                            _wrapSection(
+                              sectionColor: AppColors.homeSectionYellow,
+                              child: _buildCaseShowcaseSection(
+                                title: '行程案例',
+                                items: _itineraryCaseItems,
+                              ),
+                            ),
+                            _wrapSection(
+                              sectionColor: AppColors.homeSectionBlueStart,
+                              child: _buildFeaturedSection(context, l10n, packagesAsync),
+                            ),
                             const SizedBox(height: 24),
-                            _wrapEntrance(_buildCaseShowcaseSection(
-                              title: '行程案例',
-                              items: _itineraryCaseItems,
-                            )),
-                            const SizedBox(height: TravelDesignTokens.sectionGap),
-                            _wrapEntrance(_buildFeaturedSection(context, l10n, packagesAsync)),
-                            const SizedBox(height: TravelDesignTokens.sectionGap),
                             _wrapEntrance(_buildWhyChooseUs(l10n)),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 16),
                           ],
                         ),
                       ),
@@ -148,9 +162,24 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
     );
   }
 
+  /// Full-width section with distinct background and top border (Home-style separation).
+  Widget _wrapSection({required Color sectionColor, required Widget child}) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 16),
+      decoration: BoxDecoration(
+        color: sectionColor,
+        border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+      child: _wrapEntrance(child),
+    );
+  }
+
   static const double _headerHeight = 240;
 
-  Widget _buildHeader(AppLocalizations l10n) {
+  Widget _buildHeader(AppLocalizations l10n, List<String> selectedThemes) {
+    final themeGradient = ThemeDestinations.heroGradientForTheme(selectedThemes);
     return SizedBox(
       height: _headerHeight,
       width: double.infinity,
@@ -170,7 +199,7 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
                 color: const Color(0xFFB2F56B),
               ),
             ),
-            // Gradient overlay
+            // Theme-specific gradient overlay (dynamic hero)
             Container(
               width: double.infinity,
               height: double.infinity,
@@ -179,10 +208,11 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.transparent,
+                    themeGradient.first.withValues(alpha: 0.15),
+                    themeGradient.last.withValues(alpha: 0.4),
                     Colors.black.withValues(alpha: 0.15),
                   ],
-                  stops: const [0.5, 1.0],
+                  stops: const [0.0, 0.5, 1.0],
                 ),
               ),
             ),
@@ -200,6 +230,30 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
                 ),
               ),
             ),
+            // Subtle AI brand at bottom of hero
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 16,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 12,
+                    color: Colors.white.withValues(alpha: 0.8),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Powered by 智行AI',
+                    style: TravelTypography.hint(
+                      Colors.white.withValues(alpha: 0.85),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     ),
@@ -209,6 +263,7 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
   /// AI recommendation list (personalized horizontal list).
   static final List<CaseCardItem> _aiRecommendationItems = [
     CaseCardItem(
+      id: '1',
       destinationName: '杭州西湖两日',
       subtitle: '根据你的偏好推荐',
       durationBadge: '2天1晚',
@@ -218,6 +273,7 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
       gradient: [const Color(0xFF667EEA), const Color(0xFF764BA2)],
     ),
     CaseCardItem(
+      id: '2',
       destinationName: '成都美食之旅',
       subtitle: '人气线路 · 高分好评',
       durationBadge: '3天2晚',
@@ -227,6 +283,7 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
       gradient: [const Color(0xFFF2994A), const Color(0xFFF2C94C)],
     ),
     CaseCardItem(
+      id: '3',
       destinationName: '云南大理',
       subtitle: '苍山洱海 · 适合放松',
       durationBadge: '4天3晚',
@@ -239,6 +296,7 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
 
   static final List<CaseCardItem> _classicCaseItems = [
     CaseCardItem(
+      id: '1',
       destinationName: '云南大理丽江深度游',
       subtitle: '苍山洱海·古城风情',
       durationBadge: '8天7晚',
@@ -248,6 +306,7 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
       gradient: [const Color(0xFF6DD5ED), const Color(0xFF2193B0)],
     ),
     CaseCardItem(
+      id: '2',
       destinationName: '江南水乡苏州杭州',
       subtitle: '西湖·园林·古镇',
       durationBadge: '5天4晚',
@@ -257,6 +316,7 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
       gradient: [const Color(0xFF11998E), const Color(0xFF38EF7D)],
     ),
     CaseCardItem(
+      id: '3',
       destinationName: '北京文化经典线',
       subtitle: '故宫·长城·胡同',
       durationBadge: '6天5晚',
@@ -287,6 +347,7 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
 
   static final List<CaseCardItem> _itineraryCaseItems = [
     CaseCardItem(
+      id: '1',
       destinationName: '杭州西湖灵隐两日',
       subtitle: '西湖十景·灵隐寺',
       durationBadge: '2天1晚',
@@ -296,6 +357,7 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
       gradient: [const Color(0xFF667EEA), const Color(0xFF764BA2)],
     ),
     CaseCardItem(
+      id: '2',
       destinationName: '西安兵马俑华山',
       subtitle: '世界遗产·奇险华山',
       durationBadge: '3天2晚',
@@ -305,6 +367,7 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
       gradient: [const Color(0xFFF2994A), const Color(0xFFF2C94C)],
     ),
     CaseCardItem(
+      id: '3',
       destinationName: '桂林阳朔山水线',
       subtitle: '漓江·遇龙河·西街',
       durationBadge: '2天1晚',
@@ -331,7 +394,11 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
     return CaseShowcaseSection(
       title: title,
       items: items,
-      onCardTap: (_) {},
+      onCardTap: (index) {
+        final item = items[index];
+        final id = item.id ?? '1';
+        context.push('/planner/detail/$id');
+      },
     );
   }
 
@@ -484,6 +551,7 @@ class _FeaturedPackageCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.border, width: 1),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),

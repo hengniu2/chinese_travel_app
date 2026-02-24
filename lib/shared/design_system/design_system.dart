@@ -32,6 +32,7 @@ export 'travel_outline_button.dart';
 export 'empty_state.dart';
 export 'cartoon_empty_state.dart';
 export 'coupon_card.dart';
+export 'invite_friends_banner.dart';
 export 'travel_skeleton_loader.dart';
 export 'itinerary_timeline.dart';
 export 'cost_list_block.dart';

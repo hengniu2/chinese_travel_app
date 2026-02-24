@@ -46,9 +46,9 @@ class _TravelDiscoveryPageState extends ConsumerState<TravelDiscoveryPage> {
     final favorites = ref.watch(discoveryFavoritesProvider);
 
     return Scaffold(
-      backgroundColor: TravelDesignTokens.background,
+      backgroundColor: AppColors.warmBackground,
       appBar: AppBar(
-        backgroundColor: TravelDesignTokens.card,
+        backgroundColor: AppColors.homeSearchCapsule,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         leading: IconButton(
@@ -84,25 +84,41 @@ class _TravelDiscoveryPageState extends ConsumerState<TravelDiscoveryPage> {
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _CategoryTabs(
-                    selected: discovery.category,
-                    onSelected: (c) {
-                      ref.read(discoveryStateProvider.notifier).setCategory(c);
-                      ref.read(discoveryPageProvider.notifier).state = 0;
-                    },
-                    l10n: l10n,
-                  ),
-                  _FilterChips(
-                    filter: ref.watch(travelFilterStateProvider),
-                    sortOption: discovery.sortOption,
-                    l10n: l10n,
-                    onOpenAdvanced: () => _openAdvancedFilter(context, ref, l10n),
-                    onOpenSort: () => _openSortSheet(context, ref, l10n),
-                  ),
-                ],
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.homeSearchCapsule,
+                  border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _CategoryTabs(
+                      selected: discovery.category,
+                      onSelected: (c) {
+                        ref.read(discoveryStateProvider.notifier).setCategory(c);
+                        ref.read(discoveryPageProvider.notifier).state = 0;
+                      },
+                      l10n: l10n,
+                    ),
+                    _FilterChips(
+                      filter: ref.watch(travelFilterStateProvider),
+                      sortOption: discovery.sortOption,
+                      l10n: l10n,
+                      onOpenAdvanced: () => _openAdvancedFilter(context, ref, l10n),
+                      onOpenSort: () => _openSortSheet(context, ref, l10n),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Container(
+                height: 10,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColors.homeSectionGreen,
+                  border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+                ),
               ),
             ),
             visibleAsync.when(

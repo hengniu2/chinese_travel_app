@@ -26,6 +26,7 @@ import '../../features/travel/booking/booking_travelers_page.dart';
 import '../../features/travel/detail/travel_detail_page.dart';
 import '../../features/travel/discovery/travel_discovery_page.dart';
 import '../../features/travel/landing/travel_landing_page.dart';
+import '../../features/travel/planner/ai_itinerary_result_page.dart';
 import '../../features/travel/planner/planner_result_page.dart';
 import '../../features/travel/planner/travel_planner_page.dart';
 import '../../features/home/presentation/pages/activity_detail_page.dart';
@@ -79,6 +80,7 @@ import '../../features/travel_service/presentation/pages/flight_result_page.dart
 import '../../features/travel_service/presentation/pages/multi_trip_result_page.dart';
 import '../../features/travel_service/presentation/pages/round_trip_result_page.dart';
 import '../../features/travel_service/presentation/pages/travel_service_page.dart';
+import '../../features/travel_service/theme/luxury_travel_theme.dart';
 import '../../shared/widgets/app_error_page.dart';
 import '../../shared/widgets/app_network_error_page.dart';
 import 'app_shell.dart';
@@ -267,6 +269,13 @@ GoRouter createAppRouter(Ref ref) {
                           child: const PlannerResultPage(),
                         ),
                       ),
+                      GoRoute(
+                        path: 'ai-result',
+                        name: 'plannerAiResult',
+                        pageBuilder: (_, __) => slideTransitionPage(
+                          child: const AiItineraryResultPage(),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -279,29 +288,41 @@ GoRouter createAppRouter(Ref ref) {
               GoRoute(
                 path: '/${RouteNames.travelService}',
                 name: RouteNames.travelService,
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: TravelServicePage(),
+                pageBuilder: (context, state) => NoTransitionPage(
+                  child: Theme(
+                    data: LuxuryTravelTheme.theme,
+                    child: const TravelServicePage(),
+                  ),
                 ),
                 routes: [
                   GoRoute(
                     path: 'flight-result',
                     name: RouteNames.flightResult,
-                    pageBuilder: (context, state) => const NoTransitionPage(
-                      child: FlightResultPage(),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: Theme(
+                        data: LuxuryTravelTheme.theme,
+                        child: const FlightResultPage(),
+                      ),
                     ),
                   ),
                   GoRoute(
                     path: 'round-trip-result',
                     name: RouteNames.roundTripResult,
-                    pageBuilder: (context, state) => const NoTransitionPage(
-                      child: RoundTripResultPage(),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: Theme(
+                        data: LuxuryTravelTheme.theme,
+                        child: const RoundTripResultPage(),
+                      ),
                     ),
                   ),
                   GoRoute(
                     path: 'multi-trip-result',
                     name: RouteNames.multiTripResult,
-                    pageBuilder: (context, state) => const NoTransitionPage(
-                      child: MultiTripResultPage(),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: Theme(
+                        data: LuxuryTravelTheme.theme,
+                        child: const MultiTripResultPage(),
+                      ),
                     ),
                   ),
                 ],

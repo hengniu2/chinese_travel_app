@@ -155,17 +155,18 @@ class _HotelsListPageState extends ConsumerState<HotelsListPage> {
 
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.98),
+      backgroundColor: AppColors.warmBackground,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppGradients.hotelHeaderMint.first.withValues(alpha: theme.brightness == Brightness.dark ? 0.15 : 0.08),
-              theme.colorScheme.surface,
+              AppColors.homeSearchCapsule,
+              AppColors.homeSectionBlueStart.withValues(alpha: 0.4),
+              AppColors.warmBackground,
             ],
-            stops: const [0.0, 0.35],
+            stops: const [0.0, 0.2, 0.6],
           ),
         ),
         child: Stack(

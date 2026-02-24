@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../../shared/design_system/app_colors.dart';
+import '../../../../core/micro_interactions/micro_interactions.dart';
+import '../../theme/luxury_travel_theme.dart';
 
-/// Premium booking form for commercial Chinese travel app: large rounded card,
-/// elevated shadow, gradient TabBar, departure/arrival with swap, date chips,
-/// passenger sheet, cabin segments, gradient CTA search button.
+/// Luxury booking form: cream/gold palette, soft shadow, departure/arrival with swap,
+/// date chips, passenger sheet, cabin segments, gold CTA search button.
 class BookingForm extends StatefulWidget {
   const BookingForm({
     super.key,
@@ -21,10 +21,9 @@ class BookingForm extends StatefulWidget {
 
 class _BookingFormState extends State<BookingForm>
     with SingleTickerProviderStateMixin {
-  static const Color _yellowHighlight = Color(0xFFFFF176);
-  static const Color _fieldBg = Color(0xFFF8F7F5);
-  static const Color _unselectedGrey = Color(0xFF8E8E8E);
-  static const Color _warmCard = Color(0xFFFFFEFC);
+  static Color get _fieldBg => LuxuryTravelTheme.surfaceMuted;
+  static Color get _unselectedGrey => LuxuryTravelTheme.textTertiary;
+  static Color get _warmCard => LuxuryTravelTheme.cardBackground;
 
   late AnimationController _swapRotationController;
 
@@ -76,9 +75,8 @@ class _BookingFormState extends State<BookingForm>
   void _selectDate(DateTime d) => setState(() => _selectedDate = d);
 
   void _openPassengerSheet() {
-    showModalBottomSheet<void>(
+    showAppBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) => _PassengerBottomSheet(
         adults: _adults,
@@ -158,7 +156,7 @@ class _BookingFormState extends State<BookingForm>
           child: Row(
             children: [
               const SizedBox(width: 16),
-              Icon(Icons.flight_takeoff_rounded, size: 24, color: AppColors.textSecondary),
+              Icon(Icons.flight_takeoff_rounded, size: 24, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -167,7 +165,7 @@ class _BookingFormState extends State<BookingForm>
                   children: [
                     Text(
                       '出发',
-                      style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                      style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textTertiary),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -175,7 +173,7 @@ class _BookingFormState extends State<BookingForm>
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: LuxuryTravelTheme.darkText,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -199,7 +197,7 @@ class _BookingFormState extends State<BookingForm>
                       child: Icon(
                         Icons.swap_vert_rounded,
                         size: 28,
-                        color: AppColors.textSecondary,
+                        color: LuxuryTravelTheme.textSecondary,
                       ),
                     ),
                   ),
@@ -212,7 +210,7 @@ class _BookingFormState extends State<BookingForm>
                   children: [
                     Text(
                       '到达',
-                      style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                      style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textTertiary),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -220,7 +218,7 @@ class _BookingFormState extends State<BookingForm>
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: LuxuryTravelTheme.darkText,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -249,11 +247,11 @@ class _BookingFormState extends State<BookingForm>
           padding: const EdgeInsets.only(left: 4, bottom: 10),
           child: Row(
             children: [
-              Icon(Icons.calendar_today_rounded, size: 20, color: AppColors.textSecondary),
+              Icon(Icons.calendar_today_rounded, size: 20, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 8),
               Text(
                 '日期',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
+                style: LuxuryTravelTheme.titleSmall(LuxuryTravelTheme.textSecondary),
               ),
             ],
           ),
@@ -307,11 +305,11 @@ class _BookingFormState extends State<BookingForm>
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: LuxuryTravelTheme.darkText,
                     ),
                   ),
                   const Spacer(),
-                  Icon(Icons.calendar_month_rounded, size: 22, color: AppColors.textTertiary),
+                  Icon(Icons.calendar_month_rounded, size: 22, color: LuxuryTravelTheme.textTertiary),
                 ],
               ),
             ),
@@ -346,11 +344,11 @@ class _BookingFormState extends State<BookingForm>
           padding: const EdgeInsets.only(left: 4, bottom: 10),
           child: Row(
             children: [
-              Icon(Icons.airline_seat_recline_extra_rounded, size: 20, color: AppColors.textSecondary),
+              Icon(Icons.airline_seat_recline_extra_rounded, size: 20, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 8),
               Text(
                 '舱位',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
+                style: LuxuryTravelTheme.titleSmall(LuxuryTravelTheme.textSecondary),
               ),
             ],
           ),
@@ -392,7 +390,7 @@ class _BookingFormState extends State<BookingForm>
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                          color: selected ? AppColors.textPrimary : _unselectedGrey,
+                          color: selected ? LuxuryTravelTheme.darkText : _unselectedGrey,
                         ),
                       ),
                     ),
@@ -447,14 +445,14 @@ class _FormTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           child: Row(
             children: [
-              Icon(icon, size: 24, color: AppColors.textSecondary),
+              Icon(icon, size: 24, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 14),
               Text(
                 label,
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
+                  color: LuxuryTravelTheme.textSecondary,
                 ),
               ),
               const Spacer(),
@@ -463,11 +461,11 @@ class _FormTile extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: LuxuryTravelTheme.darkText,
                 ),
               ),
               const SizedBox(width: 6),
-              Icon(Icons.keyboard_arrow_down_rounded, size: 26, color: AppColors.textTertiary),
+              Icon(Icons.keyboard_arrow_down_rounded, size: 26, color: LuxuryTravelTheme.textTertiary),
             ],
           ),
         ),
@@ -489,13 +487,10 @@ class _DateChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  static const Color _yellowAccent = Color(0xFFFFEE58);
-  static const Color _yellowBg = Color(0xFFFFF9C4);
-
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? _yellowBg : const Color(0xFFF5F5F5),
+      color: selected ? LuxuryTravelTheme.primaryGold.withValues(alpha: 0.15) : LuxuryTravelTheme.surfaceMuted,
       borderRadius: BorderRadius.circular(22),
       elevation: 0,
       child: InkWell(
@@ -505,15 +500,12 @@ class _DateChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
-            border: selected ? Border.all(color: _yellowAccent, width: 2) : null,
+            border: selected ? Border.all(color: LuxuryTravelTheme.primaryGold, width: 2) : null,
           ),
           child: Text(
             label,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-              color: selected ? AppColors.textPrimary : AppColors.textSecondary,
-            ),
+            style: LuxuryTravelTheme.bodyMedium(selected ? LuxuryTravelTheme.darkText : LuxuryTravelTheme.textSecondary)
+                .copyWith(fontSize: 15, fontWeight: selected ? FontWeight.w600 : FontWeight.w500),
           ),
         ),
       ),
@@ -551,7 +543,7 @@ class _PassengerBottomSheetState extends State<_PassengerBottomSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: LuxuryTravelTheme.cardBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(
@@ -580,7 +572,7 @@ class _PassengerBottomSheetState extends State<_PassengerBottomSheet> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: LuxuryTravelTheme.darkText,
             ),
           ),
           const SizedBox(height: 24),
@@ -605,13 +597,13 @@ class _PassengerBottomSheetState extends State<_PassengerBottomSheet> {
             child: FilledButton(
               onPressed: () => widget.onConfirm(_adults, _children),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFFFC107),
-                foregroundColor: Colors.black87,
+                backgroundColor: LuxuryTravelTheme.primaryGold,
+                foregroundColor: LuxuryTravelTheme.darkText,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(26),
                 ),
               ),
-              child: const Text('确定', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              child: Text('确定', style: LuxuryTravelTheme.buttonLabel(LuxuryTravelTheme.darkText)),
             ),
           ),
         ],
@@ -643,7 +635,7 @@ class _CounterRow extends StatelessWidget {
           label,
           style: const TextStyle(
             fontSize: 16,
-            color: AppColors.textPrimary,
+            color: LuxuryTravelTheme.darkText,
           ),
         ),
         const Spacer(),
@@ -660,7 +652,7 @@ class _CounterRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: LuxuryTravelTheme.darkText,
               ),
             ),
             const SizedBox(width: 20),
@@ -688,14 +680,14 @@ class _CounterButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final enabled = onPressed != null;
     return Material(
-      color: enabled ? const Color(0xFFF5F5F5) : Colors.grey.shade200,
+      color: enabled ? LuxuryTravelTheme.surfaceMuted : LuxuryTravelTheme.border,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Icon(icon, size: 24, color: enabled ? AppColors.textPrimary : Colors.grey),
+          child: Icon(icon, size: 24, color: enabled ? LuxuryTravelTheme.darkText : LuxuryTravelTheme.textTertiary),
         ),
       ),
     );
@@ -714,9 +706,6 @@ class _SearchButton extends StatefulWidget {
 class _SearchButtonState extends State<_SearchButton> {
   bool _pressed = false;
 
-  static const Color _gradientStart = Color(0xFFFFD54F);
-  static const Color _gradientEnd = Color(0xFFFFC107);
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -732,34 +721,20 @@ class _SearchButtonState extends State<_SearchButton> {
           height: 56,
           width: double.infinity,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [_gradientStart, _gradientEnd],
-            ),
-            borderRadius: BorderRadius.circular(28),
+            color: const Color(0xFFC6A769),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: _gradientEnd.withValues(alpha: 0.4),
-                offset: const Offset(0, 6),
-                blurRadius: 16,
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                offset: const Offset(0, 2),
-                blurRadius: 8,
+                color: const Color(0xFF000000).withValues(alpha: 0.08),
+                offset: const Offset(0, 4),
+                blurRadius: 12,
               ),
             ],
           ),
           alignment: Alignment.center,
-          child: const Text(
+          child: Text(
             '搜索',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-              letterSpacing: 0.5,
-            ),
+            style: LuxuryTravelTheme.buttonLabel(Colors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w600),
           ),
         ),
       ),

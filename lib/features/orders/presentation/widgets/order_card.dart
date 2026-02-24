@@ -43,6 +43,7 @@ class OrderCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(_kCardRadius.r),
+            border: Border.all(color: AppColors.border, width: 1),
             boxShadow: AppShadow.light,
           ),
           child: Column(

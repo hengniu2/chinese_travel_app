@@ -6,6 +6,8 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/design_system/app_colors.dart';
 import '../../../shared/design_system/travel_typography.dart';
 import '../../../shared/design_system/personal_team_toggle.dart';
+import 'ai_branding.dart';
+import '../data/travel_assets.dart';
 
 /// Custom travel section: visually separated from booking, rounded white card
 /// with soft green-yellow gradient accent border. Contains mode switch,
@@ -14,6 +16,8 @@ class CustomTravelSection extends StatefulWidget {
   const CustomTravelSection({
     super.key,
     this.onSubmit,
+    this.initialThemes = const ['亲子'],
+    this.onThemesChanged,
   });
 
   /// Called when "马上为我定制" is pressed. Passes destination, isTeam, budget range, themes.
@@ -24,6 +28,12 @@ class CustomTravelSection extends StatefulWidget {
     required double budgetMax,
     required List<String> themes,
   })? onSubmit;
+
+  /// Initial selected themes (for adaptive hero + destinations).
+  final List<String> initialThemes;
+
+  /// Called when user changes theme selection (for adaptive hero).
+  final void Function(List<String> themes)? onThemesChanged;
 
   @override
   State<CustomTravelSection> createState() => _CustomTravelSectionState();
@@ -49,13 +59,22 @@ class _CustomTravelSectionState extends State<CustomTravelSection> {
 
   bool _isTeamMode = false;
   final _destinationController = TextEditingController();
+  final _destinationFocusNode = FocusNode();
   int _placeholderIndex = 0;
   Timer? _placeholderTimer;
   double _budgetLow = _budgetMin;
+  bool _showDestinationDropdown = false;
+  final List<String> _previousSearches = [];
 
   static const List<String> _suggestedDestinations = ['日本', '新疆', '泰国', '冰岛'];
+  static const List<String> _trendingSearches = [
+    '杭州', '成都', '云南', '北京', '厦门', '日本', '泰国', '新疆',
+  ];
+  static const List<String> _aiSuggestions = [
+    '春日赏花路线', '亲子周末游', '文化深度游', '海岛度假',
+  ];
   double _budgetHigh = _budgetMax;
-  final Set<String> _selectedThemes = {'亲子'};
+  late Set<String> _selectedThemes;
   bool _stylesExpanded = false;
 
   static const List<_StyleChipItem> _styleChipsPrimary = [
@@ -77,20 +96,59 @@ class _CustomTravelSectionState extends State<CustomTravelSection> {
   @override
   void initState() {
     super.initState();
+    _selectedThemes = widget.initialThemes.toSet();
+    if (_selectedThemes.isEmpty) _selectedThemes.add('亲子');
+    _destinationFocusNode.addListener(_onDestinationFocusChange);
+    _destinationController.addListener(_onDestinationTextChange);
     _placeholderTimer = Timer.periodic(const Duration(seconds: 2), (_) {
       if (mounted) {
         setState(() {
-          _placeholderIndex = (_placeholderIndex + 1) % _suggestedDestinations.length;
+          final list = _trendingForTheme;
+          _placeholderIndex = (_placeholderIndex + 1) % list.length;
         });
       }
     });
   }
 
   @override
+  void didUpdateWidget(CustomTravelSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialThemes != widget.initialThemes) {
+      _selectedThemes = widget.initialThemes.toSet();
+      if (_selectedThemes.isEmpty) _selectedThemes.add('亲子');
+    }
+  }
+
+  @override
   void dispose() {
+    _destinationFocusNode.removeListener(_onDestinationFocusChange);
+    _destinationController.removeListener(_onDestinationTextChange);
     _placeholderTimer?.cancel();
     _destinationController.dispose();
+    _destinationFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onDestinationFocusChange() {
+    setState(() => _showDestinationDropdown = _destinationFocusNode.hasFocus);
+  }
+
+  void _onDestinationTextChange() {
+    if (_destinationFocusNode.hasFocus) {
+      setState(() {});
+    }
+  }
+
+  void _onDestinationSelected(String value) {
+    _destinationController.text = value;
+    _destinationFocusNode.unfocus();
+    setState(() {
+      _showDestinationDropdown = false;
+      if (!_previousSearches.contains(value)) {
+        _previousSearches.insert(0, value);
+        if (_previousSearches.length > 5) _previousSearches.removeLast();
+      }
+    });
   }
 
   void _onCtaPressed() {
@@ -112,8 +170,22 @@ class _CustomTravelSectionState extends State<CustomTravelSection> {
       } else {
         _selectedThemes.add(theme);
       }
+      widget.onThemesChanged?.call(_selectedThemes.toList());
     });
   }
+
+  List<String> get _trendingForTheme =>
+      ThemeDestinations.forThemes(_selectedThemes.toList());
+
+  List<String> get _aiSuggestionsForTheme {
+    if (_selectedThemes.contains('海岛')) return ['马尔代夫蜜月', '巴厘岛度假', '普吉岛亲子', '海岛慢生活'];
+    if (_selectedThemes.contains('亲子')) return ['迪士尼乐园', '三亚亲子游', '新加坡遛娃', '周末亲子游'];
+    if (_selectedThemes.contains('探险')) return ['新疆自驾', '西藏朝圣', '冰岛极光', '稻城亚丁'];
+    return _aiSuggestions;
+  }
+
+  bool get _hasSmartRecommendation =>
+      _selectedThemes.any((t) => ['海岛', '亲子', '探险'].contains(t));
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +211,7 @@ class _CustomTravelSectionState extends State<CustomTravelSection> {
           ),
         ),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(_borderRadius - _borderWidth),
@@ -149,19 +221,19 @@ class _CustomTravelSectionState extends State<CustomTravelSection> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildSegmentedSwitch(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               _buildDestinationInput(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               _buildBudgetSlider(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               _buildTravelStyleChips(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               _buildInspirationSection(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               _buildAiPlannerPreview(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Padding(
-                padding: const EdgeInsets.only(bottom: 4),
+                padding: const EdgeInsets.only(bottom: 2),
                 child: _buildCtaButton(),
               ),
             ],
@@ -181,61 +253,114 @@ class _CustomTravelSectionState extends State<CustomTravelSection> {
   }
 
   Widget _buildDestinationInput() {
-    return Stack(
-      clipBehavior: Clip.none,
+    final query = _destinationController.text.trim().toLowerCase();
+    final trending = _trendingForTheme;
+    final aiSuggestions = _aiSuggestionsForTheme;
+    final allDestinations = [
+      ...trending,
+      ..._suggestedDestinations,
+      ...aiSuggestions,
+    ];
+    final suggestions = query.isEmpty
+        ? <String>[]
+        : allDestinations
+            .where((s) => s.toLowerCase().contains(query))
+            .toSet()
+            .toList()
+          ..sort((a, b) => a.length.compareTo(b.length));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          height: 44,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: _fieldBg,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
-          ),
-          child: Row(
+        if (_hasSmartRecommendation) ...[
+          Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.location_on_outlined, size: 20, color: Colors.grey[600]),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextField(
-                  controller: _destinationController,
-                  decoration: InputDecoration(
-                    hintText: _suggestedDestinations[_placeholderIndex],
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                    hintStyle: TravelTypography.hint(Colors.grey[600]!, fontSize: 14),
-                  ),
-                  style: TravelTypography.content(AppColors.textPrimary, fontSize: 14),
-                ),
+              AiSparkleIcon(size: 12),
+              const SizedBox(width: 4),
+              Text(
+                '根据你的选择智能推荐',
+                style: TravelTypography.hint(const Color(0xFF7CB87C), fontSize: 11),
               ),
-              Icon(Icons.auto_awesome, size: 18, color: Colors.grey[500]),
             ],
           ),
-        ),
-        Positioned(
-          top: -6,
-          right: 10,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFF6B6B),
-              borderRadius: BorderRadius.circular(4),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  offset: const Offset(0, 1),
-                  blurRadius: 2,
+          const SizedBox(height: 4),
+        ],
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              height: 44,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: _fieldBg,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: _showDestinationDropdown
+                      ? const Color(0xFF7CB87C)
+                      : const Color(0xFFE0E0E0),
+                  width: _showDestinationDropdown ? 1.5 : 1,
                 ),
-              ],
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.location_on_outlined, size: 20, color: Colors.grey[600]),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: _destinationController,
+                      focusNode: _destinationFocusNode,
+                      decoration: InputDecoration(
+                        hintText: _trendingForTheme[_placeholderIndex % _trendingForTheme.length],
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                        hintStyle: TravelTypography.hint(Colors.grey[600]!, fontSize: 14),
+                      ),
+                      style: TravelTypography.content(AppColors.textPrimary, fontSize: 14),
+                    ),
+                  ),
+                  Icon(Icons.auto_awesome, size: 18, color: Colors.grey[500]),
+                ],
+              ),
             ),
-            child: Text(
-              '热门',
-              style: TravelTypography.label(Colors.white, fontSize: 10)
-                  .copyWith(fontWeight: FontWeight.w600),
+            Positioned(
+              top: -6,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF6B6B),
+                  borderRadius: BorderRadius.circular(4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      offset: const Offset(0, 1),
+                      blurRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Text(
+                  '热门',
+                  style: TravelTypography.label(Colors.white, fontSize: 10)
+                      .copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
+        if (_showDestinationDropdown) ...[
+          const SizedBox(height: 6),
+          _DestinationDropdownCard(
+            query: query,
+            suggestions: suggestions,
+            trending: _trendingForTheme,
+            previous: _previousSearches,
+            aiSuggestions: _aiSuggestionsForTheme,
+            onSelect: _onDestinationSelected,
+          ),
+        ],
       ],
     );
   }
@@ -328,7 +453,7 @@ class _CustomTravelSectionState extends State<CustomTravelSection> {
           '出行风格',
           style: TravelTypography.sectionTitle(Colors.grey[700]!, fontSize: 13),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Wrap(
           spacing: 6,
           runSpacing: 6,
@@ -378,7 +503,7 @@ class _CustomTravelSectionState extends State<CustomTravelSection> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.only(bottom: 6),
           child: Row(
             children: [
               Text('🔥', style: const TextStyle(fontSize: 18)),
@@ -474,6 +599,148 @@ class _CustomTravelSectionState extends State<CustomTravelSection> {
   }
 }
 
+/// Compact destination dropdown: suggestions, trending, previous, AI.
+/// Card with shadow, max height to prevent overflow.
+class _DestinationDropdownCard extends StatelessWidget {
+  const _DestinationDropdownCard({
+    required this.query,
+    required this.suggestions,
+    required this.trending,
+    required this.previous,
+    required this.aiSuggestions,
+    required this.onSelect,
+  });
+
+  final String query;
+  final List<String> suggestions;
+  final List<String> trending;
+  final List<String> previous;
+  final List<String> aiSuggestions;
+  final void Function(String) onSelect;
+
+  static const double _maxHeight = 200;
+
+  @override
+  Widget build(BuildContext context) {
+    final sections = <_DropdownSection>[];
+    if (query.isNotEmpty && suggestions.isNotEmpty) {
+      sections.add(_DropdownSection(label: '匹配结果', items: suggestions));
+    }
+    if (query.isEmpty || suggestions.isEmpty) {
+      if (previous.isNotEmpty) {
+        sections.add(_DropdownSection(label: '历史搜索', items: previous));
+      }
+      sections.add(_DropdownSection(label: '热门搜索', items: trending));
+      sections.add(_DropdownSection(
+        label: 'AI 推荐',
+        items: aiSuggestions,
+        icon: Icons.auto_awesome,
+      ));
+    }
+
+    return Container(
+      constraints: const BoxConstraints(maxHeight: _maxHeight),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            offset: const Offset(0, 2),
+            blurRadius: 6,
+          ),
+        ],
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          children: sections.expand((s) => [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 2),
+              child: Row(
+                children: [
+                  if (s.icon != null) ...[
+                    Icon(s.icon!, size: 14, color: const Color(0xFF7CB87C)),
+                    const SizedBox(width: 4),
+                  ],
+                  Text(
+                    s.label,
+                    style: TravelTypography.hint(
+                      AppColors.textTertiary,
+                      fontSize: 11,
+                    ).copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+            ...s.items.take(5).map((item) => _DropdownItem(
+              label: item,
+              onTap: () => onSelect(item),
+            )),
+          ]).toList(),
+        ),
+      ),
+    );
+  }
+}
+
+class _DropdownSection {
+  const _DropdownSection({
+    required this.label,
+    required this.items,
+    this.icon,
+  });
+  final String label;
+  final List<String> items;
+  final IconData? icon;
+}
+
+class _DropdownItem extends StatelessWidget {
+  const _DropdownItem({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  static const double _height = 36;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          height: _height,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          alignment: Alignment.centerLeft,
+          child: Row(
+            children: [
+              Icon(Icons.place_outlined, size: 16, color: Colors.grey[500]),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TravelTypography.content(AppColors.textPrimary, fontSize: 13),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _AiPlannerPreviewCard extends StatelessWidget {
   const _AiPlannerPreviewCard({this.onTryNow});
 
@@ -482,7 +749,7 @@ class _AiPlannerPreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(6),
         gradient: const LinearGradient(
@@ -546,6 +813,8 @@ class _AiPlannerPreviewCard extends StatelessWidget {
                   '智能匹配酒店/机票/玩法',
                   style: TravelTypography.hint(AppColors.textSecondary, fontSize: 12),
                 ),
+                const SizedBox(height: 4),
+                AiBranding(compact: true, iconSize: 10, fontSize: 9),
               ],
             ),
           ),

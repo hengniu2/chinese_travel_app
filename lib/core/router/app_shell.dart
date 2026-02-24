@@ -5,9 +5,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../shared/design_system/design_system.dart';
+import '../../shared/design_system/app_tap_scale.dart';
 import 'app_router.dart';
 
-/// 底部 6 Tab 壳 · 中国卡通商业风：选中=浮动渐变胶囊+缩放+光晕，未选=灰色
+/// 底部 6 Tab 壳 · 贴底导航条：选中=青柠光晕 + 切换动效
 class AppShell extends ConsumerWidget {
   const AppShell({
     super.key,
@@ -16,13 +17,11 @@ class AppShell extends ConsumerWidget {
 
   final StatefulNavigationShell navigationShell;
 
-  static const double _kBarTopRadius = 20;
-  static const double _kIndicatorRadius = 22;
-  /// Unselected tab: gray icon
+  static const double _kIndicatorRadius = 20;
   static const Color _kUnselectedColor = Color(0xFF9E9E9E);
+  static const Duration _kAnimDuration = Duration(milliseconds: 280);
 
-  /// Tab order must match shell branch order in app_router.dart:
-  /// 0=Home, 1=Travel Planner, 2=Travel Service, 3=Companion, 4=Chat, 5=Profile
+  /// Tab order must match shell branch order in app_router.dart
   static List<String> get _paths => [
     '/${RouteNames.home}',
     '/${RouteNames.planner}',
@@ -38,155 +37,205 @@ class AppShell extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final index = navigationShell.currentIndex;
-    // Same order as _paths and app_router branches
     final destinations = [
-      (icon: Icons.home_outlined, label: l10n.tabHome),             // 0 → Home
-      (icon: Icons.explore_outlined, label: l10n.tabPlanner),       // 1 → Travel Planner
-      (icon: Icons.luggage_rounded, label: l10n.tabTravelService),  // 2 → Travel Service
-      (icon: Icons.groups_outlined, label: l10n.tabJoinUs),         // 3 → Companion
-      (icon: Icons.chat_bubble_outline_rounded, label: l10n.tabMessages), // 4 → Chat
-      (icon: Icons.person_outline_rounded, label: l10n.tabProfile),  // 5 → Profile
+      (icon: Icons.home_outlined, label: l10n.tabHome),
+      (icon: Icons.explore_outlined, label: l10n.tabPlanner),
+      (icon: Icons.luggage_rounded, label: l10n.tabTravelService),
+      (icon: Icons.groups_outlined, label: l10n.tabJoinUs),
+      (icon: Icons.chat_bubble_outline_rounded, label: l10n.tabMessages),
+      (icon: Icons.person_outline_rounded, label: l10n.tabProfile),
     ];
 
     final surface = colorScheme.surface;
 
     return Scaffold(
-      body: navigationShell,
+      body: RepaintBoundary(
+        child: navigationShell,
+      ),
       bottomNavigationBar: Container(
         width: double.infinity,
         decoration: BoxDecoration(
           color: surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(_kBarTopRadius)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              offset: const Offset(0, -2),
-              blurRadius: 12,
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              offset: const Offset(0, 4),
-              blurRadius: 8,
-            ),
-          ],
         ),
         child: SafeArea(
           top: false,
           child: Padding(
-            padding: EdgeInsets.only(top: 6.h, bottom: 6.h),
+            padding: EdgeInsets.symmetric(vertical: 8.h),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(destinations.length, (i) {
-                final d = destinations[i];
-                final selected = i == index;
-                return Expanded(
-                  child: InkWell(
-                    onTap: () => _onTap(context, i),
-                    borderRadius: BorderRadius.circular(_kIndicatorRadius),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 220),
-                      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 6.h),
-                      decoration: BoxDecoration(
-                        gradient: selected
-                            ? LinearGradient(
-                                colors: AppGradients.selectedNav,
-                                stops: AppGradients.selectedNavStops,
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              )
-                            : null,
-                        color: selected ? null : Colors.transparent,
-                        borderRadius: BorderRadius.circular(_kIndicatorRadius),
-                        boxShadow: selected
-                            ? [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.35),
-                                  offset: const Offset(0, 4),
-                                  blurRadius: 14,
-                                ),
-                                BoxShadow(
-                                  color: AppColors.primaryDark.withValues(alpha: 0.2),
-                                  offset: const Offset(0, 2),
-                                  blurRadius: 8,
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AnimatedScale(
-                            scale: selected ? 1.1 : 1.0,
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeOutCubic,
-                            child: Container(
-                              width: 48.w,
-                              height: 48.w,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                gradient: selected
-                                    ? LinearGradient(
-                                        colors: AppGradients.brand,
-                                        stops: AppGradients.brandStops,
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      )
-                                    : null,
-                                color: selected ? null : Colors.transparent,
-                                borderRadius: BorderRadius.circular(14.r),
-                                boxShadow: selected
-                                    ? [
-                                        BoxShadow(
-                                          color: AppColors.primaryDark
-                                              .withValues(alpha: 0.4),
-                                          offset: const Offset(0, 3),
-                                          blurRadius: 10,
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                              child: Icon(
-                                d.icon,
-                                size: 26.sp,
-                                color: selected
-                                    ? Colors.white
-                                    : _kUnselectedColor,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 2.h),
-                          Text(
-                            d.label,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 10.sp,
-                              color: selected
-                                  ? AppColors.primaryDark
-                                  : _kUnselectedColor,
-                              fontWeight:
-                                  selected ? FontWeight.w700 : FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(destinations.length, (i) {
+                  final d = destinations[i];
+                  final selected = i == index;
+                  return Expanded(
+                    child: _NavItem(
+                      icon: d.icon,
+                      label: d.label,
+                      selected: selected,
+                      onTap: () => _onTap(context, i),
+                      theme: theme,
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
+              ),
             ),
           ),
-        ),
       ),
     );
   }
 
   void _onTap(BuildContext context, int index) {
     if (index >= 0 && index < _paths.length) {
-      // Always navigate to branch root so correct page + tab highlight stay in sync.
       navigationShell.goBranch(index, initialLocation: true);
     }
+  }
+}
+
+/// Single nav item: tap scale, active = lime glow + elastic scale-in
+class _NavItem extends StatefulWidget {
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.theme,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final ThemeData theme;
+
+  @override
+  State<_NavItem> createState() => _NavItemState();
+}
+
+class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin {
+  late AnimationController _bounceController;
+  late Animation<double> _bounceScale;
+
+  @override
+  void initState() {
+    super.initState();
+    _bounceController = AnimationController(
+      duration: const Duration(milliseconds: 320),
+      vsync: this,
+    );
+    _bounceScale = Tween<double>(begin: 1, end: 1.06).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.elasticOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _bounceController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_NavItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.selected && widget.selected) {
+      _bounceController.forward(from: 0).then((_) => _bounceController.reverse());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = widget.selected;
+    return AppTapScale(
+      onTap: widget.onTap,
+      pressedScale: 0.96,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(AppShell._kIndicatorRadius),
+          splashColor: AppColors.primary.withValues(alpha: 0.12),
+          highlightColor: AppColors.primary.withValues(alpha: 0.06),
+          child: AnimatedContainer(
+            duration: AppShell._kAnimDuration,
+            curve: Curves.easeOutCubic,
+            padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: selected ? AppColors.primaryPale.withValues(alpha: 0.8) : Colors.transparent,
+              borderRadius: BorderRadius.circular(AppShell._kIndicatorRadius),
+              boxShadow: selected
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.4),
+                        blurRadius: 16,
+                        spreadRadius: -2,
+                      ),
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                        blurRadius: 24,
+                        spreadRadius: -4,
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedBuilder(
+                  animation: _bounceController,
+                  builder: (context, child) {
+                    final scale = selected ? (1.04 * _bounceScale.value) : 1.0;
+                    return Transform.scale(
+                      scale: scale,
+                      child: child,
+                    );
+                  },
+                  child: Container(
+                    width: 44.w,
+                    height: 44.w,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppColors.primary.withValues(alpha: 0.95)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(14.r),
+                      boxShadow: selected
+                          ? [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.5),
+                                blurRadius: 12,
+                                spreadRadius: 0,
+                              ),
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.35),
+                                blurRadius: 20,
+                                spreadRadius: -2,
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Icon(
+                      widget.icon,
+                      size: 24.sp,
+                      color: selected ? const Color(0xFF1A1A1A) : AppShell._kUnselectedColor,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  widget.label,
+                  style: widget.theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 10.sp,
+                    color: selected ? AppColors.primaryDark : AppShell._kUnselectedColor,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

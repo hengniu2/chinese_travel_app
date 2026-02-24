@@ -118,6 +118,26 @@ class AppColors {
   static const Color homeChipRed = Color(0xFFE53935);
 
   // ─────────────────────────────────────────────────────────────────────────
+  // 陪游页 · 分区背景色（与首页分区风格一致，不同区块不同背景/边框）
+  // ─────────────────────────────────────────────────────────────────────────
+  /// 陪游页整体基底（浅薄荷，与首页陪游区一致）
+  static const Color companionPageBackground = Color(0xFFE0F2F1);
+  /// 推荐置顶区 - 浅金
+  static const Color companionSectionGold = Color(0xFFFFF8E7);
+  /// 热门陪游区 - 浅暖橙
+  static const Color companionSectionWarm = Color(0xFFFFF5EB);
+  /// 为你推荐区 - 浅紫
+  static const Color companionSectionLavender = Color(0xFFF3E5F5);
+  /// 推荐陪游区 - 浅绿（与主色协调）
+  static const Color companionSectionGreen = Color(0xFFE8F5E9);
+  /// 全部陪游区 - 浅蓝
+  static const Color companionSectionBlue = Color(0xFFE3F2FD);
+  /// 陪游区亮色背景（深色卡片用）
+  static const Color companionSectionBright = Color(0xFFFFFBF7);
+  /// 陪游横向卡片表面（略深于背景，柔和对比）
+  static const Color companionSlideSurface = Color(0xFFF0EDE8);
+
+  // ─────────────────────────────────────────────────────────────────────────
   // 深色模式（Dark mode）- 深灰底 + 暖黄强调，无刺眼霓虹
   // ─────────────────────────────────────────────────────────────────────────
   /// 深色模式 - 背景

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../shared/design_system/design_system.dart';
+import '../../../shared/widgets/app_network_image.dart';
 
 /// Data for one case card in the showcase.
+/// [id] optional: when set, card tap navigates to /planner/detail/[id].
 class CaseCardItem {
   const CaseCardItem({
     required this.destinationName,
@@ -13,6 +15,7 @@ class CaseCardItem {
     this.isFavorite = false,
     this.imageUrl,
     this.gradient,
+    this.id,
   });
 
   final String destinationName;
@@ -23,6 +26,8 @@ class CaseCardItem {
   final bool isFavorite;
   final String? imageUrl;
   final List<Color>? gradient;
+  /// Optional package id for navigation to detail (e.g. '1', '2').
+  final String? id;
 
   CaseCardItem copyWith({
     String? destinationName,
@@ -33,6 +38,7 @@ class CaseCardItem {
     bool? isFavorite,
     String? imageUrl,
     List<Color>? gradient,
+    String? id,
   }) {
     return CaseCardItem(
       destinationName: destinationName ?? this.destinationName,
@@ -43,6 +49,7 @@ class CaseCardItem {
       isFavorite: isFavorite ?? this.isFavorite,
       imageUrl: imageUrl ?? this.imageUrl,
       gradient: gradient ?? this.gradient,
+      id: id ?? this.id,
     );
   }
 }
@@ -97,6 +104,7 @@ class _CaseCardState extends State<CaseCard> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(_radius),
+            border: Border.all(color: AppColors.border, width: 1),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.08),
@@ -122,10 +130,14 @@ class _CaseCardState extends State<CaseCard> {
                     height: widget.imageHeight,
                     width: double.infinity,
                     child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                        ? Image.network(
-                            item.imageUrl!,
+                        ? AppNetworkImage(
+                            imageUrl: item.imageUrl!,
+                            width: double.infinity,
+                            height: widget.imageHeight,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => _gradientPlaceholder(gradient),
+                            fadeInDuration: const Duration(milliseconds: 300),
+                            errorWidget: _gradientPlaceholder(gradient),
+                            placeholder: _gradientPlaceholder(gradient),
                           )
                         : _gradientPlaceholder(gradient),
                   ),

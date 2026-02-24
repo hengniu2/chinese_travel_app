@@ -26,11 +26,12 @@ class BlogDetailPage extends StatelessWidget {
     final person = _findPerson(id);
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceWarmWhite,
+      backgroundColor: AppColors.warmBackground,
       appBar: AppBar(
         title: Text(person?.name ?? '种草官'),
-        backgroundColor: AppColors.surfaceWarmWhite,
+        backgroundColor: AppColors.homeSearchCapsule,
         foregroundColor: AppColors.textPrimary,
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => context.pop(),
@@ -53,7 +54,12 @@ class BlogDetailPage extends StatelessWidget {
                     )
                   : _buildPlaceholder(),
             ),
-            Padding(
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.homeSectionGreen,
+                border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+              ),
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,16 +81,24 @@ class BlogDetailPage extends StatelessWidget {
                       Row(
                         children: [
                           if (person.readCount != null)
-                            Text(
-                              '${person.readCount} 阅读',
-                              style: AppTextStyles.caption,
+                            Flexible(
+                              child: Text(
+                                '${person.readCount} 阅读',
+                                style: AppTextStyles.caption,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           if (person.readCount != null && person.likeCount != null)
                             const SizedBox(width: 16),
                           if (person.likeCount != null)
-                            Text(
-                              '${person.likeCount} 点赞',
-                              style: AppTextStyles.caption,
+                            Flexible(
+                              child: Text(
+                                '${person.likeCount} 点赞',
+                                style: AppTextStyles.caption,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                         ],
                       ),
@@ -98,8 +112,9 @@ class BlogDetailPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: AppColors.surfaceWarmWhite,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border, width: 1),
                     ),
                     child: Text(
                       '更多旅行故事即将上线，敬请期待。',

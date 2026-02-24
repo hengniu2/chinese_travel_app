@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../shared/design_system/app_colors.dart';
+import '../../../../core/analytics/analytics.dart';
+import '../../../../core/micro_interactions/micro_interactions.dart';
+import '../../theme/luxury_travel_theme.dart';
 
-/// Multi-city (多程) booking form: dynamic list of segments (出发, 到达, 日期),
-/// "+ 添加行程" (max 5), passenger, cabin, search → MultiTripResultPage.
+/// Multi-city (多程) booking form — luxury theme. Dynamic segments, "+ 添加行程", search → MultiTripResultPage.
 class MultiTripForm extends StatefulWidget {
   const MultiTripForm({
     super.key,
@@ -21,10 +22,14 @@ class _MultiTripFormState extends State<MultiTripForm> {
   static const double _fieldRadius = 18;
   static const double _verticalGap = 18;
   static const int _maxSegments = 5;
-  static const Color _fieldBg = Color(0xFFF8F7F5);
-  static const Color _unselectedGrey = Color(0xFF8E8E8E);
-  static const Color _warmCard = Color(0xFFFFFEFC);
+  static Color get _fieldBg => LuxuryTravelTheme.surfaceMuted;
+  static Color get _unselectedGrey => LuxuryTravelTheme.textTertiary;
+  static Color get _warmCard => LuxuryTravelTheme.cardBackground;
   static const List<String> _cabinLabels = ['经济', '商务', '头等'];
+  static Border get _fieldBorder => Border.all(
+    color: LuxuryTravelTheme.border,
+    width: 1.5,
+  );
 
   final List<_TripSegment> _segments = [];
   int _adults = 1;
@@ -68,9 +73,8 @@ class _MultiTripFormState extends State<MultiTripForm> {
   }
 
   void _openPassengerSheet() {
-    showModalBottomSheet<void>(
+    showAppBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) => _MultiTripPassengerSheet(
         adults: _adults,
@@ -87,6 +91,11 @@ class _MultiTripFormState extends State<MultiTripForm> {
   }
 
   void _onSearch() {
+    context.analytics.logEvent(SearchClickEvent(
+      departure: _segments.first.departure,
+      arrival: _segments.last.arrival,
+      tripType: 'multi',
+    ));
     context.push('/travel-service/multi-trip-result');
   }
 
@@ -143,14 +152,14 @@ class _MultiTripFormState extends State<MultiTripForm> {
           child: Row(
             children: [
               Icon(Icons.flight_rounded,
-                  size: 20, color: AppColors.textSecondary),
+                  size: 20, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 8),
               Text(
                 '行程',
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary),
+                    color: LuxuryTravelTheme.textSecondary),
               ),
             ],
           ),
@@ -181,21 +190,24 @@ class _MultiTripFormState extends State<MultiTripForm> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.6)),
+            border: Border.all(
+              color: LuxuryTravelTheme.primaryGold.withValues(alpha: 0.6),
+              width: 1.5,
+            ),
             borderRadius: BorderRadius.circular(_fieldRadius),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.add_rounded,
-                  size: 22, color: AppColors.primary),
+                  size: 22, color: LuxuryTravelTheme.primaryGold),
               const SizedBox(width: 8),
               Text(
                 '添加行程',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+                  color: LuxuryTravelTheme.primaryGold,
                 ),
               ),
             ],
@@ -210,40 +222,46 @@ class _MultiTripFormState extends State<MultiTripForm> {
         ? '$_adults 成人 · $_children 儿童'
         : '$_adults 人';
 
-    return Material(
-      color: _fieldBg,
-      borderRadius: BorderRadius.circular(_fieldRadius),
-      child: InkWell(
-        onTap: _openPassengerSheet,
+    return Container(
+      decoration: BoxDecoration(
+        color: _fieldBg,
         borderRadius: BorderRadius.circular(_fieldRadius),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          child: Row(
-            children: [
-              Icon(Icons.person_outline_rounded,
-                  size: 24, color: AppColors.textSecondary),
-              const SizedBox(width: 14),
-              Text(
-                '乘客数量',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
+        border: _fieldBorder,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _openPassengerSheet,
+          borderRadius: BorderRadius.circular(_fieldRadius),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            child: Row(
+              children: [
+                Icon(Icons.person_outline_rounded,
+                    size: 24, color: LuxuryTravelTheme.textSecondary),
+                const SizedBox(width: 14),
+                Text(
+                  '乘客数量',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: LuxuryTravelTheme.textSecondary,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                const Spacer(),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: LuxuryTravelTheme.darkText,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 6),
-              Icon(Icons.keyboard_arrow_down_rounded,
-                  size: 26, color: AppColors.textTertiary),
-            ],
+                const SizedBox(width: 6),
+                Icon(Icons.keyboard_arrow_down_rounded,
+                    size: 26, color: LuxuryTravelTheme.textTertiary),
+              ],
+            ),
           ),
         ),
       ),
@@ -260,14 +278,14 @@ class _MultiTripFormState extends State<MultiTripForm> {
           child: Row(
             children: [
               Icon(Icons.airline_seat_recline_extra_rounded,
-                  size: 20, color: AppColors.textSecondary),
+                  size: 20, color: LuxuryTravelTheme.textSecondary),
               const SizedBox(width: 8),
               Text(
                 '舱位',
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary),
+                    color: LuxuryTravelTheme.textSecondary),
               ),
             ],
           ),
@@ -277,6 +295,7 @@ class _MultiTripFormState extends State<MultiTripForm> {
           decoration: BoxDecoration(
             color: _fieldBg,
             borderRadius: BorderRadius.circular(16),
+            border: _fieldBorder,
           ),
           child: Row(
             children: List.generate(3, (i) {
@@ -311,7 +330,7 @@ class _MultiTripFormState extends State<MultiTripForm> {
                           fontWeight:
                               selected ? FontWeight.w600 : FontWeight.w500,
                           color: selected
-                              ? AppColors.textPrimary
+                              ? LuxuryTravelTheme.darkText
                               : _unselectedGrey,
                         ),
                       ),
@@ -327,48 +346,31 @@ class _MultiTripFormState extends State<MultiTripForm> {
   }
 
   Widget _buildSearchButton() {
-    const Color gradientStart = Color(0xFFFFD54F);
-    const Color gradientEnd = Color(0xFFFFC107);
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: _onSearch,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(24),
           child: Container(
             height: 56,
             width: double.infinity,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [gradientStart, gradientEnd],
-              ),
-              borderRadius: BorderRadius.circular(30),
+              color: const Color(0xFFC6A769),
+              borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: gradientEnd.withValues(alpha: 0.4),
-                  offset: const Offset(0, 6),
-                  blurRadius: 16,
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  offset: const Offset(0, 2),
-                  blurRadius: 8,
+                  color: const Color(0xFF000000).withValues(alpha: 0.08),
+                  offset: const Offset(0, 4),
+                  blurRadius: 12,
                 ),
               ],
             ),
             alignment: Alignment.center,
-            child: const Text(
+            child: Text(
               '搜索',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-                letterSpacing: 0.5,
-              ),
+              style: LuxuryTravelTheme.buttonLabel(Colors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w600),
             ),
           ),
         ),
@@ -427,6 +429,11 @@ class _SegmentCard extends StatelessWidget {
   DateTime _today() => DateTime(
       DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
+  static Border get _segmentBorder => Border.all(
+    color: LuxuryTravelTheme.border,
+    width: 1.5,
+  );
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -434,6 +441,7 @@ class _SegmentCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: _fieldBg,
         borderRadius: BorderRadius.circular(fieldRadius),
+        border: _segmentBorder,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -446,14 +454,14 @@ class _SegmentCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  color: LuxuryTravelTheme.textSecondary,
                 ),
               ),
               const Spacer(),
               if (canRemove)
                 IconButton(
                   onPressed: onRemove,
-                  icon: Icon(Icons.close_rounded, size: 20, color: AppColors.textTertiary),
+                  icon: Icon(Icons.close_rounded, size: 20, color: LuxuryTravelTheme.textTertiary),
                   style: IconButton.styleFrom(
                     padding: const EdgeInsets.all(4),
                     minimumSize: const Size(32, 32),
@@ -483,7 +491,7 @@ class _SegmentCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Material(
-            color: Colors.white,
+            color: LuxuryTravelTheme.cardBackground,
             borderRadius: BorderRadius.circular(14),
             child: InkWell(
               onTap: () async {
@@ -503,7 +511,7 @@ class _SegmentCard extends StatelessWidget {
                     Text(
                       '日期',
                       style: TextStyle(
-                          fontSize: 13, color: AppColors.textSecondary),
+                          fontSize: 13, color: LuxuryTravelTheme.textSecondary),
                     ),
                     const SizedBox(width: 12),
                     Text(
@@ -511,12 +519,12 @@ class _SegmentCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: LuxuryTravelTheme.darkText,
                       ),
                     ),
                     const Spacer(),
                     Icon(Icons.calendar_month_rounded,
-                        size: 20, color: AppColors.textTertiary),
+                        size: 20, color: LuxuryTravelTheme.textTertiary),
                   ],
                 ),
               ),
@@ -539,36 +547,47 @@ class _SegmentField extends StatelessWidget {
   final String value;
   final VoidCallback onTap;
 
+  static Border get _fieldBorder => Border.all(
+    color: LuxuryTravelTheme.border,
+    width: 1.5,
+  );
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
+    return Container(
+      decoration: BoxDecoration(
+        color: LuxuryTravelTheme.cardBackground,
         borderRadius: BorderRadius.circular(14),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                    fontSize: 12, color: AppColors.textTertiary),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+        border: _fieldBorder,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                      fontSize: 12, color: LuxuryTravelTheme.textTertiary),
                 ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: LuxuryTravelTheme.darkText,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -609,7 +628,7 @@ class _MultiTripPassengerSheetState extends State<_MultiTripPassengerSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: LuxuryTravelTheme.cardBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(
@@ -638,7 +657,7 @@ class _MultiTripPassengerSheetState extends State<_MultiTripPassengerSheet> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: LuxuryTravelTheme.darkText,
             ),
           ),
           const SizedBox(height: 24),
@@ -665,8 +684,8 @@ class _MultiTripPassengerSheetState extends State<_MultiTripPassengerSheet> {
             child: FilledButton(
               onPressed: () => widget.onConfirm(_adults, _children),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFFFC107),
-                foregroundColor: Colors.black87,
+                backgroundColor: LuxuryTravelTheme.primaryGold,
+                foregroundColor: LuxuryTravelTheme.darkText,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(26),
                 ),
@@ -704,7 +723,7 @@ class _MultiTripCounterRow extends StatelessWidget {
           label,
           style: const TextStyle(
             fontSize: 16,
-            color: AppColors.textPrimary,
+            color: LuxuryTravelTheme.darkText,
           ),
         ),
         const Spacer(),
@@ -721,7 +740,7 @@ class _MultiTripCounterRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: LuxuryTravelTheme.darkText,
               ),
             ),
             const SizedBox(width: 20),
@@ -743,7 +762,7 @@ class _MultiTripCounterBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     final enabled = onPressed != null;
     return Material(
-      color: enabled ? const Color(0xFFF5F5F5) : Colors.grey.shade200,
+      color: enabled ? LuxuryTravelTheme.surfaceMuted : LuxuryTravelTheme.border,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onPressed,
@@ -752,7 +771,7 @@ class _MultiTripCounterBtn extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Icon(icon,
               size: 24,
-              color: enabled ? AppColors.textPrimary : Colors.grey),
+              color: enabled ? LuxuryTravelTheme.darkText : LuxuryTravelTheme.textTertiary),
         ),
       ),
     );
