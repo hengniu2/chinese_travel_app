@@ -9,8 +9,10 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../data/hotel_bundle_mock.dart';
 import '../../domain/hotel_detail.dart';
+import '../../domain/hotel_item.dart';
 import '../../providers/hotel_providers.dart';
 import '../widgets/hotel_bundle_card.dart';
+import '../widgets/hotel_card.dart';
 import '../widgets/hotel_detail_banner.dart';
 import '../widgets/hotel_detail_booking_bar.dart';
 import '../widgets/hotel_favorite_button.dart';
@@ -59,6 +61,60 @@ class _HotelDetailPageState extends ConsumerState<HotelDetailPage> {
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     }
+  }
+
+  List<Widget> _buildSimilarHotelsSection(
+    BuildContext context,
+    String hotelId,
+    ThemeData theme,
+    AppLocalizations? l10n,
+  ) {
+    final similarAsync = ref.watch(similarHotelsProvider(hotelId));
+    return similarAsync.when(
+      data: (list) {
+        if (list.isEmpty) return [];
+        final title = l10n?.hotelSimilarHotels ?? '相似酒店';
+        return [
+          SliverToBoxAdapter(child: SizedBox(height: HotelUIConstants.grid3.h)),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: HotelUIConstants.grid2.w),
+              child: Text(
+                title,
+                style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(child: SizedBox(height: HotelUIConstants.grid2.h)),
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 132.h,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: HotelUIConstants.grid2.w),
+                itemCount: list.length,
+                separatorBuilder: (_, __) => SizedBox(width: HotelUIConstants.grid2.w),
+                itemBuilder: (_, index) {
+                  final item = list[index];
+                  return SizedBox(
+                    width: 200.w,
+                    child: HotelCard(
+                      hotel: item,
+                      viewDetailLabel: l10n?.hotelViewDetail ?? '查看详情',
+                      onTap: () => context.push('/hotels/${item.id}'),
+                      imageCacheWidth: 200,
+                      imageCacheHeight: 132,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ];
+      },
+      loading: () => [],
+      error: (_, __) => [],
+    );
   }
 
   List<Widget> _buildBundleSection(
@@ -303,6 +359,7 @@ class _HotelDetailPageState extends ConsumerState<HotelDetailPage> {
                       child: HotelDetailFacilitiesGrid(facilities: detail.facilities),
                     ),
                   ),
+                  _buildSimilarHotelsSection(context, detail.id, theme, l10n),
                   SliverToBoxAdapter(child: SizedBox(height: 120.h)),
                 ],
               ),

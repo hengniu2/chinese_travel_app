@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'travel_design_tokens.dart';
 import 'app_tap_scale.dart';
 
-/// Reusable card for travel content. White, level-1 shadow, 8dp radius, 16dp padding.
+/// Reusable card for travel content. White, soft shadow, large radius (26), 16dp padding.
 class TravelCard extends StatelessWidget {
   const TravelCard({
     super.key,
@@ -28,7 +28,7 @@ class TravelCard extends StatelessWidget {
     final container = Container(
       decoration: BoxDecoration(
         color: TravelDesignTokens.card,
-        borderRadius: TravelDesignTokens.borderRadiusSmall,
+        borderRadius: TravelDesignTokens.borderRadiusLarge,
         boxShadow: elevated ? TravelDesignTokens.shadowLevel1 : null,
       ),
       clipBehavior: Clip.antiAlias,

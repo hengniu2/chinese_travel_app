@@ -27,11 +27,7 @@ class ChildActivityListPage extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Text(
                 '亲子活动推荐',
-                style: GoogleFonts.zcoolKuaiLe(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                ),
+                style: AppTextStyles.header(AppColors.textPrimary, fontSize: 18.sp),
               ),
             ),
           ),
@@ -86,11 +82,7 @@ class ChildActivityListPage extends StatelessWidget {
       ),
       title: Text(
         '亲子活动',
-        style: GoogleFonts.zcoolKuaiLe(
-          fontSize: 18.sp,
-          fontWeight: FontWeight.w800,
-          color: Colors.white,
-        ),
+        style: AppTextStyles.header(Colors.white, fontSize: 18.sp),
       ),
     );
   }
@@ -170,11 +162,7 @@ class _PosterCard extends StatelessWidget {
                     children: [
                       Text(
                         item.title,
-                        style: GoogleFonts.zcoolKuaiLe(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
+                        style: AppTextStyles.header(Colors.white, fontSize: 14.sp),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

@@ -15,16 +15,22 @@ const String kHomeHeaderTitleLine2 = '新春首站之旅';
 /// 副标题
 const String kHomeHeaderSubtitle = '和享梦游一起出发';
 
-// ─── 推荐人物（种草官）- 头像 + 名字
+// ─── 推荐人物（种草官）- 头像 + 名字 + 副标题 + 阅读量/点赞
 class HomePersonItem {
   const HomePersonItem({
     required this.id,
     required this.name,
     required this.avatarUrl,
+    this.subtitle,
+    this.readCount,
+    this.likeCount,
   });
   final String id;
   final String name;
   final String avatarUrl;
+  final String? subtitle;
+  final int? readCount;
+  final int? likeCount;
 }
 
 final List<HomePersonItem> kHomePeople = [
@@ -32,20 +38,29 @@ final List<HomePersonItem> kHomePeople = [
     id: '1',
     name: '成果',
     avatarUrl: 'https://picsum.photos/seed/person1/200/200',
+    subtitle: '分享贵州秘境攻略 · 5篇笔记',
+    readCount: 3280,
+    likeCount: 256,
   ),
   HomePersonItem(
     id: '2',
     name: '李倩',
     avatarUrl: 'https://picsum.photos/seed/person2/200/200',
+    subtitle: '亲子旅行达人 · 12篇种草',
+    readCount: 5120,
+    likeCount: 489,
   ),
   HomePersonItem(
     id: '3',
     name: '旅行菌',
     avatarUrl: 'https://picsum.photos/seed/person3/200/200',
+    subtitle: '小众路线探索 · 8篇游记',
+    readCount: 1890,
+    likeCount: 142,
   ),
 ];
 
-// ─── 亲子活动推荐 - 图片 + 标签 + 标题
+// ─── 亲子活动推荐 - 图片 + 标签 + 标题 + 副标题
 class HomeFamilyActivityItem {
   const HomeFamilyActivityItem({
     required this.id,
@@ -53,12 +68,14 @@ class HomeFamilyActivityItem {
     required this.subtitle,
     required this.imageUrl,
     required this.tag,
+    this.excerpt,
   });
   final String id;
   final String title;
   final String subtitle;
   final String imageUrl;
   final String tag;
+  final String? excerpt;
 }
 
 /// 亲子活动卡片：使用真实可加载图片，cover + 底部渐变遮罩 + 标题叠加。可换为 AI 插画 URL。
@@ -69,6 +86,7 @@ final List<HomeFamilyActivityItem> kHomeFamilyActivities = [
     subtitle: '亲子启蒙',
     imageUrl: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400',
     tag: '武汉市',
+    excerpt: '寓教于乐 · 英语启蒙',
   ),
   HomeFamilyActivityItem(
     id: '2',
@@ -76,6 +94,7 @@ final List<HomeFamilyActivityItem> kHomeFamilyActivities = [
     subtitle: '户外体验',
     imageUrl: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=400',
     tag: '武汉市',
+    excerpt: '亲近自然 · 户外拓展',
   ),
   HomeFamilyActivityItem(
     id: '3',
@@ -83,6 +102,7 @@ final List<HomeFamilyActivityItem> kHomeFamilyActivities = [
     subtitle: '自然探索',
     imageUrl: 'https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=400',
     tag: '南宁',
+    excerpt: '独立成长 · 勇敢探索',
   ),
 ];
 

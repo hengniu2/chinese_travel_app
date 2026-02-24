@@ -1,4 +1,4 @@
-import '../domain/companion_list_item.dart';
+import '../models/companion_list_item.dart';
 
 /// 陪游列表筛选
 class CompanionListFilters {
@@ -63,9 +63,15 @@ List<CompanionListItem> getCompanionList(CompanionListFilters filters) {
   return list;
 }
 
-/// 热门/推荐陪游（前几条，用于首屏横滑）
+/// 热门陪游（前4条，用于首屏横滑）
 List<CompanionListItem> getFeaturedCompanions() {
   return getCompanionList(const CompanionListFilters(sort: CompanionSort.recommended)).take(4).toList();
+}
+
+/// 推荐陪游（第5–10条，与热门不重复）
+List<CompanionListItem> getRecommendedCompanions() {
+  final full = getCompanionList(const CompanionListFilters(sort: CompanionSort.recommended));
+  return full.skip(4).take(6).toList();
 }
 
 /// Mock 陪游列表（测试用）

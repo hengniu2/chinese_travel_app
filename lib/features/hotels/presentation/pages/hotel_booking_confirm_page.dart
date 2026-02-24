@@ -9,6 +9,7 @@ import '../../../../shared/design_system/design_system.dart';
 import '../../../coupon/domain/coupon.dart';
 import '../../../coupon/presentation/widgets/hotel_coupon_card.dart';
 import '../../../coupon/providers/coupon_provider.dart';
+import '../../../profile/providers/membership_provider.dart';
 import '../../data/hotel_detail_mock.dart';
 import '../../domain/hotel_detail.dart';
 import '../../providers/hotel_booking_provider.dart';
@@ -59,23 +60,6 @@ class _HotelBookingConfirmPageState
       if (r.stockStatus != RoomStockStatus.soldOut) return r;
     }
     return null;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    ref.listen<AsyncValue<List<Coupon>>>(myAvailableCouponsProvider, (_, next) {
-      next.whenData((list) {
-        if (ref.read(selectedCouponForBookingProvider) == null &&
-            list.isNotEmpty &&
-            _room != null) {
-          final best = getBestCoupon(list, _room!.price + _serviceFee);
-          if (best != null) {
-            ref.read(selectedCouponForBookingProvider.notifier).state = best;
-          }
-        }
-      });
-    });
   }
 
   void _startDraftAndGoToGuest() {
@@ -215,6 +199,18 @@ class _HotelBookingConfirmPageState
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<List<Coupon>>>(myAvailableCouponsProvider, (_, next) {
+      next.whenData((list) {
+        if (ref.read(selectedCouponForBookingProvider) == null &&
+            list.isNotEmpty &&
+            _room != null) {
+          final best = getBestCoupon(list, _room!.price + _serviceFee);
+          if (best != null) {
+            ref.read(selectedCouponForBookingProvider.notifier).state = best;
+          }
+        }
+      });
+    });
     final l10n = AppLocalizations.of(context);
     if (_detail == null || _room == null) {
       return Scaffold(
@@ -225,7 +221,9 @@ class _HotelBookingConfirmPageState
     }
 
     final discount = ref.watch(hotelBookingCouponDiscountProvider);
-    final total = (_room!.price + _serviceFee - discount).clamp(0.0, double.infinity);
+    final membership = ref.watch(userMembershipProfileProvider);
+    final vipDiscount = computeVipDiscount(membership, _room!.price + _serviceFee);
+    final total = (_room!.price + _serviceFee - discount - vipDiscount).clamp(0.0, double.infinity);
     final fmt = DateFormat('MM/dd');
 
     return Scaffold(
@@ -255,7 +253,7 @@ class _HotelBookingConfirmPageState
             SizedBox(height: 20.h),
             _section(
               l10n?.hotelPriceBreakdown ?? '费用明细',
-              _buildPriceBreakdown(l10n, discount, total),
+              _buildPriceBreakdown(l10n, discount, vipDiscount, total),
             ),
             SizedBox(height: 28.h),
             AppButton(
@@ -386,7 +384,7 @@ class _HotelBookingConfirmPageState
   }
 
   Widget _buildPriceBreakdown(
-      AppLocalizations? l10n, double discount, double total) {
+      AppLocalizations? l10n, double discount, double vipDiscount, double total) {
     return AppCard(
       child: Column(
         children: [
@@ -399,7 +397,15 @@ class _HotelBookingConfirmPageState
             SizedBox(height: 10.h),
             _priceRow(
               l10n?.couponDiscount ?? '优惠',
-              '-${discount.toStringAsFixed(0)}',
+              discount.toStringAsFixed(0),
+              isDiscount: true,
+            ),
+          ],
+          if (vipDiscount > 0) ...[
+            SizedBox(height: 10.h),
+            _priceRow(
+              l10n?.vipDiscountLabel ?? 'VIP折扣',
+              vipDiscount.toStringAsFixed(0),
               isDiscount: true,
             ),
           ],

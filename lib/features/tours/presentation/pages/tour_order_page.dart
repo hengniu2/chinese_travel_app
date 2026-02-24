@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../auth/presentation/widgets/auth_agreement_checkbox.dart';
-import '../../../companions/domain/companion_order.dart';
-import '../../../companions/presentation/widgets/traveler_form_card.dart';
+import '../../../companions/models/companion_order.dart';
+import '../../../companions/widgets/traveler_form_card.dart';
 import '../../data/tour_detail_mock.dart';
 import '../../domain/tour_detail.dart';
 

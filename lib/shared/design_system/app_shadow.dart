@@ -1,96 +1,76 @@
 import 'package:flutter/material.dart';
 
-/// 设计语言 · 阴影系统（轻 / 中，无重阴影，保持 premium 轻盈感）
-/// 仅用两层表达层级；颜色为带透明度黑
+import 'app_colors.dart';
+
+/// 设计语言 · 阴影系统（中国卡通商业风）
+/// 仅软阴影、无硬边框；阴影色略带主题色；blur 20–30，Y offset 8–12
 class AppShadow {
   AppShadow._();
 
-  /// 轻 - 默认卡片、列表项、输入框聚焦
+  // ─────────────────────────────────────────────────────────────────────────
+  // 软阴影（主题色微 tint，blur 20–30，Y 8–12）
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// 主阴影色 — 深灰带主色微 tint（柔和，非纯黑）
+  static Color get _shadowColor =>
+      (Color.lerp(
+            const Color(0xFF1A1A1A),
+            AppColors.primaryDark.withValues(alpha: 0.15),
+            0.12,
+          ) ??
+          const Color(0xFF1A1A1A))
+          .withValues(alpha: 0.12);
+
+  /// 卡片/列表项 — 软、Y 8–12，blur 20–30
   static List<BoxShadow> get light => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
-          offset: const Offset(0, 1),
-          blurRadius: 4,
-          spreadRadius: 0,
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.06),
-          offset: const Offset(0, 2),
-          blurRadius: 8,
+          color: _shadowColor,
+          offset: const Offset(0, 8),
+          blurRadius: 24,
           spreadRadius: 0,
         ),
       ];
 
-  /// 中 - 悬浮卡片、主按钮、选中态（仍保持克制）
+  /// 悬浮/按钮/选中态 — 略强，仍软
   static List<BoxShadow> get medium => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
-          offset: const Offset(0, 2),
-          blurRadius: 4,
+          color: _shadowColor,
+          offset: const Offset(0, 10),
+          blurRadius: 28,
           spreadRadius: 0,
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.06),
-          offset: const Offset(0, 4),
-          blurRadius: 12,
-          spreadRadius: -2,
         ),
       ];
 
-  /// 弹窗/Sheet（轻量浮层，非重阴影）
+  /// 弹窗/Sheet — 浮层感，仍软
   static List<BoxShadow> get heavy => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.05),
-          offset: const Offset(0, 2),
-          blurRadius: 8,
+          color: _shadowColor.withValues(alpha: 0.18),
+          offset: const Offset(0, 12),
+          blurRadius: 32,
           spreadRadius: 0,
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.08),
-          offset: const Offset(0, 6),
-          blurRadius: 20,
-          spreadRadius: -2,
         ),
       ];
 
   // ─────────────────────────────────────────────────────────────────────────
   // 组件语义别名
   // ─────────────────────────────────────────────────────────────────────────
-  /// 卡片默认（轻）
+
+  /// 卡片默认
   static List<BoxShadow> get card => light;
 
-  /// 卡片立体感（略强于 light，仍克制）
+  /// 卡片立体感（略强于 light）
   static List<BoxShadow> get cardElevated => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
-          offset: const Offset(0, 1),
-          blurRadius: 4,
+          color: _shadowColor,
+          offset: const Offset(0, 10),
+          blurRadius: 26,
           spreadRadius: 0,
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.06),
-          offset: const Offset(0, 3),
-          blurRadius: 10,
-          spreadRadius: -1,
         ),
       ];
 
-  /// 卡片悬浮/点击（中，不加重）
+  /// 卡片悬浮/点击
   static List<BoxShadow> get cardHover => medium;
 
-  /// 浮动感（按钮、悬浮元素）
-  static List<BoxShadow> get floating => [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.05),
-          offset: const Offset(0, 2),
-          blurRadius: 8,
-          spreadRadius: 0,
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.06),
-          offset: const Offset(0, 4),
-          blurRadius: 12,
-          spreadRadius: -1,
-        ),
-      ];
+  /// 按钮、悬浮元素
+  static List<BoxShadow> get floating => medium;
 }

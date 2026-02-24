@@ -115,10 +115,10 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: AppRadius.mediumRadius,
+        borderRadius: AppRadius.buttonRadius,
         border: border != null ? Border.all(color: border, width: 1.5) : null,
         boxShadow: widget.variant == AppButtonVariant.primary && _enabled
-            ? AppShadow.light
+            ? AppShadow.floating
             : null,
       ),
       child: child,
@@ -126,7 +126,7 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
 
     final button = Material(
       color: Colors.transparent,
-      borderRadius: AppRadius.mediumRadius,
+      borderRadius: AppRadius.buttonRadius,
       child: Listener(
         onPointerDown: _enabled ? (_) => _controller.forward() : null,
         onPointerUp: _enabled ? (_) => _controller.reverse() : null,
@@ -136,7 +136,7 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
           builder: (_, c) => Transform.scale(scale: _scale.value, child: c),
           child: InkWell(
             onTap: effectiveOnPressed,
-            borderRadius: AppRadius.mediumRadius,
+            borderRadius: AppRadius.buttonRadius,
             child: content,
           ),
         ),

@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
-import '../../domain/companion_list_item.dart';
+import '../models/companion_list_item.dart';
+import 'rating_widget.dart';
+import 'tag_chip.dart';
 
 /// 陪游列表卡片：头像+信息，紧凑无溢出，商业级
 class CompanionCard extends StatelessWidget {
@@ -19,7 +21,6 @@ class CompanionCard extends StatelessWidget {
 
   static const double _avatarSize = 72;
   static const double _cardRadius = 16;
-  static const double _tagRadius = 12;
   static const double _cardPadding = 14;
   static const double _onlineDotSize = 10;
 
@@ -50,7 +51,11 @@ class CompanionCard extends StatelessWidget {
                   _row2CityExperience(l10n),
                   if (companion.tags.isNotEmpty) ...[
                     SizedBox(height: 6.h),
-                    _row3Tags(),
+                    Wrap(
+                      spacing: 6.w,
+                      runSpacing: 4.h,
+                      children: companion.tags.take(5).map((l) => TagChip(label: l)).toList(),
+                    ),
                   ],
                   SizedBox(height: 6.h),
                   _row4RatingService(l10n),
@@ -168,33 +173,6 @@ class CompanionCard extends StatelessWidget {
     );
   }
 
-  Widget _row3Tags() {
-    return Wrap(
-      spacing: 6.w,
-      runSpacing: 4.h,
-      children: companion.tags.take(5).map(_tagChip).toList(),
-    );
-  }
-
-  Widget _tagChip(String label) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: AppColors.primaryPale,
-        borderRadius: BorderRadius.circular(_tagRadius),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.overline.copyWith(
-          color: AppColors.sectionCompanion,
-          fontSize: 10.sp,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-
   Widget _row4RatingService(AppLocalizations? l10n) {
     final reviews = l10n?.companionReviewsCount(companion.reviewCount) ??
         '${companion.reviewCount}条评价';
@@ -202,16 +180,7 @@ class CompanionCard extends StatelessWidget {
         '已服务 ${companion.completedOrders}次';
     return Row(
       children: [
-        Icon(Icons.star_rounded, size: 14.sp, color: AppColors.accentGold),
-        SizedBox(width: 2.w),
-        Text(
-          companion.rating.toStringAsFixed(1),
-          style: AppTextStyles.bodySmall.copyWith(
-            fontWeight: FontWeight.w600,
-            fontSize: 12.sp,
-            color: AppColors.textPrimary,
-          ),
-        ),
+        RatingWidget(rating: companion.rating, iconSize: 14.sp, fontSize: 12.sp),
         SizedBox(width: 4.w),
         Expanded(
           child: Text(

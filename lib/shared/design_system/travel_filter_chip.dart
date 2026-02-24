@@ -21,14 +21,14 @@ class TravelFilterChip extends StatelessWidget {
       color: selected
           ? TravelDesignTokens.primary.withValues(alpha: 0.12)
           : Colors.transparent,
-      borderRadius: TravelDesignTokens.borderRadiusSmall,
+      borderRadius: TravelDesignTokens.borderRadiusPill,
       child: InkWell(
         onTap: onTap,
-        borderRadius: TravelDesignTokens.borderRadiusSmall,
+        borderRadius: TravelDesignTokens.borderRadiusPill,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            borderRadius: TravelDesignTokens.borderRadiusSmall,
+            borderRadius: TravelDesignTokens.borderRadiusPill,
             border: Border.all(
               color: selected
                   ? TravelDesignTokens.primary

@@ -3,7 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../shared/design_system/design_system.dart';
-import '../../domain/companion_list_item.dart';
+import '../models/companion_list_item.dart';
+import 'rating_widget.dart';
 
 /// 热门陪游横滑卡片：小头像居中 + 姓名、评分、价格，紧凑无溢出
 class CompanionFeaturedCard extends StatelessWidget {
@@ -69,22 +70,7 @@ class CompanionFeaturedCard extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 4.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.star_rounded, size: 12.sp, color: AppColors.accentGold),
-                SizedBox(width: 2.w),
-                Text(
-                  companion.rating.toStringAsFixed(1),
-                  style: AppTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11.sp,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
+            RatingWidget(rating: companion.rating, iconSize: 12.sp, fontSize: 11.sp),
             SizedBox(height: 4.h),
             Text(
               '¥${companion.pricePerDay.toStringAsFixed(0)}/天',

@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/design_system/design_system.dart';
+import '../data/travel_assets.dart';
 import '../models/models.dart';
 import '../state/state.dart';
+import '../widgets/case_showcase_section.dart';
+import '../widgets/custom_travel_section.dart';
+import '../widgets/travel_landing_premium_sections.dart';
 
 /// Travel Planner landing: hero, mode switch, smart planning form,
 /// featured packages, why choose us. Premium product landing.
@@ -17,15 +22,11 @@ class TravelLandingPage extends ConsumerStatefulWidget {
 }
 
 class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
-  bool _isTeamMode = false;
   bool _entranceAnimated = false;
-
-  final _destinationController = TextEditingController();
-  final _phoneController = TextEditingController();
 
   static const _entranceDuration = Duration(milliseconds: 400);
   static const _entranceCurve = Curves.easeOut;
-  static const _entranceSlideStart = Offset(0, 0.1);
+  static const _entranceSlideStart = Offset(0, 0.08);
 
   @override
   void initState() {
@@ -35,23 +36,20 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
     });
   }
 
-  @override
-  void dispose() {
-    _destinationController.dispose();
-    _phoneController.dispose();
-    super.dispose();
-  }
-
-  void _onSubmitLead() {
-    final destination = _destinationController.text.trim();
-    final phone = _phoneController.text.trim();
+  void _onCustomTravelSubmit({
+    String? destination,
+    required bool isTeam,
+    required double budgetMin,
+    required double budgetMax,
+    required List<String> themes,
+  }) {
     final request = PlannerRequest(
-      destination: destination.isEmpty ? null : destination,
+      destination: destination,
       departureCity: null,
       dates: null,
       travelers: null,
-      budgetRange: null,
-      themes: [],
+      budgetRange: PriceRange(min: budgetMin, max: budgetMax),
+      themes: themes,
     );
     ref.read(plannerFormStateProvider.notifier).updateRequest(request);
     context.push('/planner/planner');
@@ -60,57 +58,78 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    return _buildScaffold(context, l10n);
+  }
+
+  Widget _buildScaffold(BuildContext context, AppLocalizations l10n) {
     final packagesAsync = ref.watch(travelPackageListProvider);
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFFFDF5),
-              Color(0xFFF7F9FC),
-            ],
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _wrapEntrance(_buildHeader()),
-            Expanded(
-              child: SingleChildScrollView(
-                child: SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: TravelDesignTokens.sectionGap,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: 20),
-                        _buildModeSwitch(l10n),
-                        const SizedBox(height: 20),
-                        _buildPlanningFormCard(l10n),
-                        const SizedBox(height: TravelDesignTokens.sectionGap),
-                        _wrapEntrance(_buildClassicCasesSection()),
-                        const SizedBox(height: 24),
-                        _wrapEntrance(_buildItineraryCasesSection()),
-                        const SizedBox(height: TravelDesignTokens.sectionGap),
-                        _wrapEntrance(_buildFeaturedSection(context, l10n, packagesAsync)),
-                        const SizedBox(height: TravelDesignTokens.sectionGap),
-                        _wrapEntrance(_buildWhyChooseUs(l10n)),
-                        const SizedBox(height: 24),
-                      ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFFFFDF5),
+                  Color(0xFFF7F9FC),
+                ],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _wrapEntrance(_buildHeader(l10n)),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const SizedBox(height: 8),
+                            _wrapEntrance(CustomTravelSection(
+                              onSubmit: _onCustomTravelSubmit,
+                            )),
+                            const SizedBox(height: TravelDesignTokens.sectionGap),
+                            _wrapEntrance(AiSmartRecommendationSection(
+                              items: _aiRecommendationItems,
+                              onItemTap: (_) {},
+                            )),
+                            const SizedBox(height: TravelDesignTokens.sectionGap),
+                            _wrapEntrance(const LimitedTimeDealsBanner()),
+                            const SizedBox(height: TravelDesignTokens.sectionGap),
+                            _wrapEntrance(_buildCaseShowcaseSection(
+                              title: '经典案例',
+                              items: _classicCaseItems,
+                            )),
+                            const SizedBox(height: 24),
+                            _wrapEntrance(_buildCaseShowcaseSection(
+                              title: '行程案例',
+                              items: _itineraryCaseItems,
+                            )),
+                            const SizedBox(height: TravelDesignTokens.sectionGap),
+                            _wrapEntrance(_buildFeaturedSection(context, l10n, packagesAsync)),
+                            const SizedBox(height: TravelDesignTokens.sectionGap),
+                            _wrapEntrance(_buildWhyChooseUs(l10n)),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -131,317 +150,188 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
 
   static const double _headerHeight = 240;
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return SizedBox(
       height: _headerHeight,
       width: double.infinity,
-      child: Stack(
-        children: [
-          // Gradient background
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFB2F56B),
-                  Color(0xFF8CE63C),
-                ],
-              ),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(4),
+          bottomRight: Radius.circular(4),
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Background image
+            Image.asset(
+              kPlannerHeaderImageAsset,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                color: const Color(0xFFB2F56B),
               ),
             ),
-          ),
-          // Optional: soft radial circles (cartoon-style decoration)
-          Positioned(
-            top: -20,
-            right: -20,
-            child: Container(
-              width: 100,
-              height: 100,
+            // Gradient overlay
+            Container(
+              width: double.infinity,
+              height: double.infinity,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.12),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.15),
+                  ],
+                  stops: const [0.5, 1.0],
+                ),
               ),
             ),
-          ),
-          Positioned(
-            bottom: 20,
-            left: -30,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
-              ),
-            ),
-          ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 50, 20, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  '定制旅行',
-                  style: TextStyle(
+            // Title at top
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 56, 20, 24),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  l10n.plannerLandingHeroTitle,
+                  style: AppTextStyles.headlineLarge.copyWith(
                     fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    letterSpacing: 1.2,
                   ),
                 ),
-                const SizedBox(height: 14),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _headerTag('安心定制'),
-                    _headerTag('随心玩'),
-                    _headerTag('精心服务'),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
         ],
       ),
+    ),
     );
   }
 
-  Widget _headerTag(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
+  /// AI recommendation list (personalized horizontal list).
+  static final List<CaseCardItem> _aiRecommendationItems = [
+    CaseCardItem(
+      destinationName: '杭州西湖两日',
+      subtitle: '根据你的偏好推荐',
+      durationBadge: '2天1晚',
+      price: 699,
+      starRating: 4.9,
+      imageUrl: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=400',
+      gradient: [const Color(0xFF667EEA), const Color(0xFF764BA2)],
+    ),
+    CaseCardItem(
+      destinationName: '成都美食之旅',
+      subtitle: '人气线路 · 高分好评',
+      durationBadge: '3天2晚',
+      price: 1280,
+      starRating: 4.8,
+      imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400',
+      gradient: [const Color(0xFFF2994A), const Color(0xFFF2C94C)],
+    ),
+    CaseCardItem(
+      destinationName: '云南大理',
+      subtitle: '苍山洱海 · 适合放松',
+      durationBadge: '4天3晚',
+      price: 2180,
+      starRating: 4.9,
+      imageUrl: 'https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=400',
+      gradient: [const Color(0xFF6DD5ED), const Color(0xFF2193B0)],
+    ),
+  ];
 
-  static const Color _segmentBg = Color(0xFFF2F2F2);
+  static final List<CaseCardItem> _classicCaseItems = [
+    CaseCardItem(
+      destinationName: '云南大理丽江深度游',
+      subtitle: '苍山洱海·古城风情',
+      durationBadge: '8天7晚',
+      price: 3680,
+      starRating: 4.8,
+      imageUrl: 'https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=400',
+      gradient: [const Color(0xFF6DD5ED), const Color(0xFF2193B0)],
+    ),
+    CaseCardItem(
+      destinationName: '江南水乡苏州杭州',
+      subtitle: '西湖·园林·古镇',
+      durationBadge: '5天4晚',
+      price: 2580,
+      starRating: 4.9,
+      imageUrl: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=400',
+      gradient: [const Color(0xFF11998E), const Color(0xFF38EF7D)],
+    ),
+    CaseCardItem(
+      destinationName: '北京文化经典线',
+      subtitle: '故宫·长城·胡同',
+      durationBadge: '6天5晚',
+      price: 2980,
+      starRating: 4.7,
+      imageUrl: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=400',
+      gradient: [const Color(0xFFF2994A), const Color(0xFFF2C94C)],
+    ),
+    CaseCardItem(
+      destinationName: '成都九寨自然奇观',
+      subtitle: '熊猫·九寨沟·美食',
+      durationBadge: '7天6晚',
+      price: 4280,
+      starRating: 4.9,
+      imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400',
+      gradient: [const Color(0xFF56AB2F), const Color(0xFFA8E063)],
+    ),
+    CaseCardItem(
+      destinationName: '厦门鼓浪屿文艺行',
+      subtitle: '海岛·文艺·慢生活',
+      durationBadge: '4天3晚',
+      price: 1880,
+      starRating: 4.6,
+      imageUrl: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=400',
+      gradient: [const Color(0xFF667EEA), const Color(0xFF764BA2)],
+    ),
+  ];
 
-  Widget _buildModeSwitch(AppLocalizations l10n) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: _segmentBg,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _PlannerModeSegment(
-              label: l10n.plannerModePersonal,
-              subtitle: '亲子·蜜月·好友',
-              active: !_isTeamMode,
-              onTap: () => setState(() => _isTeamMode = false),
-            ),
-          ),
-          Expanded(
-            child: _PlannerModeSegment(
-              label: l10n.plannerModeTeam,
-              subtitle: '团建·素拓·会务',
-              active: _isTeamMode,
-              onTap: () => setState(() => _isTeamMode = true),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  static final List<CaseCardItem> _itineraryCaseItems = [
+    CaseCardItem(
+      destinationName: '杭州西湖灵隐两日',
+      subtitle: '西湖十景·灵隐寺',
+      durationBadge: '2天1晚',
+      price: 680,
+      starRating: 4.8,
+      imageUrl: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=400',
+      gradient: [const Color(0xFF667EEA), const Color(0xFF764BA2)],
+    ),
+    CaseCardItem(
+      destinationName: '西安兵马俑华山',
+      subtitle: '世界遗产·奇险华山',
+      durationBadge: '3天2晚',
+      price: 1280,
+      starRating: 4.9,
+      imageUrl: 'https://images.unsplash.com/photo-1590559899731-a382839e5549?w=400',
+      gradient: [const Color(0xFFF2994A), const Color(0xFFF2C94C)],
+    ),
+    CaseCardItem(
+      destinationName: '桂林阳朔山水线',
+      subtitle: '漓江·遇龙河·西街',
+      durationBadge: '2天1晚',
+      price: 580,
+      starRating: 4.7,
+      imageUrl: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=400',
+      gradient: [const Color(0xFF11998E), const Color(0xFF38EF7D)],
+    ),
+    CaseCardItem(
+      destinationName: '张家界天门山',
+      subtitle: '玻璃栈道·天门洞',
+      durationBadge: '2天1晚',
+      price: 880,
+      starRating: 4.8,
+      imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400',
+      gradient: [const Color(0xFF56AB2F), const Color(0xFFA8E063)],
+    ),
+  ];
 
-  static const Color _fieldBg = Color(0xFFF5F5F5);
-  static const Color _ctaGradientStart = Color(0xFFB2F56B);
-  static const Color _ctaGradientEnd = Color(0xFF8CE63C);
-
-  Widget _buildPlanningFormCard(AppLocalizations l10n) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 6),
-            blurRadius: 12,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _leadFormField(
-            hint: '我想去...',
-            controller: _destinationController,
-            icon: Icons.location_on_rounded,
-          ),
-          const SizedBox(height: 16),
-          _leadFormField(
-            hint: '请填写手机号，便于联系您',
-            controller: _phoneController,
-            icon: Icons.phone_android_rounded,
-            prefixText: '+86 ',
-            keyboardType: TextInputType.phone,
-          ),
-          const SizedBox(height: 24),
-          _LeadCtaButton(
-            label: '马上为我定制',
-            onPressed: _onSubmitLead,
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _leadFormField({
-    required String hint,
-    required TextEditingController controller,
-    required IconData icon,
-    String? prefixText,
-    TextInputType? keyboardType,
+  Widget _buildCaseShowcaseSection({
+    required String title,
+    required List<CaseCardItem> items,
   }) {
-    return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: _fieldBg,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 22, color: Colors.grey[700]),
-          const SizedBox(width: 12),
-          if (prefixText != null)
-            Text(
-              prefixText,
-              style: TextStyle(fontSize: 15, color: Colors.grey[700]),
-            ),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              keyboardType: keyboardType,
-              decoration: InputDecoration(
-                hintText: hint,
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-                hintStyle: TextStyle(fontSize: 15, color: Colors.grey[600]),
-              ),
-              style: const TextStyle(fontSize: 15),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static const List<_ClassicCaseItem> _classicCases = [
-    _ClassicCaseItem(title: '云南大理丽江深度游', badge: '8天7晚', gradient: [Color(0xFF6DD5ED), Color(0xFF2193B0)]),
-    _ClassicCaseItem(title: '江南水乡苏州杭州', badge: '5天4晚', gradient: [Color(0xFF11998E), Color(0xFF38EF7D)]),
-    _ClassicCaseItem(title: '北京文化经典线', badge: '6天5晚', gradient: [Color(0xFFF2994A), Color(0xFFF2C94C)]),
-    _ClassicCaseItem(title: '成都九寨自然奇观', badge: '7天6晚', gradient: [Color(0xFF56AB2F), Color(0xFFA8E063)]),
-    _ClassicCaseItem(title: '厦门鼓浪屿文艺行', badge: '4天3晚', gradient: [Color(0xFF667EEA), Color(0xFF764BA2)]),
-  ];
-
-  Widget _buildClassicCasesSection() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Text(
-              '经典案例',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 220,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(right: 20),
-              itemCount: _classicCases.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final item = _classicCases[index];
-                return _ClassicCaseCard(
-                  title: item.title,
-                  badge: item.badge,
-                  gradient: item.gradient,
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static const List<_ItineraryCaseItem> _itineraryCases = [
-    _ItineraryCaseItem(title: '杭州西湖灵隐两日', gradient: [Color(0xFF667EEA), Color(0xFF764BA2)]),
-    _ItineraryCaseItem(title: '西安兵马俑华山', gradient: [Color(0xFFF2994A), Color(0xFFF2C94C)]),
-    _ItineraryCaseItem(title: '桂林阳朔山水线', gradient: [Color(0xFF11998E), Color(0xFF38EF7D)]),
-    _ItineraryCaseItem(title: '张家界天门山', gradient: [Color(0xFF56AB2F), Color(0xFFA8E063)]),
-  ];
-
-  Widget _buildItineraryCasesSection() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Text(
-              '行程案例',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-          ),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.75,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-            ),
-            itemCount: _itineraryCases.length,
-            itemBuilder: (context, index) {
-              final item = _itineraryCases[index];
-              return _ItineraryCaseCard(
-                title: item.title,
-                gradient: item.gradient,
-              );
-            },
-          ),
-        ],
-      ),
+    return CaseShowcaseSection(
+      title: title,
+      items: items,
+      onCardTap: (_) {},
     );
   }
 
@@ -461,11 +351,7 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
               onPressed: () => context.push('/planner/discovery'),
               child: Text(
                 l10n.plannerFeaturedSeeAll,
-                style: TextStyle(
-                  color: TravelDesignTokens.primary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
+                style: TravelTypography.label(TravelDesignTokens.primary, fontSize: 14),
               ),
             ),
           ),
@@ -533,7 +419,7 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
             padding: const EdgeInsets.only(bottom: 24),
             child: Text(
               l10n.plannerWhyChooseUs,
-              style: TravelDesignTokens.titleL(null),
+              style: TravelTypography.sectionTitle(AppColors.textPrimary),
             ),
           ),
           Row(
@@ -568,332 +454,6 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
     );
   }
 
-}
-
-/// Lead-gen CTA: green gradient, glow shadow, tap scale.
-class _LeadCtaButton extends StatefulWidget {
-  const _LeadCtaButton({
-    required this.label,
-    required this.onPressed,
-  });
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  State<_LeadCtaButton> createState() => _LeadCtaButtonState();
-}
-
-class _LeadCtaButtonState extends State<_LeadCtaButton> {
-  bool _pressed = false;
-
-  static const Color _gradientStart = Color(0xFFB2F56B);
-  static const Color _gradientEnd = Color(0xFF8CE63C);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      onTap: widget.onPressed,
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeInOut,
-        child: Container(
-          height: 52,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [_gradientStart, _gradientEnd],
-            ),
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: _gradientEnd.withValues(alpha: 0.4),
-                offset: const Offset(0, 6),
-                blurRadius: 14,
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            widget.label,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Data for one classic case card.
-class _ClassicCaseItem {
-  const _ClassicCaseItem({
-    required this.title,
-    required this.badge,
-    required this.gradient,
-  });
-  final String title;
-  final String badge;
-  final List<Color> gradient;
-}
-
-/// Classic case card: image top with badge, text bottom. Width 170, borderRadius 16.
-class _ClassicCaseCard extends StatelessWidget {
-  const _ClassicCaseCard({
-    required this.title,
-    required this.badge,
-    required this.gradient,
-  });
-
-  final String title;
-  final String badge;
-  final List<Color> gradient;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: 170,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                offset: const Offset(0, 4),
-                blurRadius: 12,
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    height: 120,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: gradient,
-                      ),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.landscape_rounded,
-                        size: 40,
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 10,
-                    top: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        badge,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Data for one itinerary case grid card.
-class _ItineraryCaseItem {
-  const _ItineraryCaseItem({
-    required this.title,
-    required this.gradient,
-  });
-  final String title;
-  final List<Color> gradient;
-}
-
-/// Grid card: image top AspectRatio 4/3, text below. BorderRadius 18, subtle shadow.
-class _ItineraryCaseCard extends StatelessWidget {
-  const _ItineraryCaseCard({
-    required this.title,
-    required this.gradient,
-  });
-
-  final String title;
-  final List<Color> gradient;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                offset: const Offset(0, 3),
-                blurRadius: 8,
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AspectRatio(
-                aspectRatio: 4 / 3,
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: gradient,
-                    ),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.route_rounded,
-                      size: 36,
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Rounded segmented tab: label + subtitle; selected = white + shadow + bold.
-class _PlannerModeSegment extends StatelessWidget {
-  const _PlannerModeSegment({
-    required this.label,
-    required this.subtitle,
-    required this.active,
-    required this.onTap,
-  });
-
-  final String label;
-  final String subtitle;
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final content = Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: active ? FontWeight.bold : FontWeight.w500,
-              color: active ? Colors.black87 : Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 11,
-              color: active ? Colors.black54 : Colors.grey[500],
-            ),
-          ),
-        ],
-      ),
-    );
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        decoration: BoxDecoration(
-          color: active ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: active
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    offset: const Offset(0, 2),
-                    blurRadius: 6,
-                  ),
-                ]
-              : null,
-        ),
-        child: content,
-      ),
-    );
-  }
 }
 
 class _FeaturedPackageCard extends StatelessWidget {
@@ -984,11 +544,7 @@ class _FeaturedPackageCard extends StatelessWidget {
                         ),
                         child: Text(
                           '${durationDays}D',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade800,
-                          ),
+                          style: TravelTypography.label(const Color(0xFF424242), fontSize: 12),
                         ),
                       ),
                     ),
@@ -997,17 +553,14 @@ class _FeaturedPackageCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 title,
-                style: TravelDesignTokens.titleL(null).copyWith(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TravelTypography.sectionTitle(AppColors.textPrimary, fontSize: 15),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: TravelDesignTokens.caption(AppColors.textTertiary),
+                style: TravelTypography.hint(AppColors.textTertiary),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1068,10 +621,7 @@ class _WhyBlock extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             title,
-            style: TravelDesignTokens.body(AppColors.textPrimary).copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-            ),
+            style: TravelTypography.content(AppColors.textPrimary, fontSize: 13),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -1079,10 +629,7 @@ class _WhyBlock extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             description,
-            style: TravelDesignTokens.caption(AppColors.textTertiary).copyWith(
-              fontSize: 11,
-              height: 1.35,
-            ),
+            style: TravelTypography.hint(AppColors.textTertiary, fontSize: 11),
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

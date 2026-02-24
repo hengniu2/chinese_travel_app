@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
-/// 设计语言 · 渐变常量
-/// 品牌渐变 / 页面背景 / 按钮渐变
+/// 设计语言 · 渐变常量（中国卡通商业风）
+/// 用于：Headers / CTA 按钮 / Active tabs / 价格文案 / 选中底部导航
 class AppGradients {
   AppGradients._();
 
-  /// 品牌渐变（Primary → Primary Dark）- 头部、主 CTA 按钮、全应用统一
+  // ─────────────────────────────────────────────────────────────────────────
+  // 通用：头部、CTA、Active 态、选中导航
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// 品牌渐变（Primary → Primary Dark）— 头部、主 CTA 按钮、选中底 Nav
   static List<Color> get brand => [
         AppColors.primary,
         AppColors.primaryDark,
@@ -15,7 +19,36 @@ class AppGradients {
 
   static List<double>? get brandStops => const [0.0, 1.0];
 
-  /// 页面背景三阶（暖黄主导）
+  /// CTA 按钮渐变（与 brand 一致，可单独扩展）
+  static List<Color> get ctaButton => brand;
+  static List<double>? get ctaButtonStops => brandStops;
+
+  /// Active Tab 背景/指示
+  static List<Color> get activeTab => [
+        AppColors.primaryPale,
+        AppColors.primaryLight.withValues(alpha: 0.4),
+      ];
+  static List<double>? get activeTabStops => const [0.0, 1.0];
+
+  /// 价格文案渐变（暖红/金感）
+  static List<Color> get price => [
+        AppColors.price,
+        AppColors.accentWarm,
+      ];
+  static List<double>? get priceStops => const [0.0, 1.0];
+
+  /// 选中底部导航项背景（弱渐变）
+  static List<Color> get selectedNav => [
+        AppColors.primaryPale,
+        AppColors.primaryLight.withValues(alpha: 0.3),
+      ];
+  static List<double>? get selectedNavStops => const [0.0, 1.0];
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 页面背景
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// 页面背景三阶（暖黄主导，避免纯白）
   static List<Color> get page => [
         AppColors.gradientStart,
         AppColors.gradientAccent,
@@ -24,7 +57,7 @@ class AppGradients {
 
   static List<double>? get pageStops => const [0.0, 0.4, 1.0];
 
-  /// 暖白到白（柔和背景、次级区域，非黄块）
+  /// 暖白到白（柔和背景、次级区域）
   static List<Color> get light => [
         AppColors.gradientStart,
         AppColors.card,
@@ -57,6 +90,34 @@ class AppGradients {
       ];
 
   static List<double>? get companionHeaderStops => const [0.0, 1.0];
+
+  /// 陪游页 Header：橙 → 暖黄（中国卡通商业风）
+  static List<Color> get companionHeaderOrangeWarm => [
+        const Color(0xFFFF8A00),
+        const Color(0xFFFFB74D),
+        const Color(0xFFFFD54F),
+      ];
+
+  static List<double>? get companionHeaderOrangeWarmStops =>
+      const [0.0, 0.5, 1.0];
+
+  /// 定制旅行页 Header：鲜青柠 → 柔和绿（premium green theme）
+  static List<Color> get customTravelHeader => [
+        const Color(0xFFAED581),
+        const Color(0xFF81C784),
+        const Color(0xFF66BB6A),
+      ];
+
+  static List<double>? get customTravelHeaderStops =>
+      const [0.0, 0.5, 1.0];
+
+  /// 定制旅行 CTA：强绿渐变 + 光晕
+  static List<Color> get customTravelCta => [
+        const Color(0xFF7CB342),
+        const Color(0xFF558B2F),
+      ];
+
+  static List<double>? get customTravelCtaStops => const [0.0, 1.0];
 
   /// 套餐/打包推荐卡片：黄到金高亮
   static List<Color> get bundleHighlight => [

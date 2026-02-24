@@ -56,20 +56,20 @@ class ChatMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isFromMe = message.isFromMe;
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 3.h),
       child: Row(
         mainAxisAlignment: isFromMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (isFromMe) const SizedBox.shrink(),
           if (!isFromMe) _buildAvatar(context),
-          if (!isFromMe) SizedBox(width: 8.w),
+          if (!isFromMe) SizedBox(width: 6.w),
           Flexible(
             child: Column(
               crossAxisAlignment: isFromMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 _buildContent(context),
-                SizedBox(height: 2.h),
+                SizedBox(height: 1.h),
                 Text(
                   _formatTime(message.time),
                   style: AppTextStyles.caption.copyWith(
@@ -123,10 +123,10 @@ class ChatMessageBubble extends StatelessWidget {
 
   Widget _textBubble() {
     final isFromMe = message.isFromMe;
-    final bg = isFromMe ? const Color(0xFF95EC69) : AppColors.card;
-    final fg = AppColors.textPrimary;
+    final bg = isFromMe ? AppColors.primary : AppColors.card;
+    final fg = isFromMe ? AppColors.textPrimary : AppColors.textPrimary;
     final bubble = Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: isFromMe ? _BubbleRadius.fromMe : _BubbleRadius.fromOther,

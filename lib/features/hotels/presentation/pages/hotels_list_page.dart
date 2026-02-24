@@ -9,6 +9,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../data/hotel_repository.dart';
 import '../../domain/hotel_item.dart';
+import '../../data/hotel_recommendation_service.dart';
 import '../../providers/hotel_compare_provider.dart';
 import '../../providers/hotel_providers.dart';
 import '../widgets/hotel_card.dart';
@@ -149,6 +150,7 @@ class _HotelsListPageState extends ConsumerState<HotelsListPage> {
   Widget build(BuildContext context) {
     final listState = ref.watch(hotelListStateProvider);
     final queryState = ref.watch(hotelListQueryProvider);
+    final recommendationResult = ref.watch(hotelRecommendationResultProvider);
     final l10n = AppLocalizations.of(context);
 
     final theme = Theme.of(context);
@@ -205,7 +207,7 @@ class _HotelsListPageState extends ConsumerState<HotelsListPage> {
                   if (listState.error != null) ..._buildErrorSlivers(listState.error!, l10n),
                   if (listState.error == null && listState.loading && listState.items.isEmpty) ..._buildSkeletonSlivers(),
                   if (listState.error == null && !listState.loading && listState.items.isEmpty) ..._buildEmptySlivers(l10n),
-                  if (listState.error == null && listState.items.isNotEmpty) ..._buildListSlivers(listState.items, l10n),
+                  if (listState.error == null && listState.items.isNotEmpty) ..._buildListSlivers(context, listState.items, queryState, l10n, recommendationResult),
                   if (listState.loadingMore)
                     SliverToBoxAdapter(
                       child: Padding(
@@ -290,14 +292,86 @@ class _HotelsListPageState extends ConsumerState<HotelsListPage> {
     ];
   }
 
-  List<Widget> _buildListSlivers(List<HotelItem> hotels, AppLocalizations? l10n) {
+  List<Widget> _buildListSlivers(
+    BuildContext context,
+    List<HotelItem> hotels,
+    HotelListQueryState queryState,
+    AppLocalizations? l10n,
+    HotelRecommendationResult? recommendationResult,
+  ) {
     final isTablet = HotelUIConstants.isTablet(context);
     final viewDetailLabel = l10n?.hotelViewDetail ?? '查看详情';
     final compareList = ref.watch(hotelCompareListProvider);
     final compareNotifier = ref.read(hotelCompareListProvider.notifier);
+    final theme = Theme.of(context);
 
     bool isInCompare(HotelItem h) => compareList.any((x) => x.id == h.id);
     bool canAdd(HotelItem h) => compareList.length < hotelCompareMaxCount && !isInCompare(h);
+
+    final useSections = queryState.sort == HotelSort.default_ && recommendationResult != null;
+    final List<HotelItem> orderedHotels = useSections ? recommendationResult!.sortedItems : hotels;
+    final Set<String> pickedIds = useSections ? recommendationResult!.pickedIds : {};
+    final Set<String> guessLikeIds = useSections ? recommendationResult!.guessLikeIds : {};
+
+    Widget cardBuilder(HotelItem hotel, {required bool showSmartBadge}) {
+      return HotelCard(
+        key: ValueKey(hotel.id),
+        hotel: hotel,
+        viewDetailLabel: viewDetailLabel,
+        onTap: () => context.push('/hotels/${hotel.id}'),
+        imageCacheWidth: isTablet ? 400 : 336,
+        imageCacheHeight: isTablet ? 320 : 212,
+        isInCompare: isInCompare(hotel),
+        canAddToCompare: canAdd(hotel),
+        showSmartBadge: showSmartBadge,
+        onCompareTap: () {
+          if (isInCompare(hotel)) {
+            compareNotifier.remove(hotel.id);
+          } else {
+            compareNotifier.add(hotel);
+          }
+        },
+      );
+    }
+
+    if (useSections) {
+      final picked = orderedHotels.where((h) => pickedIds.contains(h.id)).toList();
+      final guessLike = orderedHotels.where((h) => guessLikeIds.contains(h.id)).toList();
+      final rest = orderedHotels.where((h) => !pickedIds.contains(h.id) && !guessLikeIds.contains(h.id)).toList();
+      final sectionTitleStyle = theme.textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w700,
+        color: theme.colorScheme.onSurface,
+      );
+      final slivers = <Widget>[];
+      if (picked.isNotEmpty) {
+        slivers.add(SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(HotelUIConstants.grid2.w, 0, HotelUIConstants.grid2.w, HotelUIConstants.grid1.h),
+            child: Text(l10n?.hotelSmartPicked ?? '为你精选', style: sectionTitleStyle),
+          ),
+        ));
+        slivers.add(_sliverListForHotels(picked, true, cardBuilder, isTablet));
+      }
+      if (guessLike.isNotEmpty) {
+        slivers.add(SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(HotelUIConstants.grid2.w, HotelUIConstants.grid2.h, HotelUIConstants.grid2.w, HotelUIConstants.grid1.h),
+            child: Text(l10n?.hotelGuessYouLike ?? '猜你喜欢', style: sectionTitleStyle),
+          ),
+        ));
+        slivers.add(_sliverListForHotels(guessLike, true, cardBuilder, isTablet));
+      }
+      if (rest.isNotEmpty) {
+        slivers.add(SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(HotelUIConstants.grid2.w, HotelUIConstants.grid2.h, HotelUIConstants.grid2.w, HotelUIConstants.grid1.h),
+            child: Text(l10n?.hotelMoreHotels ?? '更多酒店', style: sectionTitleStyle),
+          ),
+        ));
+        slivers.add(_sliverListForHotels(rest, false, cardBuilder, isTablet));
+      }
+      return slivers;
+    }
 
     if (isTablet) {
       return [
@@ -312,31 +386,15 @@ class _HotelsListPageState extends ConsumerState<HotelsListPage> {
             ),
             delegate: SliverChildBuilderDelegate(
               (_, index) {
-                final hotel = hotels[index];
+                final hotel = orderedHotels[index];
                 return RepaintBoundary(
                   child: Padding(
                     padding: EdgeInsets.only(bottom: HotelUIConstants.grid2.h),
-                    child: HotelCard(
-                      key: ValueKey(hotel.id),
-                      hotel: hotel,
-                      viewDetailLabel: viewDetailLabel,
-                      onTap: () => context.push('/hotels/${hotel.id}'),
-                      imageCacheWidth: 400,
-                      imageCacheHeight: 320,
-                      isInCompare: isInCompare(hotel),
-                      canAddToCompare: canAdd(hotel),
-                      onCompareTap: () {
-                        if (isInCompare(hotel)) {
-                          compareNotifier.remove(hotel.id);
-                        } else {
-                          compareNotifier.add(hotel);
-                        }
-                      },
-                    ),
+                    child: cardBuilder(hotel, showSmartBadge: false),
                   ),
                 );
               },
-              childCount: hotels.length,
+              childCount: orderedHotels.length,
               addAutomaticKeepAlives: true,
               addRepaintBoundaries: true,
             ),
@@ -351,7 +409,7 @@ class _HotelsListPageState extends ConsumerState<HotelsListPage> {
         sliver: SliverList(
           delegate: SliverChildBuilderDelegate(
             (_, index) {
-              final hotel = hotels[index];
+              final hotel = orderedHotels[index];
               final stagger = index.clamp(0, 4);
               return RepaintBoundary(
                 child: TweenAnimationBuilder<double>(
@@ -368,33 +426,62 @@ class _HotelsListPageState extends ConsumerState<HotelsListPage> {
                   ),
                   child: Padding(
                     padding: EdgeInsets.only(bottom: HotelUIConstants.grid2.h),
-                    child: HotelCard(
-                      hotel: hotel,
-                      viewDetailLabel: viewDetailLabel,
-                      onTap: () => context.push('/hotels/${hotel.id}'),
-                      imageCacheWidth: 336,
-                      imageCacheHeight: 212,
-                      isInCompare: isInCompare(hotel),
-                      canAddToCompare: canAdd(hotel),
-                      onCompareTap: () {
-                        if (isInCompare(hotel)) {
-                          compareNotifier.remove(hotel.id);
-                        } else {
-                          compareNotifier.add(hotel);
-                        }
-                      },
-                    ),
+                    child: cardBuilder(hotel, showSmartBadge: false),
                   ),
                 ),
               );
             },
-            childCount: hotels.length,
+            childCount: orderedHotels.length,
             addAutomaticKeepAlives: true,
             addRepaintBoundaries: true,
           ),
         ),
       ),
     ];
+  }
+
+  Widget _sliverListForHotels(
+    List<HotelItem> list,
+    bool showSmartBadge,
+    Widget Function(HotelItem hotel, {required bool showSmartBadge}) cardBuilder,
+    bool isTablet,
+  ) {
+    if (isTablet) {
+      return SliverPadding(
+        padding: EdgeInsets.symmetric(horizontal: HotelUIConstants.grid2.w),
+        sliver: SliverGrid(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: HotelUIConstants.grid2.h,
+            crossAxisSpacing: HotelUIConstants.grid2.w,
+            childAspectRatio: 1.15,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (_, index) => Padding(
+              padding: EdgeInsets.only(bottom: HotelUIConstants.grid2.h),
+              child: cardBuilder(list[index], showSmartBadge: showSmartBadge),
+            ),
+            childCount: list.length,
+            addAutomaticKeepAlives: true,
+            addRepaintBoundaries: true,
+          ),
+        ),
+      );
+    }
+    return SliverPadding(
+      padding: EdgeInsets.symmetric(horizontal: HotelUIConstants.grid2.w),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (_, index) => Padding(
+            padding: EdgeInsets.only(bottom: HotelUIConstants.grid2.h),
+            child: cardBuilder(list[index], showSmartBadge: showSmartBadge),
+          ),
+          childCount: list.length,
+          addAutomaticKeepAlives: true,
+          addRepaintBoundaries: true,
+        ),
+      ),
+    );
   }
 }
 

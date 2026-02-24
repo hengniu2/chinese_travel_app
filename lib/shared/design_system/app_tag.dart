@@ -44,7 +44,7 @@ class AppTag extends StatelessWidget {
       padding: effectivePadding,
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: AppRadius.smRadius,
+        borderRadius: AppRadius.pillRadius,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

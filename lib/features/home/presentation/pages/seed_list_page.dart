@@ -27,11 +27,7 @@ class SeedListPage extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Text(
                 '发现更多种草官',
-                style: GoogleFonts.zcoolKuaiLe(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                ),
+                style: AppTextStyles.header(AppColors.textPrimary, fontSize: 18.sp),
               ),
             ),
           ),
@@ -82,11 +78,7 @@ class SeedListPage extends StatelessWidget {
       ),
       title: Text(
         '享梦游种草官',
-        style: GoogleFonts.zcoolKuaiLe(
-          fontSize: 18.sp,
-          fontWeight: FontWeight.w800,
-          color: Colors.white,
-        ),
+        style: AppTextStyles.header(Colors.white, fontSize: 18.sp),
       ),
     );
   }
@@ -153,11 +145,7 @@ class _SeedListCard extends StatelessWidget {
                     children: [
                       Text(
                         person.name,
-                        style: GoogleFonts.zcoolKuaiLe(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                        ),
+                        style: AppTextStyles.header(AppColors.textPrimary, fontSize: 16.sp),
                       ),
                       const SizedBox(height: 6),
                       Text(

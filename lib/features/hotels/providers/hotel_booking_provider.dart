@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../coupon/providers/coupon_provider.dart';
+import '../../profile/providers/membership_provider.dart';
 import '../domain/booking.dart';
 
 /// Draft state for the current hotel booking flow (Steps 1–4).
@@ -93,15 +94,22 @@ final hotelBookingCouponDiscountProvider = Provider<double>((ref) {
   return discountForSelectedCoupon(selected, draft.roomPrice + draft.serviceFee);
 });
 
-/// Total payable for current draft (room + serviceFee - coupon).
+/// VIP membership discount for current draft (auto-applied).
+final hotelBookingVipDiscountProvider = Provider<double>((ref) {
+  final draft = ref.watch(hotelBookingDraftProvider);
+  if (draft == null) return 0;
+  final profile = ref.watch(userMembershipProfileProvider);
+  return computeVipDiscount(profile, draft.roomPrice + draft.serviceFee);
+});
+
+/// Total payable for current draft (room + serviceFee - coupon - VIP discount).
 final hotelBookingTotalPayableProvider = Provider<double>((ref) {
   final draft = ref.watch(hotelBookingDraftProvider);
   if (draft == null) return 0;
-  final selected = ref.watch(selectedCouponForBookingProvider);
-  return finalAmountAfterCoupon(
-    draft.roomPrice + draft.serviceFee,
-    selected,
-  );
+  final subtotal = draft.roomPrice + draft.serviceFee;
+  final couponDiscount = ref.watch(hotelBookingCouponDiscountProvider);
+  final vipDiscount = ref.watch(hotelBookingVipDiscountProvider);
+  return (subtotal - couponDiscount - vipDiscount).clamp(0.0, double.infinity);
 });
 
 /// Last completed booking (for success page and "View order").

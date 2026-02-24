@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'app_radius.dart';
 import 'travel_design_tokens.dart';
 
-/// Small pill tag (e.g. "热卖", "品质团"). 8dp radius, compact padding.
+/// Small pill tag (e.g. "热卖", "品质团"). Pill radius 20–24, compact padding.
 class TagPill extends StatelessWidget {
   const TagPill({
     super.key,
@@ -23,10 +24,10 @@ class TagPill extends StatelessWidget {
     final fg = textColor ?? Colors.white;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: TravelDesignTokens.borderRadiusSmall,
+        borderRadius: AppRadius.pillRadius,
       ),
       child: Text(
         label,

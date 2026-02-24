@@ -8,6 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../data/profile_ui_state.dart';
+import '../../providers/membership_provider.dart';
 import '../../providers/profile_state_provider.dart';
 import '../widgets/order_status_section.dart';
 import '../widgets/profile_common_settings_section.dart';
@@ -34,6 +35,7 @@ class _ProfileShellPageState extends ConsumerState<ProfileShellPage> {
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
     final profileAsync = ref.watch(profileStateProvider);
+    final membershipProfile = ref.watch(userMembershipProfileProvider);
 
     const double kHeaderHeight = 188;
     final topPadding = kHeaderHeight.h;
@@ -93,6 +95,7 @@ class _ProfileShellPageState extends ConsumerState<ProfileShellPage> {
               data: (ProfileUiState state) => ProfileHeaderStrip(
                 auth: auth,
                 profileState: state,
+                membershipProfile: membershipProfile,
                 onSettings: () => _showSettings(context, ref, ref.read(localeProvider)),
                 onLogout: () async {
                   await ref.read(authProvider.notifier).logout();
@@ -102,6 +105,7 @@ class _ProfileShellPageState extends ConsumerState<ProfileShellPage> {
               loading: () => ProfileHeaderStrip(
                 auth: auth,
                 profileState: null,
+                membershipProfile: membershipProfile,
                 onSettings: () => _showSettings(context, ref, ref.read(localeProvider)),
                 onLogout: () async {
                   await ref.read(authProvider.notifier).logout();
@@ -111,6 +115,7 @@ class _ProfileShellPageState extends ConsumerState<ProfileShellPage> {
               error: (Object e, StackTrace st) => ProfileHeaderStrip(
                 auth: auth,
                 profileState: null,
+                membershipProfile: membershipProfile,
                 onSettings: () => _showSettings(context, ref, ref.read(localeProvider)),
                 onLogout: () async {
                   await ref.read(authProvider.notifier).logout();

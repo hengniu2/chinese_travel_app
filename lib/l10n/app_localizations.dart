@@ -122,11 +122,23 @@ abstract class AppLocalizations {
   /// **'旅行规划师'**
   String get tabPlanner;
 
+  /// No description provided for @tabTravelService.
+  ///
+  /// In zh, this message translates to:
+  /// **'出行服务'**
+  String get tabTravelService;
+
   /// No description provided for @tabMessages.
   ///
   /// In zh, this message translates to:
   /// **'消息'**
   String get tabMessages;
+
+  /// No description provided for @tabOrders.
+  ///
+  /// In zh, this message translates to:
+  /// **'订单'**
+  String get tabOrders;
 
   /// No description provided for @tabProfile.
   ///
@@ -433,6 +445,36 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'立即打包预订'**
   String get hotelBundleCta;
+
+  /// No description provided for @hotelSmartBadge.
+  ///
+  /// In zh, this message translates to:
+  /// **'智能推荐'**
+  String get hotelSmartBadge;
+
+  /// No description provided for @hotelSmartPicked.
+  ///
+  /// In zh, this message translates to:
+  /// **'为你精选'**
+  String get hotelSmartPicked;
+
+  /// No description provided for @hotelGuessYouLike.
+  ///
+  /// In zh, this message translates to:
+  /// **'猜你喜欢'**
+  String get hotelGuessYouLike;
+
+  /// No description provided for @hotelMoreHotels.
+  ///
+  /// In zh, this message translates to:
+  /// **'更多酒店'**
+  String get hotelMoreHotels;
+
+  /// No description provided for @hotelSimilarHotels.
+  ///
+  /// In zh, this message translates to:
+  /// **'相似酒店'**
+  String get hotelSimilarHotels;
 
   /// No description provided for @ordersTitle.
   ///
@@ -2504,6 +2546,12 @@ abstract class AppLocalizations {
   /// **'开始规划'**
   String get plannerFormCta;
 
+  /// No description provided for @plannerViewMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看更多'**
+  String get plannerViewMore;
+
   /// No description provided for @plannerFeaturedTitle.
   ///
   /// In zh, this message translates to:
@@ -3391,6 +3439,48 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'VIP'**
   String get membershipTierVip;
+
+  /// No description provided for @membershipTierNormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'普通会员'**
+  String get membershipTierNormal;
+
+  /// No description provided for @membershipTierDiamond.
+  ///
+  /// In zh, this message translates to:
+  /// **'钻石会员'**
+  String get membershipTierDiamond;
+
+  /// No description provided for @membershipFreeBreakfast.
+  ///
+  /// In zh, this message translates to:
+  /// **'免费早餐'**
+  String get membershipFreeBreakfast;
+
+  /// No description provided for @membershipLateCheckout.
+  ///
+  /// In zh, this message translates to:
+  /// **'延迟退房'**
+  String get membershipLateCheckout;
+
+  /// No description provided for @membershipExclusiveCoupons.
+  ///
+  /// In zh, this message translates to:
+  /// **'专属优惠券'**
+  String get membershipExclusiveCoupons;
+
+  /// No description provided for @vipBadgeLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'VIP'**
+  String get vipBadgeLabel;
+
+  /// No description provided for @vipDiscountLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'VIP折扣'**
+  String get vipDiscountLabel;
 
   /// No description provided for @membershipPointsBalance.
   ///

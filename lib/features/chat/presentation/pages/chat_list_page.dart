@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/design_system/design_system.dart';
 import '../../../../shared/widgets/tap_scale.dart';
 import '../../data/chat_assets.dart';
 import '../../data/chat_list_mock.dart';
@@ -207,12 +208,7 @@ class _ChatListPageState extends State<ChatListPage>
                   children: [
                     Text(
                       l10n?.chatTitle ?? '消息',
-                      style: GoogleFonts.zcoolKuaiLe(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1A4540),
-                        height: 1.25,
-                      ),
+                      style: AppTextStyles.header(const Color(0xFF1A4540), fontSize: 20.sp),
                     ),
                     SizedBox(height: 4.h),
                     Text(
@@ -335,11 +331,7 @@ class _ChatListPageState extends State<ChatListPage>
                 SizedBox(width: 6.w),
                 Text(
                   l10n?.chatGuessYouAsk ?? '猜你想问',
-                  style: GoogleFonts.zcoolKuaiLe(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w700,
-                    color: ChatListColors.textPrimary,
-                  ),
+                  style: AppTextStyles.header(ChatListColors.textPrimary, fontSize: 16.sp),
                 ),
               ],
             ),
@@ -493,11 +485,7 @@ class _ChatListPageState extends State<ChatListPage>
                 ),
                 child: Text(
                   l10n?.chatStartConsult ?? '开始咨询',
-                  style: GoogleFonts.zcoolKuaiLe(
-                    fontSize: 17.sp,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                  style: AppTextStyles.header(Colors.white, fontSize: 17.sp),
                 ),
               ),
             ),

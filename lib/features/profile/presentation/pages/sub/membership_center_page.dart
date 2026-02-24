@@ -7,20 +7,18 @@ import '../../../../../shared/design_system/design_system.dart';
 import '../../../data/membership_models.dart';
 import '../../../providers/membership_provider.dart';
 
-/// Membership Center: current tier card, progress to next, points, benefits table, exclusive packages.
+/// VIP Center: 3 tiers (普通/黄金/钻石), golden gradient style, benefits table.
 class MembershipCenterPage extends ConsumerWidget {
   const MembershipCenterPage({super.key});
 
   static String _tierName(MembershipTier t, AppLocalizations l10n) {
     switch (t) {
-      case MembershipTier.basic:
-        return l10n.membershipTierBasic;
-      case MembershipTier.silver:
-        return l10n.membershipTierSilver;
+      case MembershipTier.normal:
+        return l10n.membershipTierNormal;
       case MembershipTier.gold:
         return l10n.membershipTierGold;
-      case MembershipTier.vip:
-        return l10n.membershipTierVip;
+      case MembershipTier.diamond:
+        return l10n.membershipTierDiamond;
     }
   }
 
@@ -32,56 +30,86 @@ class MembershipCenterPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: TravelDesignTokens.background,
-      appBar: AppBar(
-        title: Text(l10n.membershipCenterTitle),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => context.pop(),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              _goldGradientStart,
+              _goldGradientStart.withValues(alpha: 0.85),
+              TravelDesignTokens.background,
+            ],
+            stops: const [0.0, 0.35, 0.6],
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TravelDesignTokens.screenHorizontal,
-          vertical: 16,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _TierCard(
-              tier: profile.tier,
-              tierName: _tierName(profile.tier, l10n),
-              points: profile.points,
-              progress: progress,
-              nextTierName: nextTier != null ? _tierName(nextTier.tier, l10n) : null,
-              l10n: l10n,
-            ),
-            const SizedBox(height: 24),
-            SectionHeader(title: l10n.membershipBenefits),
-            const SizedBox(height: 12),
-            _BenefitsTable(l10n: l10n),
-            const SizedBox(height: 24),
-            SectionHeader(title: l10n.membershipExclusivePackagesSection),
-            const SizedBox(height: 12),
-            _ExclusivePackagesPlaceholder(l10n: l10n),
-            const SizedBox(height: 24),
-          ],
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 0,
+                pinned: true,
+                backgroundColor: Colors.transparent,
+                foregroundColor: AppColors.textPrimary,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                  onPressed: () => context.pop(),
+                ),
+                title: Text(
+                  l10n.membershipCenterTitle,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TravelDesignTokens.screenHorizontal,
+                    vertical: 16,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _VipTierCard(
+                        tier: profile.tier,
+                        tierName: _tierName(profile.tier, l10n),
+                        points: profile.points,
+                        progress: progress,
+                        nextTierName: nextTier != null ? _tierName(nextTier.tier, l10n) : null,
+                        expiry: profile.tierExpiryDate,
+                        l10n: l10n,
+                      ),
+                      const SizedBox(height: 24),
+                      SectionHeader(title: l10n.membershipBenefits),
+                      const SizedBox(height: 12),
+                      _VipBenefitsTable(l10n: l10n),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _TierCard extends StatelessWidget {
-  const _TierCard({
+const Color _goldGradientStart = Color(0xFFFFD54F);
+const Color _goldGradientEnd = Color(0xFFF9A825);
+const Color _diamondAccent = Color(0xFFB0BEC5);
+
+class _VipTierCard extends StatelessWidget {
+  const _VipTierCard({
     required this.tier,
     required this.tierName,
     required this.points,
     required this.progress,
     this.nextTierName,
+    this.expiry,
     required this.l10n,
   });
 
@@ -90,38 +118,32 @@ class _TierCard extends StatelessWidget {
   final int points;
   final double progress;
   final String? nextTierName;
+  final DateTime? expiry;
   final AppLocalizations l10n;
-
-  static Color _tierColor(MembershipTier t) {
-    switch (t) {
-      case MembershipTier.basic:
-        return AppColors.textTertiary;
-      case MembershipTier.silver:
-        return const Color(0xFF9CA3AF);
-      case MembershipTier.gold:
-        return const Color(0xFFD97706);
-      case MembershipTier.vip:
-        return const Color(0xFF7C3AED);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    final color = _tierColor(tier);
+    final isVip = tier == MembershipTier.gold || tier == MembershipTier.diamond;
+    final gradientColors = isVip
+        ? [const Color(0xFFFFE082), const Color(0xFFFFD54F), const Color(0xFFF9A825)]
+        : [const Color(0xFFE0E0E0), const Color(0xFFBDBDBD)];
     return Container(
       padding: const EdgeInsets.all(TravelDesignTokens.cardPadding),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            color.withValues(alpha: 0.15),
-            color.withValues(alpha: 0.06),
-          ],
+          colors: gradientColors,
+          stops: const [0.0, 0.5, 1.0],
         ),
         borderRadius: TravelDesignTokens.borderRadiusMedium,
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-        boxShadow: TravelDesignTokens.shadowLevel1,
+        boxShadow: [
+          BoxShadow(
+            color: _goldGradientEnd.withValues(alpha: 0.4),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,15 +151,22 @@ class _TierCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.25),
+                  color: Colors.white.withValues(alpha: 0.9),
                   borderRadius: TravelDesignTokens.borderRadiusSmall,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Text(
                   tierName,
-                  style: TravelDesignTokens.titleL(color).copyWith(
-                    fontWeight: FontWeight.w700,
+                  style: TravelDesignTokens.titleL(isVip ? const Color(0xFF5D4037) : AppColors.textPrimary).copyWith(
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
@@ -146,15 +175,23 @@ class _TierCard extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             l10n.membershipPointsBalance,
-            style: TravelDesignTokens.caption(AppColors.textSecondary),
+            style: TravelDesignTokens.caption(const Color(0xFF5D4037)),
           ),
           const SizedBox(height: 4),
           Text(
             '$points',
             style: TravelDesignTokens.titleXL(null).copyWith(
               fontWeight: FontWeight.w800,
+              color: const Color(0xFF3E2723),
             ),
           ),
+          if (expiry != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              '有效期至 ${_formatDate(expiry!)}',
+              style: TravelDesignTokens.caption(const Color(0xFF5D4037)),
+            ),
+          ],
           if (nextTierName != null) ...[
             const SizedBox(height: 16),
             Row(
@@ -162,11 +199,11 @@ class _TierCard extends StatelessWidget {
               children: [
                 Text(
                   l10n.membershipProgressToNext,
-                  style: TravelDesignTokens.caption(AppColors.textSecondary),
+                  style: TravelDesignTokens.caption(const Color(0xFF5D4037)),
                 ),
                 Text(
                   nextTierName!,
-                  style: TravelDesignTokens.caption(color).copyWith(
+                  style: TravelDesignTokens.caption(const Color(0xFF3E2723)).copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -178,8 +215,8 @@ class _TierCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 8,
-                backgroundColor: AppColors.divider,
-                valueColor: AlwaysStoppedAnimation<Color>(color),
+                backgroundColor: Colors.white.withValues(alpha: 0.5),
+                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF5D4037)),
               ),
             ),
           ],
@@ -187,10 +224,14 @@ class _TierCard extends StatelessWidget {
       ),
     );
   }
+
+  String _formatDate(DateTime d) {
+    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  }
 }
 
-class _BenefitsTable extends StatelessWidget {
-  const _BenefitsTable({required this.l10n});
+class _VipBenefitsTable extends StatelessWidget {
+  const _VipBenefitsTable({required this.l10n});
 
   final AppLocalizations l10n;
 
@@ -209,7 +250,6 @@ class _BenefitsTable extends StatelessWidget {
           1: FlexColumnWidth(1),
           2: FlexColumnWidth(1),
           3: FlexColumnWidth(1),
-          4: FlexColumnWidth(1),
         },
         border: TableBorder.symmetric(
           inside: BorderSide(color: AppColors.divider),
@@ -222,10 +262,9 @@ class _BenefitsTable extends StatelessWidget {
             ),
             children: [
               _cell(l10n.membershipBenefits, isHeader: true),
-              _cell(l10n.membershipTierBasic, isHeader: true),
-              _cell(l10n.membershipTierSilver, isHeader: true),
+              _cell(l10n.membershipTierNormal, isHeader: true),
               _cell(l10n.membershipTierGold, isHeader: true),
-              _cell(l10n.membershipTierVip, isHeader: true),
+              _cell(l10n.membershipTierDiamond, isHeader: true),
             ],
           ),
           _benefitRow(
@@ -233,12 +272,16 @@ class _BenefitsTable extends StatelessWidget {
             tiers.map((t) => t.discountRate > 0 ? '${(t.discountRate * 100).toInt()}%' : '—').toList(),
           ),
           _benefitRow(
-            l10n.membershipEarlyBooking,
-            tiers.map((t) => t.earlyBookingDays > 0 ? '${t.earlyBookingDays}d' : '—').toList(),
+            l10n.membershipFreeBreakfast,
+            tiers.map((t) => t.freeBreakfast ? '✓' : '—').toList(),
           ),
           _benefitRow(
-            l10n.membershipExclusivePackages,
-            tiers.map((t) => t.exclusivePackages ? '✓' : '—').toList(),
+            l10n.membershipLateCheckout,
+            tiers.map((t) => t.lateCheckout ? '✓' : '—').toList(),
+          ),
+          _benefitRow(
+            l10n.membershipExclusiveCoupons,
+            tiers.map((t) => t.exclusiveCoupons ? '✓' : '—').toList(),
           ),
           _benefitRow(
             l10n.membershipPrioritySupport,
@@ -256,7 +299,6 @@ class _BenefitsTable extends StatelessWidget {
         _cell(values[0]),
         _cell(values[1]),
         _cell(values[2]),
-        _cell(values[3]),
       ],
     );
   }
@@ -266,8 +308,7 @@ class _BenefitsTable extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       child: Text(
         text,
-        style: (isHeader ? TravelDesignTokens.body(null) : TravelDesignTokens.caption(null))
-            .copyWith(
+        style: (isHeader ? TravelDesignTokens.body(null) : TravelDesignTokens.caption(null)).copyWith(
           fontWeight: isHeader ? FontWeight.w600 : FontWeight.w400,
           color: AppColors.textPrimary,
         ),
@@ -276,40 +317,3 @@ class _BenefitsTable extends StatelessWidget {
   }
 }
 
-class _ExclusivePackagesPlaceholder extends StatelessWidget {
-  const _ExclusivePackagesPlaceholder({required this.l10n});
-
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(TravelDesignTokens.cardPadding),
-      decoration: BoxDecoration(
-        color: TravelDesignTokens.card,
-        borderRadius: TravelDesignTokens.borderRadiusMedium,
-        boxShadow: TravelDesignTokens.shadowLevel1,
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.lock_rounded,
-            size: 40,
-            color: AppColors.textTertiary,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Gold & VIP members get access to exclusive packages.',
-            style: TravelDesignTokens.body(AppColors.textSecondary),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () => context.push('/planner/discovery'),
-            child: const Text('Browse tours'),
-          ),
-        ],
-      ),
-    );
-  }
-}

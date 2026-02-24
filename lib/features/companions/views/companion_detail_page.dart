@@ -3,8 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../shared/design_system/design_system.dart';
-import '../../data/companion_detail_mock.dart';
-import '../../domain/companion_detail.dart';
+import '../data/companion_detail_mock.dart';
+import '../models/companion_detail.dart';
 
 /// 陪游详情页 — 结构：SliverAppBar + 模块化 Sliver 区块 + 底部固定预订栏
 class CompanionDetailPage extends StatefulWidget {
@@ -1146,7 +1146,7 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
               radius: 20.r,
               backgroundColor: AppColors.surface,
               backgroundImage: r.avatar.isNotEmpty ? NetworkImage(r.avatar) : null,
-              onBackgroundImageError: (_, __) {},
+              onBackgroundImageError: r.avatar.isNotEmpty ? (_, __) {} : null,
               child: r.avatar.isEmpty
                   ? Text(
                       r.userName.isNotEmpty ? r.userName.substring(0, 1).toUpperCase() : '?',
@@ -1274,7 +1274,7 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
               SizedBox(width: 16.w),
               // Right: large yellow gradient button — 立即预约 (tap scale)
               AppTapScale(
-                onTap: () {},
+                onTap: () => context.push('/companions/${widget.id}/order'),
                 pressedScale: 0.97,
                 child: SizedBox(
                   height: 48.h,
@@ -1282,7 +1282,7 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: () {},
+                      onTap: () => context.push('/companions/${widget.id}/order'),
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
                         alignment: Alignment.center,

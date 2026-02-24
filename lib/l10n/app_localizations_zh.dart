@@ -21,7 +21,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tabPlanner => '旅行规划师';
 
   @override
+  String get tabTravelService => '出行服务';
+
+  @override
   String get tabMessages => '消息';
+
+  @override
+  String get tabOrders => '订单';
 
   @override
   String get tabProfile => '我的';
@@ -177,6 +183,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get hotelBundleCta => '立即打包预订';
+
+  @override
+  String get hotelSmartBadge => '智能推荐';
+
+  @override
+  String get hotelSmartPicked => '为你精选';
+
+  @override
+  String get hotelGuessYouLike => '猜你喜欢';
+
+  @override
+  String get hotelMoreHotels => '更多酒店';
+
+  @override
+  String get hotelSimilarHotels => '相似酒店';
 
   @override
   String get ordersTitle => '我的订单';
@@ -1266,6 +1287,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerFormCta => '开始规划';
 
   @override
+  String get plannerViewMore => '查看更多';
+
+  @override
   String get plannerFeaturedTitle => '精选套餐';
 
   @override
@@ -1722,6 +1746,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get membershipTierVip => 'VIP';
+
+  @override
+  String get membershipTierNormal => '普通会员';
+
+  @override
+  String get membershipTierDiamond => '钻石会员';
+
+  @override
+  String get membershipFreeBreakfast => '免费早餐';
+
+  @override
+  String get membershipLateCheckout => '延迟退房';
+
+  @override
+  String get membershipExclusiveCoupons => '专属优惠券';
+
+  @override
+  String get vipBadgeLabel => 'VIP';
+
+  @override
+  String get vipDiscountLabel => 'VIP折扣';
 
   @override
   String get membershipPointsBalance => '积分余额';

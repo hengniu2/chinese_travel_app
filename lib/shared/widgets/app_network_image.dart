@@ -30,6 +30,9 @@ class AppNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (imageUrl.isEmpty) {
+      return errorWidget ?? _defaultError();
+    }
     final cacheWidth = width != null && width!.isFinite ? (width! * 2).toInt() : null;
     final cacheHeight = height != null && height!.isFinite ? (height! * 2).toInt() : null;
     return CachedNetworkImage(

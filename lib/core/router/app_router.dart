@@ -10,9 +10,11 @@ import '../../features/auth/presentation/pages/verify_code_login_page.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/chat/presentation/pages/chat_conversation_page.dart';
 import '../../features/chat/presentation/pages/chat_shell_page.dart';
-import '../../features/companions/presentation/pages/companion_detail_page.dart';
-import '../../features/companions/presentation/pages/companion_order_page.dart';
-import '../../features/companions/presentation/pages/companions_shell_page.dart';
+import '../../features/companions/models/companion_order.dart';
+import '../../features/companions/views/booking_page.dart';
+import '../../features/companions/views/companion_detail_page.dart';
+import '../../features/companions/views/companion_list_page.dart';
+import '../../features/companions/views/order_confirmation_page.dart';
 import '../../features/content/presentation/pages/content_shell_page.dart';
 import '../../features/content/presentation/pages/forum_article_page.dart';
 import '../../features/travel/booking/booking_addons_page.dart';
@@ -73,6 +75,9 @@ import '../../features/profile/presentation/pages/sub/profile_travel_collection_
 import '../../features/tours/presentation/pages/tour_detail_page.dart';
 import '../../features/tours/presentation/pages/tour_order_page.dart';
 import '../../features/tours/presentation/pages/tours_list_page.dart';
+import '../../features/travel_service/presentation/pages/flight_result_page.dart';
+import '../../features/travel_service/presentation/pages/multi_trip_result_page.dart';
+import '../../features/travel_service/presentation/pages/round_trip_result_page.dart';
 import '../../features/travel_service/presentation/pages/travel_service_page.dart';
 import '../../shared/widgets/app_error_page.dart';
 import '../../shared/widgets/app_network_error_page.dart';
@@ -85,7 +90,12 @@ class RouteNames {
   static const String home = 'home';
   static const String joinUs = 'joinUs';
   static const String planner = 'planner';
+  static const String travelService = 'travel-service';
+  static const String flightResult = 'flightResult';
+  static const String roundTripResult = 'roundTripResult';
+  static const String multiTripResult = 'multiTripResult';
   static const String messages = 'messages';
+  static const String orders = 'orders';
   static const String profile = 'profile';
 }
 
@@ -93,6 +103,7 @@ final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 // Unique keys per shell branch to avoid HeroControllerScope key reservation conflicts.
 final GlobalKey<NavigatorState> _shellHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
+final GlobalKey<NavigatorState> _shellTravelServiceKey = GlobalKey<NavigatorState>(debugLabel: 'shellTravelService');
 final GlobalKey<NavigatorState> _shellJoinUsKey = GlobalKey<NavigatorState>(debugLabel: 'shellJoinUs');
 final GlobalKey<NavigatorState> _shellPlannerKey = GlobalKey<NavigatorState>(debugLabel: 'shellPlanner');
 final GlobalKey<NavigatorState> _shellMessagesKey = GlobalKey<NavigatorState>(debugLabel: 'shellMessages');
@@ -116,6 +127,7 @@ GoRouter createAppRouter(Ref ref) {
         builder: (context, state, navigationShell) {
           return AppShell(navigationShell: navigationShell);
         },
+        // Branch index must match AppShell tab order: 0 Home, 1 Travel Planner, 2 Travel Service, 3 Companion, 4 Chat, 5 Profile
         branches: [
           StatefulShellBranch(
             navigatorKey: _shellHomeKey,
@@ -143,18 +155,6 @@ GoRouter createAppRouter(Ref ref) {
                     pageBuilder: (_, __) => slideTransitionPage(child: const NearbyActivityListPage()),
                   ),
                 ],
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            navigatorKey: _shellJoinUsKey,
-            routes: [
-              GoRoute(
-                path: '/${RouteNames.joinUs}',
-                name: RouteNames.joinUs,
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: CompanionsShellPage(),
-                ),
               ),
             ],
           ),
@@ -270,6 +270,53 @@ GoRouter createAppRouter(Ref ref) {
                     ],
                   ),
                 ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _shellTravelServiceKey,
+            routes: [
+              GoRoute(
+                path: '/${RouteNames.travelService}',
+                name: RouteNames.travelService,
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: TravelServicePage(),
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'flight-result',
+                    name: RouteNames.flightResult,
+                    pageBuilder: (context, state) => const NoTransitionPage(
+                      child: FlightResultPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'round-trip-result',
+                    name: RouteNames.roundTripResult,
+                    pageBuilder: (context, state) => const NoTransitionPage(
+                      child: RoundTripResultPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'multi-trip-result',
+                    name: RouteNames.multiTripResult,
+                    pageBuilder: (context, state) => const NoTransitionPage(
+                      child: MultiTripResultPage(),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _shellJoinUsKey,
+            routes: [
+              GoRoute(
+                path: '/${RouteNames.joinUs}',
+                name: RouteNames.joinUs,
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: CompanionListPage(),
+                ),
               ),
             ],
           ),
@@ -402,6 +449,21 @@ GoRouter createAppRouter(Ref ref) {
         ],
       ),
       GoRoute(
+        path: '/${RouteNames.orders}',
+        name: RouteNames.orders,
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: OrdersShellPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/orders/:id',
+        name: 'orderDetail',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return slideTransitionPage(child: OrderDetailPage(id: id));
+        },
+      ),
+      GoRoute(
         path: '/auth/login',
         name: 'login',
         pageBuilder: (context, state) => slideTransitionPage(child: const LoginPage()),
@@ -495,17 +557,23 @@ GoRouter createAppRouter(Ref ref) {
               final id = state.pathParameters['id'] ?? '1';
               final packageIndex = state.uri.queryParameters['packageIndex'];
               final index = packageIndex != null ? int.tryParse(packageIndex) : null;
-              return slideTransitionPage(child: CompanionOrderPage(companionId: id, packageIndex: index));
+              return slideTransitionPage(child: CompanionBookingPage(companionId: id, packageIndex: index));
             },
+            routes: [
+              GoRoute(
+                path: 'confirm',
+                name: 'companionOrderConfirm',
+                pageBuilder: (context, state) {
+                  final payload = state.extra as CompanionOrderConfirmPayload?;
+                  if (payload == null) {
+                    return slideTransitionPage(child: CompanionBookingPage(companionId: state.pathParameters['id'] ?? '1'));
+                  }
+                  return slideTransitionPage(child: CompanionOrderConfirmPage(payload: payload));
+                },
+              ),
+            ],
           ),
         ],
-      ),
-      GoRoute(
-        path: '/travel-service',
-        name: 'travelService',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: TravelServicePage(),
-        ),
       ),
       GoRoute(
         path: '/tours',
@@ -615,21 +683,6 @@ GoRouter createAppRouter(Ref ref) {
         name: 'hotelBookingSuccess',
         pageBuilder: (_, __) =>
             slideTransitionPage(child: const HotelBookingSuccessPage()),
-      ),
-      GoRoute(
-        path: '/orders',
-        name: 'orders',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: OrdersShellPage(),
-        ),
-      ),
-      GoRoute(
-        path: '/orders/:id',
-        name: 'orderDetail',
-        pageBuilder: (context, state) {
-          final id = state.pathParameters['id'] ?? '';
-          return slideTransitionPage(child: OrderDetailPage(id: id));
-        },
       ),
       GoRoute(
         path: '/error',

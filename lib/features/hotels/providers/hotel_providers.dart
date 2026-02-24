@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/hotel_mappers.dart';
+import '../data/hotel_recommendation_service.dart';
 import '../data/hotel_repository.dart';
 import '../data/hotel_repository_mock.dart';
 import '../domain/hotel.dart';
 import '../domain/hotel_detail.dart';
 import '../domain/hotel_item.dart';
+import '../domain/hotel_recommendation_prefs.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Repository
@@ -262,3 +264,46 @@ extension on Set<String> {
     }
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AI smart recommendation: user prefs + scored list (为你精选 / 猜你喜欢)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Mock user preferences for recommendation (simulated).
+final hotelUserPrefsProvider = Provider<HotelRecommendationPrefs>((ref) {
+  return const HotelRecommendationPrefs(
+    budgetMin: 500,
+    budgetMax: 3000,
+    preferredStar: 5,
+    preferredFacilities: ['早餐', '免费wifi', '泳池'],
+    preferredLocation: '亚龙湾',
+    bookingHistoryIds: ['1', '3'],
+  );
+});
+
+/// When sort is default_ (智能排序), returns recommendation result; otherwise null.
+final hotelRecommendationResultProvider = Provider<HotelRecommendationResult?>((ref) {
+  final listState = ref.watch(hotelListStateProvider);
+  final queryState = ref.watch(hotelListQueryProvider);
+  final prefs = ref.watch(hotelUserPrefsProvider);
+  if (queryState.sort != HotelSort.default_ || listState.items.isEmpty) {
+    return null;
+  }
+  return computeRecommendations(listState.items, prefs);
+});
+
+/// Similar hotels for detail page (same star, similar price, exclude current).
+final similarHotelsProvider = FutureProvider.autoDispose.family<List<HotelItem>, String>((ref, hotelId) async {
+  final repo = ref.watch(hotelRepositoryProvider);
+  final detail = await ref.watch(hotelDetailProvider(hotelId).future);
+  if (detail == null) return [];
+  final lowestPrice = detail.rooms.isEmpty ? 500.0 : detail.rooms.map((r) => r.price).reduce((a, b) => a < b ? a : b);
+  final result = await repo.getHotels(HotelListQuery(page: 1, limit: 30, sort: HotelSort.default_));
+  final items = result.hotels.map(hotelToItem).where((h) {
+    if (h.id == hotelId) return false;
+    if (h.star != detail.star) return false;
+    final priceOk = h.price >= lowestPrice * 0.6 && h.price <= lowestPrice * 1.5;
+    return priceOk;
+  }).take(5).toList();
+  return items;
+});

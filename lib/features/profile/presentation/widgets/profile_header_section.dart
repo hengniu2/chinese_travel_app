@@ -174,11 +174,7 @@ class ProfileHeaderSection extends StatelessWidget {
                               auth.isAuthenticated
                                   ? (l10n?.profileLoggedIn ?? '已登录')
                                   : (l10n?.profileLogin ?? '点击登录'),
-                              style: GoogleFonts.notoSans(
-                                fontSize: 20.sp,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
+                              style: AppTextStyles.header(Colors.white, fontSize: 21.sp),
                             ),
                             if (auth.isAuthenticated) ...[
                               SizedBox(height: 4.h),

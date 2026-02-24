@@ -21,7 +21,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabPlanner => 'Travel Planner';
 
   @override
+  String get tabTravelService => 'Travel Service';
+
+  @override
   String get tabMessages => 'Messages';
+
+  @override
+  String get tabOrders => 'Orders';
 
   @override
   String get tabProfile => 'My';
@@ -179,6 +185,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hotelBundleCta => 'Book bundle now';
+
+  @override
+  String get hotelSmartBadge => 'Smart pick';
+
+  @override
+  String get hotelSmartPicked => 'For you';
+
+  @override
+  String get hotelGuessYouLike => 'You might like';
+
+  @override
+  String get hotelMoreHotels => 'More hotels';
+
+  @override
+  String get hotelSimilarHotels => 'Similar hotels';
 
   @override
   String get ordersTitle => 'My Orders';
@@ -1277,6 +1298,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerFormCta => 'Start Planning';
 
   @override
+  String get plannerViewMore => 'View More';
+
+  @override
   String get plannerFeaturedTitle => 'Featured Packages';
 
   @override
@@ -1735,6 +1759,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get membershipTierVip => 'VIP';
+
+  @override
+  String get membershipTierNormal => 'Member';
+
+  @override
+  String get membershipTierDiamond => 'Diamond';
+
+  @override
+  String get membershipFreeBreakfast => 'Free breakfast';
+
+  @override
+  String get membershipLateCheckout => 'Late checkout';
+
+  @override
+  String get membershipExclusiveCoupons => 'Exclusive coupons';
+
+  @override
+  String get vipBadgeLabel => 'VIP';
+
+  @override
+  String get vipDiscountLabel => 'VIP discount';
 
   @override
   String get membershipPointsBalance => 'Points balance';

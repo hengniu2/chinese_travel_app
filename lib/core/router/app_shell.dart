@@ -7,7 +7,7 @@ import '../../l10n/app_localizations.dart';
 import '../../shared/design_system/design_system.dart';
 import 'app_router.dart';
 
-/// 底部 5 Tab 壳 · 卡通风：浮动圆角条、选中渐变圆底、柔和未选
+/// 底部 6 Tab 壳 · 中国卡通商业风：选中=浮动渐变胶囊+缩放+光晕，未选=灰色
 class AppShell extends ConsumerWidget {
   const AppShell({
     super.key,
@@ -17,7 +17,20 @@ class AppShell extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
   static const double _kBarTopRadius = 20;
-  static const double _kIndicatorRadius = 16;
+  static const double _kIndicatorRadius = 22;
+  /// Unselected tab: gray icon
+  static const Color _kUnselectedColor = Color(0xFF9E9E9E);
+
+  /// Tab order must match shell branch order in app_router.dart:
+  /// 0=Home, 1=Travel Planner, 2=Travel Service, 3=Companion, 4=Chat, 5=Profile
+  static List<String> get _paths => [
+    '/${RouteNames.home}',
+    '/${RouteNames.planner}',
+    '/${RouteNames.travelService}',
+    '/${RouteNames.joinUs}',
+    '/${RouteNames.messages}',
+    '/${RouteNames.profile}',
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,20 +38,17 @@ class AppShell extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final index = navigationShell.currentIndex;
-    // Outlined icons only, dark stroke — same style as Profile "My orders" section
+    // Same order as _paths and app_router branches
     final destinations = [
-      (icon: Icons.home_outlined, label: l10n.tabHome),
-      (icon: Icons.groups_outlined, label: l10n.tabJoinUs),
-      (icon: Icons.explore_outlined, label: l10n.tabPlanner),
-      (icon: Icons.chat_bubble_outline_rounded, label: l10n.tabMessages),
-      (icon: Icons.person_outline_rounded, label: l10n.tabProfile),
+      (icon: Icons.home_outlined, label: l10n.tabHome),             // 0 → Home
+      (icon: Icons.explore_outlined, label: l10n.tabPlanner),       // 1 → Travel Planner
+      (icon: Icons.luggage_rounded, label: l10n.tabTravelService),  // 2 → Travel Service
+      (icon: Icons.groups_outlined, label: l10n.tabJoinUs),         // 3 → Companion
+      (icon: Icons.chat_bubble_outline_rounded, label: l10n.tabMessages), // 4 → Chat
+      (icon: Icons.person_outline_rounded, label: l10n.tabProfile),  // 5 → Profile
     ];
 
-    final primary = colorScheme.primary;
-    final primaryContainer = colorScheme.primaryContainer;
-    final onPrimary = colorScheme.onPrimary;
     final surface = colorScheme.surface;
-    final onSurfaceVariant = colorScheme.onSurfaceVariant;
 
     return Scaffold(
       body: navigationShell,
@@ -75,14 +85,27 @@ class AppShell extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(_kIndicatorRadius),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 220),
-                      padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 2.h),
+                      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 6.h),
                       decoration: BoxDecoration(
-                        color: selected ? AppColors.primaryPale : Colors.transparent,
+                        gradient: selected
+                            ? LinearGradient(
+                                colors: AppGradients.selectedNav,
+                                stops: AppGradients.selectedNavStops,
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : null,
+                        color: selected ? null : Colors.transparent,
                         borderRadius: BorderRadius.circular(_kIndicatorRadius),
                         boxShadow: selected
                             ? [
                                 BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.12),
+                                  color: AppColors.primary.withValues(alpha: 0.35),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 14,
+                                ),
+                                BoxShadow(
+                                  color: AppColors.primaryDark.withValues(alpha: 0.2),
                                   offset: const Offset(0, 2),
                                   blurRadius: 8,
                                 ),
@@ -94,7 +117,7 @@ class AppShell extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           AnimatedScale(
-                            scale: selected ? 1.06 : 1.0,
+                            scale: selected ? 1.1 : 1.0,
                             duration: const Duration(milliseconds: 220),
                             curve: Curves.easeOutCubic,
                             child: Container(
@@ -102,17 +125,33 @@ class AppShell extends ConsumerWidget {
                               height: 48.w,
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: selected
-                                    ? AppColors.primary.withValues(alpha: 0.16)
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(12.r),
+                                gradient: selected
+                                    ? LinearGradient(
+                                        colors: AppGradients.brand,
+                                        stops: AppGradients.brandStops,
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      )
+                                    : null,
+                                color: selected ? null : Colors.transparent,
+                                borderRadius: BorderRadius.circular(14.r),
+                                boxShadow: selected
+                                    ? [
+                                        BoxShadow(
+                                          color: AppColors.primaryDark
+                                              .withValues(alpha: 0.4),
+                                          offset: const Offset(0, 3),
+                                          blurRadius: 10,
+                                        ),
+                                      ]
+                                    : null,
                               ),
                               child: Icon(
                                 d.icon,
                                 size: 26.sp,
                                 color: selected
-                                    ? AppColors.primary
-                                    : AppColors.iconOutlineOnLight,
+                                    ? Colors.white
+                                    : _kUnselectedColor,
                               ),
                             ),
                           ),
@@ -122,8 +161,8 @@ class AppShell extends ConsumerWidget {
                             style: theme.textTheme.labelSmall?.copyWith(
                               fontSize: 10.sp,
                               color: selected
-                                  ? AppColors.primary
-                                  : AppColors.iconOutlineOnLight,
+                                  ? AppColors.primaryDark
+                                  : _kUnselectedColor,
                               fontWeight:
                                   selected ? FontWeight.w700 : FontWeight.w500,
                             ),
@@ -145,16 +184,9 @@ class AppShell extends ConsumerWidget {
   }
 
   void _onTap(BuildContext context, int index) {
-    final paths = [
-      '/${RouteNames.home}',
-      '/${RouteNames.joinUs}',
-      '/${RouteNames.planner}',
-      '/${RouteNames.messages}',
-      '/${RouteNames.profile}',
-    ];
-    if (index < paths.length) {
-      context.go(paths[index]);
-      navigationShell.goBranch(index);
+    if (index >= 0 && index < _paths.length) {
+      // Always navigate to branch root so correct page + tab highlight stay in sync.
+      navigationShell.goBranch(index, initialLocation: true);
     }
   }
 }

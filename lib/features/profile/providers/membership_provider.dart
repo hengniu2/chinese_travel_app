@@ -2,16 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/membership_models.dart';
 
-/// Points: 1 point per ¥1 spent. Bonus on promotions can be applied when adding points.
 const int pointsPerYuan = 1;
-
-/// Redeem: 100 points = ¥10 discount (10:1).
 const int pointsPerYuanDiscount = 10;
-
-/// Max share of order total that can be paid with points (e.g. 20%).
 const double maxRedeemPercentOfOrder = 0.2;
 
-/// Compute discount in ¥ if user redeems [pointsToUse], without deducting. Cap by [orderTotalYuan] and points.
 int computePointsDiscount(int pointsToUse, int userPoints, double orderTotalYuan) {
   if (pointsToUse <= 0 || userPoints <= 0) return 0;
   final maxByPoints = (pointsToUse.clamp(0, userPoints) / pointsPerYuanDiscount).floor();
@@ -19,7 +13,12 @@ int computePointsDiscount(int pointsToUse, int userPoints, double orderTotalYuan
   return maxByPoints.clamp(0, maxByOrder);
 }
 
-/// User membership profile (tier, points, totalSpent, expiry). Mock for now; replace with API.
+/// VIP discount in ¥ for a given order subtotal (before coupon). Applied automatically at booking.
+double computeVipDiscount(UserMembershipProfile profile, double orderSubtotalYuan) {
+  if (profile.config.discountRate <= 0) return 0;
+  return (orderSubtotalYuan * profile.config.discountRate).roundToDouble();
+}
+
 final userMembershipProfileProvider =
     StateNotifierProvider<MembershipProfileNotifier, UserMembershipProfile>(
   (ref) => MembershipProfileNotifier(),
@@ -28,12 +27,12 @@ final userMembershipProfileProvider =
 class MembershipProfileNotifier extends StateNotifier<UserMembershipProfile> {
   MembershipProfileNotifier()
       : super(const UserMembershipProfile(
-          tier: MembershipTier.silver,
+          tier: MembershipTier.gold,
           points: 1280,
           totalSpent: 5200,
+          tierExpiryDate: null,
         ));
 
-  /// After a purchase: add points (1 per ¥1 + optional bonus), add to totalSpent, check auto-upgrade.
   void onPurchaseCompleted(double amountYuan, {int bonusPoints = 0}) {
     final pointsEarned = (amountYuan * pointsPerYuan).floor() + bonusPoints;
     var newTotalSpent = state.totalSpent + amountYuan;
@@ -52,7 +51,6 @@ class MembershipProfileNotifier extends StateNotifier<UserMembershipProfile> {
     );
   }
 
-  /// Deduct points and return discount in ¥ (call on payment success).
   int usePointsForDiscount(int pointsToUse, double orderTotalYuan) {
     if (pointsToUse <= 0 || state.points <= 0) return 0;
     final redeemYuan = computePointsDiscount(
@@ -61,17 +59,14 @@ class MembershipProfileNotifier extends StateNotifier<UserMembershipProfile> {
       orderTotalYuan,
     );
     if (redeemYuan <= 0) return 0;
-    final pointsUsed = redeemYuan * pointsPerYuanDiscount;
+    final pointsUsed = (redeemYuan * pointsPerYuanDiscount).round();
     state = state.copyWith(points: state.points - pointsUsed);
     return redeemYuan;
   }
 
-  int _tierIndex(MembershipTier t) {
-    return MembershipTier.values.indexOf(t);
-  }
+  int _tierIndex(MembershipTier t) => MembershipTier.values.indexOf(t);
 }
 
-/// Progress to next tier: current totalSpent vs next threshold (0..1).
 double progressToNextTier(UserMembershipProfile profile) {
   final next = TierConfig.nextTier(profile.tier);
   if (next == null) return 1.0;

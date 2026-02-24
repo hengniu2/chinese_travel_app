@@ -33,7 +33,9 @@ class _TravelDetailPageState extends ConsumerState<TravelDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    ref.read(selectedPackageIdProvider.notifier).state = widget.packageId;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(selectedPackageIdProvider.notifier).state = widget.packageId;
+    });
     final detailAsync = ref.watch(travelPackageDetailProvider(widget.packageId));
     final l10n = AppLocalizations.of(context)!;
 
@@ -563,10 +565,10 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 52;
+  double get maxExtent => 60;
 
   @override
-  double get minExtent => 52;
+  double get minExtent => 60;
 
   @override
   bool shouldRebuild(covariant _TabBarDelegate old) {

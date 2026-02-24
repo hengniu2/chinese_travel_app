@@ -1,4 +1,4 @@
-import '../domain/companion_detail.dart';
+import '../models/companion_detail.dart';
 
 CompanionDetail getCompanionDetail(String id) {
   switch (id) {

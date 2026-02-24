@@ -10,7 +10,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../../shared/widgets/app_network_image.dart';
 import '../../../companions/data/companion_list_mock.dart';
-import '../../../companions/domain/companion_list_item.dart';
+import '../../../companions/models/companion_list_item.dart';
 import '../../../hotel/data/hotel_mock_data.dart';
 import '../../../hotel/data/hotel_model.dart';
 import '../../../tours/data/tour_list_mock.dart';
@@ -89,10 +89,16 @@ class _HomeShellPageState extends ConsumerState<HomeShellPage>
       backgroundColor: AppColors.warmBackground,
       body: Column(
         children: [
-          SizedBox(
-            height: heroHeight,
-            width: double.infinity,
-            child: _HomeHeader(heroHeight: heroHeight),
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(12),
+              bottomRight: Radius.circular(12),
+            ),
+            child: SizedBox(
+              height: heroHeight,
+              width: double.infinity,
+              child: _HomeHeader(heroHeight: heroHeight),
+            ),
           ),
           Expanded(
             child: FadeTransition(
@@ -102,14 +108,16 @@ class _HomeShellPageState extends ConsumerState<HomeShellPage>
                 child: CustomScrollView(
                   slivers: [
                     SliverToBoxAdapter(
-                      child: _HomeContentCard(
-                        contentController: _contentController,
-                        index: 0,
-                        onNavigate: _safePush,
-                        onGoTours: () => _safePush('/tours'),
-                        onGoHotels: () => _safePush('/hotels'),
-                        onGoOrders: () => _safePush('/orders'),
-                        onGoTravelService: () => _safePush('/travel-service'),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: _HomeContentCard(
+                          contentController: _contentController,
+                          index: 0,
+                          onNavigate: _safePush,
+                          onGoTours: () => _safePush('/tours'),
+                          onGoHotels: () => _safePush('/hotels'),
+                          onGoOrders: () => _safePush('/orders'),
+                        ),
                       ),
                     ),
                     SliverToBoxAdapter(
@@ -519,7 +527,7 @@ class _HomeSearchBarCapsule extends StatelessWidget {
   }
 }
 
-/// 内容区白卡：搜索栏 + 功能入口 Grid（搜索栏不放在 Header，保持原设计）
+/// 内容区白卡：搜索栏 + 功能入口 Grid（10 个入口，5×2 布局）
 class _HomeContentCard extends StatelessWidget {
   const _HomeContentCard({
     required this.contentController,
@@ -528,7 +536,6 @@ class _HomeContentCard extends StatelessWidget {
     required this.onGoTours,
     required this.onGoHotels,
     required this.onGoOrders,
-    required this.onGoTravelService,
   });
 
   final AnimationController contentController;
@@ -537,7 +544,6 @@ class _HomeContentCard extends StatelessWidget {
   final VoidCallback onGoTours;
   final VoidCallback onGoHotels;
   final VoidCallback onGoOrders;
-  final VoidCallback onGoTravelService;
 
   @override
   Widget build(BuildContext context) {
@@ -546,8 +552,18 @@ class _HomeContentCard extends StatelessWidget {
       index: index,
       child: Container(
         width: double.infinity,
-        color: AppColors.homeSearchCapsule,
-        padding: EdgeInsets.fromLTRB(_kSectionPadH, _kSectionPadV * 1.2, _kSectionPadH, _kSectionPadV),
+        decoration: BoxDecoration(
+          color: AppColors.homeSearchCapsule,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              offset: const Offset(0, -2),
+              blurRadius: 12,
+            ),
+          ],
+        ),
+        padding: EdgeInsets.fromLTRB(_kSectionPadH, _kSectionPadV * 1.5, _kSectionPadH, _kSectionPadV),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: _buildGridRows(context),
@@ -557,7 +573,7 @@ class _HomeContentCard extends StatelessWidget {
   }
 
   List<Widget> _buildGridRows(BuildContext context) {
-    // 11 个入口（含出行服务），中国风图标（圆角方形容器 + Icon）
+    // 10 个入口，5×2 平衡布局（出行服务已移至底部导航）
     final items = [
       (icon: Icons.groups_rounded, label: '社交旅行', color: AppColors.tagGreen, badge: null, onTap: () => onNavigate('/social-travel')),
       (icon: Icons.family_restroom_rounded, label: '亲子旅行', color: AppColors.accentGold, badge: null, onTap: () => onNavigate('/family-travel')),
@@ -569,8 +585,8 @@ class _HomeContentCard extends StatelessWidget {
       (icon: Icons.explore_rounded, label: '周边活动', color: AppColors.accentWarm, badge: null, onTap: () => onNavigate('/surrounding-activities')),
       (icon: Icons.child_care_rounded, label: '亲子活动', color: AppColors.accentGold, badge: null, onTap: () => onNavigate('/family-travel')),
       (icon: Icons.menu_book_rounded, label: '游玩笔记', color: AppColors.accentCool, badge: null, onTap: () => onNavigate('/notes')),
-      (icon: Icons.flight_takeoff_rounded, label: '出行服务', color: AppColors.primary, badge: null, onTap: onGoTravelService),
     ];
+    assert(items.length == 10, 'Home grid must have exactly 10 items for 5×2 layout');
     return [
       Row(
         children: [
@@ -583,12 +599,6 @@ class _HomeContentCard extends StatelessWidget {
         children: [
           for (int i = 5; i < 10; i++)
             Expanded(child: _GridItem(item: items[i])),
-        ],
-      ),
-      SizedBox(height: _kGridRowGap),
-      Row(
-        children: [
-          Expanded(child: _GridItem(item: items[10])),
         ],
       ),
     ];
@@ -957,7 +967,13 @@ class _PeopleSection extends StatelessWidget {
   }
 }
 
-/// 类型 B：贴纸人物卡（阴影、圆角 14、图略突出）
+String _formatCount(int n) {
+  if (n >= 10000) return '${(n / 10000).toStringAsFixed(1)}万';
+  if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}k';
+  return n.toString();
+}
+
+/// 类型 B：贴纸人物卡（阴影、圆角 14、图略突出、副标题、阅读量、阅读入口）
 class _PersonStickerCard extends StatelessWidget {
   const _PersonStickerCard({required this.person, required this.onTap});
 
@@ -971,43 +987,125 @@ class _PersonStickerCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: AppShadow.cardElevated,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              offset: const Offset(0, 2),
+              blurRadius: 10,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              offset: const Offset(0, 4),
+              blurRadius: 12,
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: EdgeInsets.all(6),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: AppNetworkImage(
-                  imageUrl: person.avatarUrl,
-                  width: double.infinity,
-                  height: 88.h,
-                  fit: BoxFit.cover,
-                  fadeInDuration: const Duration(milliseconds: 300),
+            Stack(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(6),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: AppNetworkImage(
+                      imageUrl: person.avatarUrl,
+                      width: double.infinity,
+                      height: 96.h,
+                      fit: BoxFit.cover,
+                      fadeInDuration: const Duration(milliseconds: 300),
+                    ),
+                  ),
                 ),
-              ),
+                Positioned(
+                  right: 10,
+                  bottom: 10,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.menu_book_rounded, size: 10.sp, color: Colors.white),
+                        SizedBox(width: 4),
+                        Text(
+                          '阅读',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(8, 0, 8, 8),
-              child: Row(
+              padding: EdgeInsets.fromLTRB(10, 6, 10, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.location_on_rounded, size: 12.sp, color: AppColors.textTertiary),
-                  SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      person.name,
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.textPrimary,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w600,
+                  Text(
+                    person.name,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textPrimary,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (person.subtitle != null) ...[
+                    SizedBox(height: 4),
+                    Text(
+                      person.subtitle!,
+                      style: AppTextStyles.overline.copyWith(
+                        color: AppColors.textTertiary,
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w500,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ),
+                  ],
+                  if (person.readCount != null || person.likeCount != null) ...[
+                    SizedBox(height: 6),
+                    Row(
+                      children: [
+                        if (person.readCount != null) ...[
+                          Icon(Icons.visibility_outlined, size: 12.sp, color: AppColors.textTertiary),
+                          SizedBox(width: 4),
+                          Text(
+                            _formatCount(person.readCount!),
+                            style: AppTextStyles.overline.copyWith(
+                              color: AppColors.textTertiary,
+                              fontSize: 10.sp,
+                            ),
+                          ),
+                        ],
+                        if (person.readCount != null && person.likeCount != null) SizedBox(width: 12),
+                        if (person.likeCount != null) ...[
+                          Icon(Icons.favorite_border, size: 12.sp, color: AppColors.textTertiary),
+                          SizedBox(width: 4),
+                          Text(
+                            _formatCount(person.likeCount!),
+                            style: AppTextStyles.overline.copyWith(
+                              color: AppColors.textTertiary,
+                              fontSize: 10.sp,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1037,12 +1135,7 @@ class _FamilyActivitiesSection extends StatelessWidget {
             Expanded(
               child: Text(
                 '亲子活动',
-                style: GoogleFonts.zcoolKuaiLe(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                  height: 1.25,
-                ),
+                style: AppTextStyles.header(AppColors.textPrimary, fontSize: 16.sp),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1085,10 +1178,10 @@ class _FamilyActivitiesSection extends StatelessWidget {
   }
 }
 
-const double _kFamilyCardHeight = 164;
-const double _kFamilyCardWidth = 112;
+const double _kFamilyCardHeight = 180;
+const double _kFamilyCardWidth = 120;
 
-/// 亲子活动 · 竖版卡片：图片 + 底部渐变 + 标题/副标题/城市标签
+/// 亲子活动 · 竖版卡片：图片 + 底部渐变 + 标题/副标题/摘要/城市标签
 class _FamilyMiniPosterCard extends StatelessWidget {
   const _FamilyMiniPosterCard({
     required this.item,
@@ -1103,8 +1196,8 @@ class _FamilyMiniPosterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cardH = _kFamilyCardHeight.h;
-    final imageH = cardH * 0.62;
-    final bottomH = cardH * 0.38;
+    final imageH = cardH * 0.55;
+    final bottomH = cardH * 0.45;
     return _TapScale(
       onTap: onTap,
       child: SizedBox(
@@ -1112,13 +1205,18 @@ class _FamilyMiniPosterCard extends StatelessWidget {
         height: cardH,
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(_kPosterCardRadius),
+            borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
+                color: Colors.black.withValues(alpha: 0.08),
                 offset: const Offset(0, 2),
-                blurRadius: 8,
+                blurRadius: 10,
                 spreadRadius: 0,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                offset: const Offset(0, 4),
+                blurRadius: 12,
               ),
             ],
           ),
@@ -1151,13 +1249,13 @@ class _FamilyMiniPosterCard extends StatelessWidget {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withValues(alpha: 0.5),
-                        Colors.black.withValues(alpha: 0.82),
+                        Colors.black.withValues(alpha: 0.45),
+                        Colors.black.withValues(alpha: 0.88),
                       ],
-                      stops: const [0.0, 0.4, 1.0],
+                      stops: const [0.0, 0.35, 1.0],
                     ),
                   ),
-                  padding: EdgeInsets.fromLTRB(10, 8, 10, 10),
+                  padding: EdgeInsets.fromLTRB(10, 12, 10, 10),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     mainAxisSize: MainAxisSize.min,
@@ -1165,16 +1263,25 @@ class _FamilyMiniPosterCard extends StatelessWidget {
                     children: [
                       Text(
                         item.title,
-                        style: GoogleFonts.zcoolKuaiLe(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          height: 1.2,
-                        ),
+                        style: AppTextStyles.header(Colors.white, fontSize: 15.sp),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       SizedBox(height: 4),
+                      if (item.excerpt != null)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            item.excerpt!,
+                            style: AppTextStyles.overline.copyWith(
+                              color: Colors.white.withValues(alpha: 0.85),
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       Row(
                         children: [
                           Expanded(
@@ -1843,7 +1950,7 @@ class _CompanionsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final companions = getFeaturedCompanions();
+    final List<CompanionListItem> companions = getFeaturedCompanions();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,

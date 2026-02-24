@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_shadow.dart';
 
 /// Travel Planner design system tokens.
 /// Use for consistent styling: modern travel green, soft shadows, clear hierarchy.
@@ -24,64 +25,39 @@ class TravelDesignTokens {
   static List<Color> get accentLimeGradient => [AppColors.primaryDark, AppColors.primary];
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Radius system — max 12–16dp: Small 8 / Medium 12 / Large 12
+  // Radius — Chinese cartoon: card 26 / pill 22 / button 26 (use AppRadius)
   // ─────────────────────────────────────────────────────────────────────────
-  static const double radiusSmall = 8;
-  static const double radiusMedium = 12;
-  static const double radiusLarge = 12;
+  static const double radiusSmall = 12;
+  static const double radiusMedium = 20;
+  static const double radiusLarge = 26;
+  static const double radiusPill = 22;
 
   static BorderRadius get borderRadiusSmall => BorderRadius.circular(radiusSmall);
   static BorderRadius get borderRadiusMedium => BorderRadius.circular(radiusMedium);
   static BorderRadius get borderRadiusLarge => BorderRadius.circular(radiusLarge);
+  static BorderRadius get borderRadiusPill => BorderRadius.circular(radiusPill);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Standard padding
+  // Spacing — section 20 / card 16 / page horizontal 16 (use AppSpacing)
   // ─────────────────────────────────────────────────────────────────────────
   /// Screen horizontal padding
   static const double screenHorizontal = 16;
   /// Card inner padding
   static const double cardPadding = 16;
   /// Between sections
-  static const double sectionGap = 24;
+  static const double sectionGap = 20;
 
   static EdgeInsets get paddingScreen => const EdgeInsets.symmetric(horizontal: 16);
   static EdgeInsets get paddingCard => const EdgeInsets.all(16);
-  static EdgeInsets get paddingSection => const EdgeInsets.symmetric(vertical: 24);
+  static EdgeInsets get paddingSection => const EdgeInsets.symmetric(vertical: 20);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Shadow — Level 1 soft, Level 2 medium. Avoid heavy.
+  // Shadow — soft only, tinted, blur 20–30, Y 8–12 (delegate to AppShadow)
   // ─────────────────────────────────────────────────────────────────────────
-  /// Level 1 — soft subtle (cards, list items)
-  static List<BoxShadow> get shadowLevel1 => [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
-          offset: const Offset(0, 1),
-          blurRadius: 4,
-          spreadRadius: 0,
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.06),
-          offset: const Offset(0, 2),
-          blurRadius: 8,
-          spreadRadius: 0,
-        ),
-      ];
-
-  /// Level 2 — medium, light (elevated cards, buttons; no heavy shadow)
-  static List<BoxShadow> get shadowLevel2 => [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
-          offset: const Offset(0, 2),
-          blurRadius: 6,
-          spreadRadius: 0,
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.06),
-          offset: const Offset(0, 4),
-          blurRadius: 12,
-          spreadRadius: -1,
-        ),
-      ];
+  /// Level 1 — soft (cards, list items)
+  static List<BoxShadow> get shadowLevel1 => AppShadow.light;
+  /// Level 2 — medium soft (elevated cards, buttons)
+  static List<BoxShadow> get shadowLevel2 => AppShadow.medium;
 
   // ─────────────────────────────────────────────────────────────────────────
   // Typography — clear hierarchy

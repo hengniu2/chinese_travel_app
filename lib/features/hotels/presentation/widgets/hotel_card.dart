@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../domain/hotel_item.dart';
 import 'hotel_ui_constants.dart';
@@ -21,6 +22,8 @@ class HotelCard extends StatelessWidget {
     this.isInCompare = false,
     this.canAddToCompare = false,
     this.onCompareTap,
+    /// AI smart recommendation: show yellow "智能推荐" badge.
+    this.showSmartBadge = false,
   });
 
   final HotelItem hotel;
@@ -31,6 +34,7 @@ class HotelCard extends StatelessWidget {
   final bool isInCompare;
   final bool canAddToCompare;
   final VoidCallback? onCompareTap;
+  final bool showSmartBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -158,6 +162,10 @@ class HotelCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
+        if (showSmartBadge) ...[
+          SizedBox(width: HotelUIConstants.grid1.w),
+          _smartBadge(context),
+        ],
         if (hotel.tagBadge != null) ...[
           SizedBox(width: HotelUIConstants.grid1.w),
           _tagBadge(hotel.tagBadge!),
@@ -179,6 +187,36 @@ class HotelCard extends StatelessWidget {
       case HotelTagBadge.hot:
         return '热门';
     }
+  }
+
+  Widget _smartBadge(BuildContext context) {
+    final label = AppLocalizations.of(context)?.hotelSmartBadge ?? '智能推荐';
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.primary, AppColors.primaryDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(6),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.4),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.overline.copyWith(
+          color: AppColors.iconOutlineOnLight,
+          fontSize: 10.sp,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
   }
 
   Widget _tagBadge(HotelTagBadge badge) {

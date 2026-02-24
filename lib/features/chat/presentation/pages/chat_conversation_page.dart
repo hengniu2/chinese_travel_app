@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../../shared/widgets/app_network_image.dart';
-import '../../data/chat_assets.dart';
 import '../../data/chat_list_mock.dart';
 import '../../data/chat_messages_mock.dart';
 import '../../domain/chat_message.dart';
@@ -31,17 +29,43 @@ class ChatConversationPage extends StatefulWidget {
   State<ChatConversationPage> createState() => _ChatConversationPageState();
 }
 
-class _ChatConversationPageState extends State<ChatConversationPage> {
+class _ChatConversationPageState extends State<ChatConversationPage> with SingleTickerProviderStateMixin {
   List<ChatMessage> _messages = [];
   List<_ChatListItem> _listItems = [];
   final _inputController = TextEditingController();
   final _scrollController = ScrollController();
+  bool _partnerTyping = false;
+  late AnimationController _typingController;
+
+  static const Color _creamBackground = Color(0xFFFFF8E8);
 
   @override
   void initState() {
     super.initState();
     _messages = getChatMessages(widget.chatId);
     _rebuildListItems();
+    _typingController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+    _simulateTyping();
+  }
+
+  void _simulateTyping() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _partnerTyping = true);
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) setState(() => _partnerTyping = false);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _typingController.dispose();
+    _inputController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _rebuildListItems() {
@@ -75,13 +99,6 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
     if (dt == today) return timeStr;
     if (dt == yesterday) return '昨天 $timeStr';
     return '${t.month}月${t.day}日 $timeStr';
-  }
-
-  @override
-  void dispose() {
-    _inputController.dispose();
-    _scrollController.dispose();
-    super.dispose();
   }
 
   String get _nickname {
@@ -152,9 +169,12 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
                   child: ListView.builder(
                   cacheExtent: 200,
                   controller: _scrollController,
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-                  itemCount: _listItems.length,
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+                  itemCount: _listItems.length + (_partnerTyping ? 1 : 0),
                   itemBuilder: (context, index) {
+                    if (_partnerTyping && index == _listItems.length) {
+                      return _buildTypingIndicator();
+                    }
                     final item = _listItems[index];
                     if (item.isTimeSeparator) {
                       return _buildTimeSeparator(item.timeLabel!);
@@ -194,30 +214,10 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
     );
   }
 
-  /// 对话页背景：与列表页区分 — 浅灰蓝渐变 + 柔和圆点图案（聊天气泡感）
+  /// 对话页背景：柔和奶油色 #FFF8E8，无重绿
   Widget _buildConversationBackground(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFFF0F4F8),
-                Color(0xFFE8EEF4),
-                Color(0xFFE2E8EE),
-              ],
-            ),
-          ),
-        ),
-        Positioned.fill(
-          child: CustomPaint(
-            painter: _ConversationDotPatternPainter(),
-          ),
-        ),
-      ],
+    return Container(
+      color: _creamBackground,
     );
   }
 
@@ -255,87 +255,79 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
     );
   }
 
-  /// 对话页顶栏：拉伸到顶部（含状态栏区域），卡通头图 + 渐变遮罩 + 返回/头像/标题
+  /// 对话页顶栏：奶油底 + 返回/伴游头像/昵称/在线状态/更多，黄品牌无绿
   Widget _buildAppBar(BuildContext context) {
     const double barHeight = 56;
     final topPadding = MediaQuery.of(context).padding.top;
     final totalHeight = barHeight.h + topPadding;
-    return SizedBox(
+    return Container(
       height: totalHeight,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              kChatHeaderImageAsset,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _appBarFallback(),
+      decoration: BoxDecoration(
+        color: _creamBackground,
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 4.w,
+          right: 4.w,
+          top: topPadding + 6.h,
+          bottom: 6.h,
+        ),
+        child: Row(
+          children: [
+            IconButton(
+              icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20.sp),
+              onPressed: () => context.pop(),
+              color: AppColors.textPrimary,
             ),
-          ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppColors.homeSectionGreen.withValues(alpha: 0.85),
-                    AppColors.primaryPale.withValues(alpha: 0.92),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(
-              left: 8.w,
-              right: 8.w,
-              top: topPadding + 8.h,
-              bottom: 8.h,
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(Icons.arrow_back_ios_new_rounded, size: 22.sp),
-                  onPressed: () => context.pop(),
-                  color: AppColors.textPrimary,
-                ),
-                _buildPartnerAvatar(),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Text(
+            _buildPartnerAvatar(),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
                     _nickname,
-                    style: GoogleFonts.zcoolKuaiLe(
-                      fontSize: 18.sp,
+                    style: AppTextStyles.titleMedium.copyWith(
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.more_horiz_rounded, size: 24.sp),
-                  onPressed: () {},
-                  color: AppColors.textPrimary,
-                ),
-              ],
+                  SizedBox(height: 2.h),
+                  Row(
+                    children: [
+                      Container(
+                        width: 6.w,
+                        height: 6.w,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        '在线',
+                        style: AppTextStyles.overline.copyWith(
+                          color: AppColors.textSecondary,
+                          fontSize: 11.sp,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _appBarFallback() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.homeSectionGreen,
-            AppColors.primaryPale,
+            IconButton(
+              icon: Icon(Icons.more_horiz_rounded, size: 24.sp),
+              onPressed: () {},
+              color: AppColors.textPrimary,
+            ),
           ],
         ),
       ),
@@ -351,7 +343,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
         shape: BoxShape.circle,
         color: AppColors.primaryPale,
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.25),
+          color: AppColors.primary.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -366,6 +358,48 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
               ),
             )
           : _avatarPlaceholder(size),
+    );
+  }
+
+  /// 正在输入... 指示（带点点动画）
+  Widget _buildTypingIndicator() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 3.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          _buildPartnerAvatar(),
+          SizedBox(width: 6.w),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(14.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  offset: const Offset(0, 1),
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+            child: AnimatedBuilder(
+              animation: _typingController,
+              builder: (context, child) {
+                final t = _typingController.value;
+                final dots = (1 + (t * 3).floor() % 3);
+                return Text(
+                  '正在输入${'.' * dots}',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.sp,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -384,7 +418,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
 
   Widget _buildTimeSeparator(String label) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 16.h),
+      padding: EdgeInsets.symmetric(vertical: 10.h),
       child: Center(
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
@@ -408,21 +442,14 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
     );
   }
 
-  /// 马蜂窝/携程风：您可以问我… 智能提示条
+  /// 智能提示条：黄品牌，无绿
   Widget _buildSmartTipsStrip(BuildContext context, AppLocalizations? l10n) {
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.fromLTRB(12.w, 0, 12.w, 8.h),
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+      margin: EdgeInsets.fromLTRB(10.w, 0, 10.w, 6.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            AppColors.primaryPale.withValues(alpha: 0.7),
-            AppColors.homeSectionGreen.withValues(alpha: 0.5),
-          ],
-        ),
+        color: AppColors.primaryPale.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
           color: AppColors.primary.withValues(alpha: 0.15),
@@ -464,7 +491,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
       l10n?.chatQuickReplyLater ?? '稍后联系',
     ];
     return Container(
-      padding: EdgeInsets.fromLTRB(12.w, 6.h, 12.w, 8.h),
+      padding: EdgeInsets.fromLTRB(10.w, 4.h, 10.w, 6.h),
       decoration: BoxDecoration(
         color: AppColors.primaryPale.withValues(alpha: 0.2),
         border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
@@ -604,24 +631,4 @@ class _ChatConversationPageState extends State<ChatConversationPage> {
       ),
     );
   }
-}
-
-/// 对话页专用：柔和圆点图案（与列表页暖色头图背景区分）
-class _ConversationDotPatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const double spacing = 28;
-    const double radius = 1.2;
-    final paint = Paint()
-      ..color = const Color(0xFFB0BEC5).withValues(alpha: 0.12)
-      ..style = PaintingStyle.fill;
-    for (double y = 0; y < size.height; y += spacing) {
-      for (double x = 0; x < size.width; x += spacing) {
-        canvas.drawCircle(Offset(x, y), radius, paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

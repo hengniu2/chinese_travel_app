@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../data/membership_models.dart';
 import '../../data/profile_ui_state.dart';
 
 /// Sample style: one stretched header with background image + profile row inside (avatar, user ID, badge, edit).
@@ -24,6 +25,7 @@ class ProfileHeaderStrip extends StatelessWidget {
     super.key,
     required this.auth,
     this.profileState,
+    this.membershipProfile,
     this.onSettings,
     this.onLogout,
     this.onMore,
@@ -31,6 +33,8 @@ class ProfileHeaderStrip extends StatelessWidget {
 
   final AuthState auth;
   final ProfileUiState? profileState;
+  /// When non-null and isVip, shows golden VIP badge next to username.
+  final UserMembershipProfile? membershipProfile;
   final VoidCallback? onSettings;
   final VoidCallback? onLogout;
   final VoidCallback? onMore;
@@ -180,17 +184,24 @@ class ProfileHeaderStrip extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            auth.isAuthenticated
-                                ? (l10n?.profileUserLabel('1394') ?? '用户1394')
-                                : (l10n?.profileLogin ?? '点击登录'),
-                            style: GoogleFonts.notoSans(
-                              fontSize: 17.sp,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  auth.isAuthenticated
+                                      ? (l10n?.profileUserLabel('1394') ?? '用户1394')
+                                      : (l10n?.profileLogin ?? '点击登录'),
+                                  style: AppTextStyles.header(Colors.white, fontSize: 18.sp),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (membershipProfile != null && membershipProfile!.isVip) ...[
+                                SizedBox(width: 8.w),
+                                _VipBadge(label: l10n?.vipBadgeLabel ?? 'VIP'),
+                              ],
+                            ],
                           ),
                           SizedBox(height: 4.h),
                           Container(
@@ -396,11 +407,7 @@ class ProfileHeaderUserCard extends StatelessWidget {
                     auth.isAuthenticated
                         ? (l10n?.profileUserLabel('1394') ?? '用户1394')
                         : (l10n?.profileLogin ?? '点击登录'),
-                    style: GoogleFonts.notoSans(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
+                    style: AppTextStyles.header(AppColors.textPrimary, fontSize: 19.sp),
                   ),
                   SizedBox(height: 6.h),
                   Container(
@@ -472,6 +479,49 @@ class ProfileHeaderUserCard extends StatelessWidget {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Golden gradient VIP badge shown next to username.
+class _VipBadge extends StatelessWidget {
+  const _VipBadge({required this.label});
+
+  final String label;
+
+  static const List<Color> _gradientColors = [
+    Color(0xFFFFE082),
+    Color(0xFFFFD54F),
+    Color(0xFFF9A825),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: _gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFF9A825).withValues(alpha: 0.5),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11.sp,
+          fontWeight: FontWeight.w800,
+          color: const Color(0xFF3E2723),
         ),
       ),
     );

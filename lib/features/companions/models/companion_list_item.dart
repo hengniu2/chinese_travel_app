@@ -1,4 +1,4 @@
-/// 陪游列表项（发现页 / 卡片用）- 结构化数据模型
+/// 陪游列表项（发现页 / 卡片用）
 class CompanionListItem {
   const CompanionListItem({
     required this.id,

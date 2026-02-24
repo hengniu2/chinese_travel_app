@@ -4,10 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
-import '../../../auth/presentation/widgets/auth_input_field.dart';
-import '../../domain/companion_order.dart';
+import '../../auth/presentation/widgets/auth_input_field.dart';
+import '../models/companion_order.dart';
 
-/// 单条出行人/入住人信息卡（姓名、身份证、手机号）- 卡片化、身份证风格优化、错误提示
+/// 单条出行人/入住人信息卡（姓名、身份证、手机号）
 class TravelerFormCard extends StatefulWidget {
   const TravelerFormCard({
     super.key,
@@ -172,7 +172,6 @@ class _TravelerFormCardState extends State<TravelerFormCard> {
     );
   }
 
-  /// 身份证输入：等宽字体、字数提示、商业感边框
   Widget _buildIdCardField(AppLocalizations? l10n) {
     final hasError = widget.idCardError != null && widget.idCardError!.isNotEmpty;
     return Column(
@@ -242,4 +241,3 @@ class _TravelerFormCardState extends State<TravelerFormCard> {
     );
   }
 }
-

@@ -28,11 +28,7 @@ class NearbyActivityListPage extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Text(
                 '周边活动',
-                style: GoogleFonts.zcoolKuaiLe(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                ),
+                style: AppTextStyles.header(AppColors.textPrimary, fontSize: 18.sp),
               ),
             ),
           ),
@@ -85,11 +81,7 @@ class NearbyActivityListPage extends StatelessWidget {
       ),
       title: Text(
         '周边活动',
-        style: GoogleFonts.zcoolKuaiLe(
-          fontSize: 18.sp,
-          fontWeight: FontWeight.w800,
-          color: Colors.white,
-        ),
+        style: AppTextStyles.header(Colors.white, fontSize: 18.sp),
       ),
     );
   }
@@ -174,11 +166,7 @@ class _NearbyPosterCard extends StatelessWidget {
                           children: [
                             Text(
                               item.title,
-                              style: GoogleFonts.zcoolKuaiLe(
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
+                              style: AppTextStyles.header(Colors.white, fontSize: 15.sp),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),

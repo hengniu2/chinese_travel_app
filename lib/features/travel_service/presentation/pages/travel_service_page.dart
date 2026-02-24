@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-/// 出行服务 - 机票 | 火车 | 接送机
+import '../../../../core/router/app_router.dart';
+import '../widgets/booking_tab_section.dart';
+import '../widgets/multi_trip_form.dart';
+import '../widgets/round_trip_form.dart';
+import '../widgets/single_trip_form.dart';
+
+/// 出行服务 - Full-screen background with stacked content.
+/// Background extends behind status bar; no AppBar; custom back when needed.
 class TravelServicePage extends StatefulWidget {
   const TravelServicePage({super.key});
 
@@ -8,156 +16,90 @@ class TravelServicePage extends StatefulWidget {
   State<TravelServicePage> createState() => _TravelServicePageState();
 }
 
-class _TravelServicePageState extends State<TravelServicePage>
-    with SingleTickerProviderStateMixin {
-  static const Color _yellowAccent = Color(0xFFFFEE58);
-  static const Color _unselectedGrey = Color(0xFF9E9E9E);
+class _TravelServicePageState extends State<TravelServicePage> {
+  static const String _bgAsset = 'assets/travel_service_body.png';
 
-  static const Duration _entranceDuration = Duration(milliseconds: 400);
-  static const Offset _slideBegin = Offset(0, 0.1);
-
-  late final AnimationController _entranceController;
-  late final Animation<double> _entranceOpacity;
-  late final Animation<Offset> _entranceSlide;
-
-  @override
-  void initState() {
-    super.initState();
-    _entranceController = AnimationController(
-      duration: _entranceDuration,
-      vsync: this,
-    );
-    final curved = CurvedAnimation(
-      parent: _entranceController,
-      curve: Curves.easeOut,
-    );
-    _entranceOpacity = Tween<double>(begin: 0, end: 1).animate(curved);
-    _entranceSlide = Tween<Offset>(
-      begin: _slideBegin,
-      end: Offset.zero,
-    ).animate(curved);
-    _entranceController.forward();
-  }
+  final ScrollController _scrollController = ScrollController();
+  final ScrollController _roundTripScrollController = ScrollController();
+  final ScrollController _multiTripScrollController = ScrollController();
 
   @override
   void dispose() {
-    _entranceController.dispose();
+    _scrollController.dispose();
+    _roundTripScrollController.dispose();
+    _multiTripScrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header (entrance animation)
-            FadeTransition(
-              opacity: _entranceOpacity,
-              child: SlideTransition(
-                position: _entranceSlide,
-                child: _buildHeader(),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 1) Full-screen background image (extends behind status bar)
+          Positioned.fill(
+            child: Image.asset(
+              _bgAsset,
+              fit: BoxFit.cover,
+            ),
+          ),
+          // 2) Dark overlay for readability
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.05),
               ),
             ),
-            // Tabs (entrance animation)
-            FadeTransition(
-              opacity: _entranceOpacity,
-              child: SlideTransition(
-                position: _entranceSlide,
-                child: Material(
-                  color: const Color(0xFFFFFDF5),
-                  child: TabBar(
-                    labelColor: Colors.black87,
-                    unselectedLabelColor: _unselectedGrey,
-                    labelStyle: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    unselectedLabelStyle: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.normal,
-                    ),
-                    indicator: UnderlineTabIndicator(
-                      borderSide: BorderSide(
-                        color: _yellowAccent,
-                        width: 3,
+          ),
+          // 3) Main content in SafeArea (form height limited so train in bg is visible)
+          SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildTopBar(context),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+                      child: BookingTabSection(
+                        overlapHeight: 16,
+                        tabOne: SingleTripForm(
+                          scrollController: _scrollController,
+                        ),
+                        tabTwo: RoundTripForm(
+                          scrollController: _roundTripScrollController,
+                        ),
+                        tabThree: MultiTripForm(
+                          scrollController: _multiTripScrollController,
+                        ),
                       ),
                     ),
-                    indicatorSize: TabBarIndicatorSize.label,
-                    tabs: const [
-                      Tab(text: '单程'),
-                      Tab(text: '往返'),
-                      Tab(text: '多程'),
-                    ],
                   ),
                 ),
-              ),
+              ],
             ),
-            Expanded(
-              child: SafeArea(
-                top: false,
-                child: Container(
-                  width: double.infinity,
-                  color: const Color(0xFFF7F9FC),
-                  child: TabBarView(
-                    children: [
-                      _buildOneWayTab(),
-                      _buildEmptyTabChild(),
-                      _buildEmptyTabChild(),
-                    ],
-                  ),
+          ),
+          // 4) Floating buttons bottom right: Order, Home
+          Positioned(
+            right: 20,
+            bottom: 24 + MediaQuery.paddingOf(context).bottom,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _FloatingNavButton(
+                  icon: Icons.receipt_long_rounded,
+                  onTap: () => context.go('/${RouteNames.orders}'),
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFFFF176),
-            Color(0xFFFFEE58),
-          ],
-        ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '出行服务',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '机票 · 火车 · 接送机 · 包车',
-            style: TextStyle(
-              fontSize: 14,
+                const SizedBox(height: 12),
+                _FloatingNavButton(
+                  icon: Icons.home_rounded,
+                  onTap: () => context.go('/${RouteNames.home}'),
+                ),
+              ],
             ),
           ),
         ],
@@ -165,172 +107,46 @@ class _TravelServicePageState extends State<TravelServicePage>
     );
   }
 
-  /// 单程 tab: search form card (with entrance animation).
-  Widget _buildOneWayTab() {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            FadeTransition(
-              opacity: _entranceOpacity,
-              child: SlideTransition(
-                position: _entranceSlide,
-                child: _buildSearchFormCard(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// White card: search form fields (UI only).
-  static Widget _buildSearchFormCard() {
-    const double fieldHeight = 56;
-    const double fieldRadius = 14;
-    const Color fieldBg = Color(0xFFF5F5F5); // #F5F5F5
-    const double gap = 16;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _formField(
-            height: fieldHeight,
-            radius: fieldRadius,
-            bg: fieldBg,
-            icon: Icons.flight_takeoff_rounded,
-            label: '出发',
-            trailing: Icon(Icons.swap_vert_rounded, size: 22, color: Colors.grey[600]),
-          ),
-          SizedBox(height: gap),
-          _formField(
-            height: fieldHeight,
-            radius: fieldRadius,
-            bg: fieldBg,
-            icon: Icons.flight_land_rounded,
-            label: '到达',
-            trailing: Icon(Icons.keyboard_arrow_down_rounded, size: 24, color: Colors.grey[600]),
-          ),
-          SizedBox(height: gap),
-          _formField(
-            height: fieldHeight,
-            radius: fieldRadius,
-            bg: fieldBg,
-            icon: Icons.calendar_today_rounded,
-            label: '日期',
-            trailing: Icon(Icons.keyboard_arrow_down_rounded, size: 24, color: Colors.grey[600]),
-          ),
-          SizedBox(height: gap),
-          _formField(
-            height: fieldHeight,
-            radius: fieldRadius,
-            bg: fieldBg,
-            icon: Icons.person_outline_rounded,
-            label: '成人/儿童',
-            trailing: Icon(Icons.keyboard_arrow_down_rounded, size: 24, color: Colors.grey[600]),
-          ),
-          SizedBox(height: gap),
-          _formField(
-            height: fieldHeight,
-            radius: fieldRadius,
-            bg: fieldBg,
-            icon: Icons.airline_seat_recline_extra_rounded,
-            label: '舱位',
-            trailing: Icon(Icons.keyboard_arrow_down_rounded, size: 24, color: Colors.grey[600]),
-          ),
-          SizedBox(height: gap),
-          _formField(
-            height: fieldHeight,
-            radius: fieldRadius,
-            bg: fieldBg,
-            icon: Icons.flight_rounded,
-            label: '航司',
-            trailing: Icon(Icons.keyboard_arrow_down_rounded, size: 24, color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 24),
-          const _SearchButton(),
-        ],
-      ),
-    );
-  }
-
-  static Widget _formField({
-    required double height,
-    required double radius,
-    required Color bg,
-    required IconData icon,
-    required String label,
-    required Widget trailing,
-  }) {
-    return Container(
-      height: height,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(radius),
-      ),
+  /// Top bar: back button only when route can pop (title is in background image).
+  Widget _buildTopBar(BuildContext context) {
+    if (!Navigator.canPop(context)) {
+      return const SizedBox(height: 8);
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
       child: Row(
         children: [
-          Icon(icon, size: 22, color: Colors.grey[700]),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey[700],
-              ),
+          IconButton(
+            onPressed: () => Navigator.maybePop(context),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            color: Colors.white,
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.black.withValues(alpha: 0.25),
             ),
           ),
-          trailing,
         ],
       ),
     );
   }
-
-  /// Empty scrollable container per tab.
-  static Widget _buildEmptyTabChild() {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: const [],
-        ),
-      ),
-    );
-  }
 }
 
-/// Search button with gradient, shadow and tap scale animation.
-class _SearchButton extends StatefulWidget {
-  const _SearchButton();
+/// Circular bright-yellow FAB with soft shadow and scale animation on tap.
+class _FloatingNavButton extends StatefulWidget {
+  const _FloatingNavButton({
+    required this.icon,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
 
   @override
-  State<_SearchButton> createState() => _SearchButtonState();
+  State<_FloatingNavButton> createState() => _FloatingNavButtonState();
 }
 
-class _SearchButtonState extends State<_SearchButton> {
-  bool _pressed = false;
-
-  static const Color _gradientStart = Color(0xFFFFD54F);
-  static const Color _gradientEnd = Color(0xFFFFC107);
+class _FloatingNavButtonState extends State<_FloatingNavButton> {
+  static const Color _yellow = Color(0xFFFFD54F);
+  static const Color _yellowDark = Color(0xFFFFC107);
 
   @override
   Widget build(BuildContext context) {
@@ -338,41 +154,39 @@ class _SearchButtonState extends State<_SearchButton> {
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),
-      onTap: () {
-        // Search action (no logic yet)
-      },
+      onTap: widget.onTap,
       child: AnimatedScale(
-        scale: _pressed ? 0.96 : 1.0,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeInOut,
+        scale: _pressed ? 0.88 : 1.0,
+        duration: Duration(milliseconds: _pressed ? 80 : 150),
+        curve: _pressed ? Curves.easeIn : Curves.elasticOut,
         child: Container(
+          width: 52,
           height: 52,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [_gradientStart, _gradientEnd],
-            ),
-            borderRadius: BorderRadius.circular(28),
+            color: _yellow,
+            shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: _gradientEnd.withValues(alpha: 0.3),
-                offset: const Offset(0, 6),
+                color: _yellowDark.withValues(alpha: 0.4),
+                offset: const Offset(0, 4),
                 blurRadius: 12,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                offset: const Offset(0, 2),
+                blurRadius: 8,
               ),
             ],
           ),
-          alignment: Alignment.center,
-          child: const Text(
-            '搜索',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
+          child: Icon(
+            widget.icon,
+            size: 26,
+            color: Colors.black87,
           ),
         ),
       ),
     );
   }
+
+  bool _pressed = false;
 }

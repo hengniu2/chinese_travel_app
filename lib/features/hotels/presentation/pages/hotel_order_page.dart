@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../auth/presentation/widgets/auth_agreement_checkbox.dart';
-import '../../../companions/domain/companion_order.dart';
-import '../../../companions/presentation/widgets/traveler_form_card.dart';
+import '../../../companions/models/companion_order.dart';
+import '../../../companions/widgets/traveler_form_card.dart';
 import '../../../coupon/domain/coupon.dart';
 import '../../../coupon/presentation/widgets/hotel_coupon_card.dart';
 import '../../../coupon/providers/coupon_provider.dart';
@@ -41,21 +41,6 @@ class _HotelOrderPageState extends ConsumerState<HotelOrderPage> {
   void initState() {
     super.initState();
     _detail = getHotelDetail(widget.hotelId);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    ref.listen<AsyncValue<List<Coupon>>>(myAvailableCouponsProvider, (_, next) {
-      next.whenData((list) {
-        if (ref.read(selectedCouponForBookingProvider) == null && list.isNotEmpty) {
-          final best = getBestCoupon(list, _orderAmount);
-          if (best != null) {
-            ref.read(selectedCouponForBookingProvider.notifier).state = best;
-          }
-        }
-      });
-    });
   }
 
   RoomType? get _selectedRoom {
@@ -240,6 +225,16 @@ class _HotelOrderPageState extends ConsumerState<HotelOrderPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<List<Coupon>>>(myAvailableCouponsProvider, (_, next) {
+      next.whenData((list) {
+        if (ref.read(selectedCouponForBookingProvider) == null && list.isNotEmpty) {
+          final best = getBestCoupon(list, _orderAmount);
+          if (best != null) {
+            ref.read(selectedCouponForBookingProvider.notifier).state = best;
+          }
+        }
+      });
+    });
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,

@@ -132,7 +132,8 @@ class AppTheme {
   static CardThemeData _cardTheme(ColorScheme colorScheme) => CardThemeData(
         color: colorScheme.surface,
         elevation: 0,
-        shadowColor: Colors.black,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardRadius,
         ),
@@ -151,7 +152,7 @@ class AppTheme {
           minimumSize: const Size.fromHeight(48),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: AppRadius.mediumRadius,
+            borderRadius: AppRadius.buttonRadius,
           ),
           textStyle: AppTextStyles.button,
         ),
@@ -168,7 +169,7 @@ class AppTheme {
           minimumSize: const Size.fromHeight(48),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: AppRadius.mediumRadius,
+            borderRadius: AppRadius.buttonRadius,
           ),
           textStyle: AppTextStyles.button,
         ),
@@ -180,7 +181,7 @@ class AppTheme {
           disabledForegroundColor: AppColors.textTertiary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           shape: RoundedRectangleBorder(
-            borderRadius: AppRadius.smallRadius,
+            borderRadius: AppRadius.pillRadius,
           ),
           textStyle: AppTextStyles.buttonSecondary,
         ),
@@ -192,7 +193,7 @@ class AppTheme {
           disabledForegroundColor: AppColors.darkTextSecondary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           shape: RoundedRectangleBorder(
-            borderRadius: AppRadius.smallRadius,
+            borderRadius: AppRadius.pillRadius,
           ),
           textStyle: AppTextStyles.buttonSecondary,
         ),
@@ -205,7 +206,7 @@ class AppTheme {
           side: BorderSide(color: AppColors.primary),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: AppRadius.mediumRadius,
+            borderRadius: AppRadius.buttonRadius,
           ),
           textStyle: AppTextStyles.buttonSecondary,
         ),
@@ -218,7 +219,7 @@ class AppTheme {
           side: const BorderSide(color: AppColors.darkPrimary),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: AppRadius.mediumRadius,
+            borderRadius: AppRadius.buttonRadius,
           ),
           textStyle: AppTextStyles.buttonSecondary,
         ),
