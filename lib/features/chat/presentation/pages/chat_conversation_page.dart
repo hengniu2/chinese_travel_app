@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../../shared/widgets/app_network_image.dart';
-import '../../data/chat_list_mock.dart';
-import '../../data/chat_messages_mock.dart';
+import '../../data/chat_repository_provider.dart';
 import '../../domain/chat_message.dart';
 import '../widgets/chat_message_bubble.dart';
 
@@ -19,19 +19,17 @@ class _ChatListItem {
   bool get isTimeSeparator => timeLabel != null;
 }
 
-/// 聊天对话页：卡通风暖色背景、时间分隔、气泡、订单卡片、快捷回复、长按复制
-class ChatConversationPage extends StatefulWidget {
+/// 聊天对话页：卡通风暖色背景、时间分隔、气泡、订单卡片、快捷回复、长按复制（API 数据）
+class ChatConversationPage extends ConsumerStatefulWidget {
   const ChatConversationPage({super.key, required this.chatId});
 
   final String chatId;
 
   @override
-  State<ChatConversationPage> createState() => _ChatConversationPageState();
+  ConsumerState<ChatConversationPage> createState() => _ChatConversationPageState();
 }
 
-class _ChatConversationPageState extends State<ChatConversationPage> with SingleTickerProviderStateMixin {
-  List<ChatMessage> _messages = [];
-  List<_ChatListItem> _listItems = [];
+class _ChatConversationPageState extends ConsumerState<ChatConversationPage> with SingleTickerProviderStateMixin {
   final _inputController = TextEditingController();
   final _scrollController = ScrollController();
   bool _partnerTyping = false;
@@ -42,22 +40,10 @@ class _ChatConversationPageState extends State<ChatConversationPage> with Single
   @override
   void initState() {
     super.initState();
-    _messages = getChatMessages(widget.chatId);
-    _rebuildListItems();
     _typingController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat();
-    _simulateTyping();
-  }
-
-  void _simulateTyping() {
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) setState(() => _partnerTyping = true);
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) setState(() => _partnerTyping = false);
-      });
-    });
   }
 
   @override
@@ -68,10 +54,10 @@ class _ChatConversationPageState extends State<ChatConversationPage> with Single
     super.dispose();
   }
 
-  void _rebuildListItems() {
+  static List<_ChatListItem> _buildListItems(List<ChatMessage> messages) {
     final items = <_ChatListItem>[];
     DateTime? prevTime;
-    for (final msg in _messages) {
+    for (final msg in messages) {
       final t = msg.time;
       final showTime = prevTime == null ||
           _isDifferentDay(prevTime, t) ||
@@ -82,7 +68,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> with Single
       items.add(_ChatListItem(message: msg));
       prevTime = t;
     }
-    _listItems = items;
+    return items;
   }
 
   static bool _isDifferentDay(DateTime a, DateTime b) {
@@ -101,40 +87,29 @@ class _ChatConversationPageState extends State<ChatConversationPage> with Single
     return '${t.month}月${t.day}日 $timeStr';
   }
 
-  String get _nickname {
-    final item = getChatListItem(widget.chatId);
-    return item?.nickname ?? '客服';
-  }
-
-  String? get _partnerAvatarUrl {
-    return getChatListItem(widget.chatId)?.avatarUrl;
-  }
-
-  void _sendText(String text) {
+  Future<void> _sendText(String text) async {
     if (text.trim().isEmpty) return;
     _inputController.clear();
-    setState(() {
-      _messages = [
-        ..._messages,
-        ChatMessage(
-          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
-          type: ChatMessageType.text,
-          isFromMe: true,
-          time: DateTime.now(),
-          text: text.trim(),
-        ),
-      ];
-      _rebuildListItems();
-    });
-    Future.microtask(() {
+    try {
+      final repo = ref.read(chatRepositoryProvider);
+      await repo.sendMessage(widget.chatId, content: text.trim());
+      ref.refresh(chatMessagesProvider(widget.chatId));
       if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
+        Future.microtask(() {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+            );
+          }
+        });
       }
-    });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Send failed: $e')));
+      }
+    }
   }
 
   void _onCopyText(String? text) {
@@ -153,6 +128,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> with Single
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final asyncMessages = ref.watch(chatMessagesProvider(widget.chatId));
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -166,23 +142,26 @@ class _ChatConversationPageState extends State<ChatConversationPage> with Single
                 _buildAppBar(context),
                 _buildSmartTipsStrip(context, l10n),
                 Expanded(
-                  child: ListView.builder(
-                  cacheExtent: 200,
-                  controller: _scrollController,
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
-                  itemCount: _listItems.length + (_partnerTyping ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (_partnerTyping && index == _listItems.length) {
-                      return _buildTypingIndicator();
-                    }
-                    final item = _listItems[index];
+                  child: asyncMessages.when(
+                    data: (messages) {
+                      final listItems = _buildListItems(messages);
+                      return ListView.builder(
+                        cacheExtent: 200,
+                        controller: _scrollController,
+                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+                        itemCount: listItems.length + (_partnerTyping ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (_partnerTyping && index == listItems.length) {
+                            return _buildTypingIndicator();
+                          }
+                          final item = listItems[index];
                     if (item.isTimeSeparator) {
                       return _buildTimeSeparator(item.timeLabel!);
                     }
                     final msg = item.message!;
                     return ChatMessageBubble(
                       message: msg,
-                      partnerAvatarUrl: _partnerAvatarUrl,
+                      partnerAvatarUrl: null,
                       showAvatar: true,
                       onOrderCardTap: msg.orderCard != null
                           ? () {
@@ -202,7 +181,21 @@ class _ChatConversationPageState extends State<ChatConversationPage> with Single
                           : null,
                     );
                   },
-                ),
+                );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (_, __) => Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton(
+                            onPressed: () => ref.refresh(chatMessagesProvider(widget.chatId)),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
                 _buildQuickReplies(context, l10n),
                 _buildInputBar(context, l10n),
@@ -289,7 +282,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> with Single
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    _nickname,
+                    'Chat',
                     style: AppTextStyles.titleMedium.copyWith(
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
@@ -347,17 +340,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> with Single
           width: 1,
         ),
       ),
-      child: _partnerAvatarUrl != null && _partnerAvatarUrl!.isNotEmpty
-          ? ClipOval(
-              child: AppNetworkImage(
-                imageUrl: _partnerAvatarUrl!,
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                errorWidget: _avatarPlaceholder(size),
-              ),
-            )
-          : _avatarPlaceholder(size),
+      child: _avatarPlaceholder(size),
     );
   }
 
@@ -406,7 +389,7 @@ class _ChatConversationPageState extends State<ChatConversationPage> with Single
   Widget _avatarPlaceholder(double size) {
     return Center(
       child: Text(
-        _nickname.isNotEmpty ? _nickname.substring(0, 1) : '?',
+        'C',
         style: TextStyle(
           fontSize: 16.sp,
           fontWeight: FontWeight.w700,

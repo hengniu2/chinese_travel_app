@@ -1,31 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
-import '../../data/order_detail_mock.dart';
+import '../../data/order_repository_provider.dart';
 import '../../domain/order_detail.dart';
 import '../../domain/order_item.dart';
 
-/// 订单详情页：订单信息、出行人信息、支付状态、退款按钮、联系客服
-class OrderDetailPage extends StatefulWidget {
+/// 订单详情页：订单信息、出行人信息、支付状态、退款按钮、联系客服（API 数据）
+class OrderDetailPage extends ConsumerWidget {
   const OrderDetailPage({super.key, required this.id});
 
   final String id;
 
   @override
-  State<OrderDetailPage> createState() => _OrderDetailPageState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncDetail = ref.watch(orderDetailProvider(id));
+    return asyncDetail.when(
+      data: (detail) {
+        if (detail == null) {
+          return Scaffold(
+            appBar: AppBar(title: Text(AppLocalizations.of(context)?.orderDetailTitle ?? '订单详情')),
+            body: Center(child: Text(AppLocalizations.of(context)?.orderNoOrders ?? 'Order not found')),
+          );
+        }
+        return _OrderDetailBody(detail: detail);
+      },
+      loading: () => Scaffold(
+        appBar: AppBar(title: Text(AppLocalizations.of(context)?.orderDetailTitle ?? '订单详情')),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(title: Text(AppLocalizations.of(context)?.orderDetailTitle ?? '订单详情')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(e.toString(), style: AppTextStyles.bodySmall.copyWith(color: AppColors.error), textAlign: TextAlign.center),
+              SizedBox(height: 16.h),
+              TextButton(onPressed: () => ref.refresh(orderDetailProvider(id)), child: const Text('Retry')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _OrderDetailPageState extends State<OrderDetailPage> {
-  late OrderDetail _detail;
+class _OrderDetailBody extends StatelessWidget {
+  const _OrderDetailBody({required this.detail});
 
-  @override
-  void initState() {
-    super.initState();
-    _detail = getOrderDetail(widget.id);
-  }
+  final OrderDetail detail;
 
   static String _formatDate(DateTime d) => '${d.month}月${d.day}日';
   static String _formatDateTime(DateTime d) =>
@@ -69,28 +96,28 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   bool get _canRefund =>
-      _detail.status == OrderStatus.pendingPayment ||
-      _detail.status == OrderStatus.pendingTrip;
+      detail.status == OrderStatus.pendingPayment ||
+      detail.status == OrderStatus.pendingTrip;
 
   Widget _buildOrderInfo(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final typeStr = _detail.type == OrderType.tour ? (l10n?.orderTypeTour ?? '旅行团') : (l10n?.orderTypeHotel ?? '酒店');
+    final typeStr = detail.type == OrderType.tour ? (l10n?.orderTypeTour ?? '旅行团') : (l10n?.orderTypeHotel ?? '酒店');
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(l10n?.orderInfo ?? '订单信息', style: AppTextStyles.headlineSmall),
           SizedBox(height: 12.h),
-          _infoRow(l10n?.orderNo ?? '订单编号', _detail.orderNo ?? _detail.id),
+          _infoRow(l10n?.orderNo ?? '订单编号', detail.orderNo ?? detail.id),
           _infoRow(l10n?.orderType ?? '订单类型', typeStr),
-          _infoRow(l10n?.orderProduct ?? '商品', _detail.title),
-          if (_detail.subtitle != null && _detail.subtitle!.isNotEmpty)
-            _infoRow(l10n?.orderSpec ?? '规格', _detail.subtitle!),
-          if (_detail.travelDate != null)
-            _infoRow(l10n?.orderTravelDate ?? '出发日期', _formatDate(_detail.travelDate!)),
-          if (_detail.checkInDate != null && _detail.checkOutDate != null)
-            _infoRow(l10n?.orderCheckIn ?? '入住', '${_formatDate(_detail.checkInDate!)} - ${_formatDate(_detail.checkOutDate!)}'),
-          _infoRow(l10n?.orderCreateTime ?? '下单时间', _formatDateTime(_detail.createTime)),
+          _infoRow(l10n?.orderProduct ?? '商品', detail.title),
+          if (detail.subtitle != null && detail.subtitle!.isNotEmpty)
+            _infoRow(l10n?.orderSpec ?? '规格', detail.subtitle!),
+          if (detail.travelDate != null)
+            _infoRow(l10n?.orderTravelDate ?? '出发日期', _formatDate(detail.travelDate!)),
+          if (detail.checkInDate != null && detail.checkOutDate != null)
+            _infoRow(l10n?.orderCheckIn ?? '入住', '${_formatDate(detail.checkInDate!)} - ${_formatDate(detail.checkOutDate!)}'),
+          _infoRow(l10n?.orderCreateTime ?? '下单时间', _formatDateTime(detail.createTime)),
           SizedBox(height: 8.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -101,7 +128,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text('¥', style: AppTextStyles.priceSmall.copyWith(fontSize: 14.sp)),
-                  Text(_detail.amount.toStringAsFixed(0), style: AppTextStyles.price.copyWith(fontSize: 18.sp)),
+                  Text(detail.amount.toStringAsFixed(0), style: AppTextStyles.price.copyWith(fontSize: 18.sp)),
                 ],
               ),
             ],
@@ -132,11 +159,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         children: [
           Text(l10n?.orderTravelers ?? '出行人信息', style: AppTextStyles.headlineSmall),
           SizedBox(height: 12.h),
-          ..._detail.travelers.asMap().entries.map((e) {
+          ...detail.travelers.asMap().entries.map((e) {
             final i = e.key;
             final t = e.value;
             return Padding(
-              padding: EdgeInsets.only(bottom: i < _detail.travelers.length - 1 ? 12.h : 0),
+              padding: EdgeInsets.only(bottom: i < detail.travelers.length - 1 ? 12.h : 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -164,23 +191,23 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           Row(
             children: [
               Icon(
-                _detail.paymentStatus ? Icons.check_circle_rounded : Icons.schedule_rounded,
+                detail.paymentStatus ? Icons.check_circle_rounded : Icons.schedule_rounded,
                 size: 22.sp,
-                color: _detail.paymentStatus ? AppColors.success : AppColors.warning,
+                color: detail.paymentStatus ? AppColors.success : AppColors.warning,
               ),
               SizedBox(width: 10.w),
               Text(
-                _detail.paymentStatus ? (l10n?.orderPaid ?? '已支付') : (l10n?.orderUnpaid ?? '待支付'),
+                detail.paymentStatus ? (l10n?.orderPaid ?? '已支付') : (l10n?.orderUnpaid ?? '待支付'),
                 style: AppTextStyles.bodyLarge.copyWith(
                   fontWeight: FontWeight.w500,
-                  color: _detail.paymentStatus ? AppColors.success : AppColors.warning,
+                  color: detail.paymentStatus ? AppColors.success : AppColors.warning,
                 ),
               ),
             ],
           ),
-          if (_detail.paymentStatus && _detail.payTime != null) ...[
+          if (detail.paymentStatus && detail.payTime != null) ...[
             SizedBox(height: 8.h),
-            Text('支付时间 ${_formatDateTime(_detail.payTime!)}', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+            Text('支付时间 ${_formatDateTime(detail.payTime!)}', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
           ],
         ],
       ),

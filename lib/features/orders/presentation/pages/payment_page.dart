@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
+import '../../data/order_repository_provider.dart';
 
 /// 支付方式
 enum PaymentMethod {
@@ -19,8 +21,8 @@ class _PaymentColors {
   static const Color wechatLight = Color(0xFFE8F8F0);
 }
 
-/// 支付页：支付宝/微信卡片样式、勾选强化、支付按钮渐变、支付成功动画
-class PaymentPage extends StatefulWidget {
+/// 支付页：支付宝/微信卡片样式、勾选强化、支付按钮渐变、支付成功动画（调用后端确认支付）
+class PaymentPage extends ConsumerStatefulWidget {
   const PaymentPage({
     super.key,
     required this.orderId,
@@ -35,10 +37,10 @@ class PaymentPage extends StatefulWidget {
   final bool simulateFail;
 
   @override
-  State<PaymentPage> createState() => _PaymentPageState();
+  ConsumerState<PaymentPage> createState() => _PaymentPageState();
 }
 
-class _PaymentPageState extends State<PaymentPage> with TickerProviderStateMixin {
+class _PaymentPageState extends ConsumerState<PaymentPage> with TickerProviderStateMixin {
   PaymentMethod? _selectedMethod;
   bool _paying = false;
   bool? _success;
@@ -74,13 +76,25 @@ class _PaymentPageState extends State<PaymentPage> with TickerProviderStateMixin
       return;
     }
     setState(() => _paying = true);
-    await Future.delayed(const Duration(milliseconds: 2200));
-    if (!mounted) return;
-    setState(() {
-      _paying = false;
-      _success = !widget.simulateFail;
-    });
-    if (_success == true) _successController.forward();
+    try {
+      final repo = ref.read(orderRepositoryProvider);
+      await repo.confirmPayment(widget.orderId);
+      if (!mounted) return;
+      ref.invalidate(ordersListProvider);
+      ref.invalidate(orderDetailProvider(widget.orderId));
+      setState(() {
+        _paying = false;
+        _success = !widget.simulateFail;
+      });
+      if (_success == true) _successController.forward();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _paying = false;
+        _success = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Payment failed: $e')));
+    }
   }
 
   void _retry() {

@@ -5,7 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
+import '../../../../shared/widgets/app_network_image.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../data/customer_profile_repository.dart';
 import '../../data/membership_models.dart';
 import '../../data/profile_ui_state.dart';
 
@@ -26,6 +28,7 @@ class ProfileHeaderStrip extends StatelessWidget {
     required this.auth,
     this.profileState,
     this.membershipProfile,
+    this.customerProfile,
     this.onSettings,
     this.onLogout,
     this.onMore,
@@ -35,6 +38,8 @@ class ProfileHeaderStrip extends StatelessWidget {
   final ProfileUiState? profileState;
   /// When non-null and isVip, shows golden VIP badge next to username.
   final UserMembershipProfile? membershipProfile;
+  /// From API: display name, avatar URL (when logged in).
+  final CustomerProfileDto? customerProfile;
   final VoidCallback? onSettings;
   final VoidCallback? onLogout;
   final VoidCallback? onMore;
@@ -144,11 +149,21 @@ class ProfileHeaderStrip extends StatelessWidget {
                             child: SizedBox(
                               width: _kAvatarSize.r,
                               height: _kAvatarSize.r,
-                              child: Image.asset(
-                                kProfileAvatarDefaultAsset,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => _avatarPlaceholder(context),
-                              ),
+                              child: customerProfile?.avatarUrl != null && customerProfile!.avatarUrl.isNotEmpty
+                                  ? AppNetworkImage(
+                                      imageUrl: customerProfile!.avatarUrl,
+                                      fit: BoxFit.cover,
+                                      errorWidget: Image.asset(
+                                        kProfileAvatarDefaultAsset,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => _avatarPlaceholder(context),
+                                      ),
+                                    )
+                                  : Image.asset(
+                                      kProfileAvatarDefaultAsset,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => _avatarPlaceholder(context),
+                                    ),
                             ),
                           ),
                           Container(
@@ -190,7 +205,9 @@ class ProfileHeaderStrip extends StatelessWidget {
                               Flexible(
                                 child: Text(
                                   auth.isAuthenticated
-                                      ? (l10n?.profileUserLabel('1394') ?? '用户1394')
+                                      ? (customerProfile?.displayName != null && customerProfile!.displayName.isNotEmpty
+                                            ? customerProfile!.displayName
+                                            : (l10n?.profileUserLabel('') ?? '用户'))
                                       : (l10n?.profileLogin ?? '点击登录'),
                                   style: AppTextStyles.header(Colors.white, fontSize: 18.sp),
                                   maxLines: 1,

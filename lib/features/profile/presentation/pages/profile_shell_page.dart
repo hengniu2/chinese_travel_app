@@ -8,6 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../data/profile_ui_state.dart';
+import '../../providers/customer_profile_provider.dart';
 import '../../providers/membership_provider.dart';
 import '../../providers/profile_state_provider.dart';
 import '../widgets/order_status_section.dart';
@@ -36,6 +37,7 @@ class _ProfileShellPageState extends ConsumerState<ProfileShellPage> {
     final auth = ref.watch(authProvider);
     final profileAsync = ref.watch(profileStateProvider);
     final membershipProfile = ref.watch(userMembershipProfileProvider);
+    final customerProfile = ref.watch(customerProfileProvider).valueOrNull;
 
     const double kHeaderHeight = 188;
     final topPadding = kHeaderHeight.h;
@@ -47,7 +49,9 @@ class _ProfileShellPageState extends ConsumerState<ProfileShellPage> {
           RefreshIndicator(
             onRefresh: () async {
               ref.invalidate(profileStateProvider);
+              ref.invalidate(customerProfileProvider);
               await ref.read(profileStateProvider.future);
+              await ref.read(customerProfileProvider.future);
             },
             color: AppColors.primary,
             child: CustomScrollView(
@@ -96,6 +100,7 @@ class _ProfileShellPageState extends ConsumerState<ProfileShellPage> {
                 auth: auth,
                 profileState: state,
                 membershipProfile: membershipProfile,
+                customerProfile: customerProfile,
                 onSettings: () => _showSettings(context, ref, ref.read(localeProvider)),
                 onLogout: () async {
                   await ref.read(authProvider.notifier).logout();
@@ -106,6 +111,7 @@ class _ProfileShellPageState extends ConsumerState<ProfileShellPage> {
                 auth: auth,
                 profileState: null,
                 membershipProfile: membershipProfile,
+                customerProfile: customerProfile,
                 onSettings: () => _showSettings(context, ref, ref.read(localeProvider)),
                 onLogout: () async {
                   await ref.read(authProvider.notifier).logout();
@@ -116,6 +122,7 @@ class _ProfileShellPageState extends ConsumerState<ProfileShellPage> {
                 auth: auth,
                 profileState: null,
                 membershipProfile: membershipProfile,
+                customerProfile: customerProfile,
                 onSettings: () => _showSettings(context, ref, ref.read(localeProvider)),
                 onLogout: () async {
                   await ref.read(authProvider.notifier).logout();

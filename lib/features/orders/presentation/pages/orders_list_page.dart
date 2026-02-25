@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
-import '../../data/order_list_mock.dart';
+import '../../data/order_repository_provider.dart';
 import '../../domain/order_item.dart';
 import '../widgets/order_card.dart';
 
@@ -14,15 +15,15 @@ const double _kCardMarginBottom = 12;
 const double _kTabsToContentGap = 16;
 const double _kPagePaddingH = 16;
 
-/// 我的订单 · 白顶栏、Tab 下划线、浅背景、现代卡片列表
-class OrdersListPage extends StatefulWidget {
+/// 我的订单 · 白顶栏、Tab 下划线、浅背景、现代卡片列表（API 数据）
+class OrdersListPage extends ConsumerStatefulWidget {
   const OrdersListPage({super.key});
 
   @override
-  State<OrdersListPage> createState() => _OrdersListPageState();
+  ConsumerState<OrdersListPage> createState() => _OrdersListPageState();
 }
 
-class _OrdersListPageState extends State<OrdersListPage>
+class _OrdersListPageState extends ConsumerState<OrdersListPage>
     with SingleTickerProviderStateMixin {
   static const _tabFilters = [
     null,
@@ -177,53 +178,83 @@ class _OrdersTabBar extends StatelessWidget {
   }
 }
 
-class _OrderListBody extends StatelessWidget {
+class _OrderListBody extends ConsumerWidget {
   const _OrderListBody({this.filter});
 
   final OrderStatus? filter;
 
   @override
-  Widget build(BuildContext context) {
-    final orders = getOrderList(filter);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncOrders = ref.watch(ordersListProvider);
 
-    if (orders.isEmpty) {
-      return _EmptyState(filter: filter);
-    }
-
-    return ListView.builder(
-      padding: EdgeInsets.fromLTRB(
-        _kPagePaddingH.w,
-        _kTabsToContentGap.h,
-        _kPagePaddingH.w,
-        24.h,
-      ),
-      cacheExtent: 400,
-      itemCount: orders.length,
-      itemBuilder: (context, index) {
-        final order = orders[index];
-        return Padding(
-          padding: EdgeInsets.only(bottom: _kCardMarginBottom.h),
-          child: OrderCard(
-            order: order,
-            onTap: () => context.pushNamed(
-              'orderDetail',
-              pathParameters: {'id': order.id},
+    return asyncOrders.when(
+      data: (allOrders) {
+        final orders = filter == null
+            ? allOrders
+            : allOrders.where((o) => o.status == filter).toList();
+        if (orders.isEmpty) {
+          return _EmptyState(filter: filter);
+        }
+        return RefreshIndicator(
+          onRefresh: () => ref.refresh(ordersListProvider.future),
+          child: ListView.builder(
+            padding: EdgeInsets.fromLTRB(
+              _kPagePaddingH.w,
+              _kTabsToContentGap.h,
+              _kPagePaddingH.w,
+              24.h,
             ),
-            onPrimaryAction: () {
-              if (order.status == OrderStatus.pendingPayment) {
-                context.push(
-                  '/payment?orderId=${order.id}&amount=${order.amount.toStringAsFixed(0)}&title=${Uri.encodeComponent(order.title)}',
-                );
-              } else {
-                context.pushNamed(
-                  'orderDetail',
-                  pathParameters: {'id': order.id},
-                );
-              }
+            cacheExtent: 400,
+            itemCount: orders.length,
+            itemBuilder: (context, index) {
+              final order = orders[index];
+              return Padding(
+                padding: EdgeInsets.only(bottom: _kCardMarginBottom.h),
+                child: OrderCard(
+                  order: order,
+                  onTap: () => context.pushNamed(
+                    'orderDetail',
+                    pathParameters: {'id': order.id},
+                  ),
+                  onPrimaryAction: () {
+                    if (order.status == OrderStatus.pendingPayment) {
+                      context.push(
+                        '/payment?orderId=${order.id}&amount=${order.amount.toStringAsFixed(0)}&title=${Uri.encodeComponent(order.title)}',
+                      );
+                    } else {
+                      context.pushNamed(
+                        'orderDetail',
+                        pathParameters: {'id': order.id},
+                      );
+                    }
+                  },
+                ),
+              );
             },
           ),
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                e.toString(),
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 16.h),
+              TextButton(
+                onPressed: () => ref.refresh(ordersListProvider),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

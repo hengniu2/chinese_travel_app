@@ -464,7 +464,7 @@ GoRouter createAppRouter(Ref ref) {
                     name: 'profileAddresses',
                     pageBuilder: (_, __) => slideTransitionPage(child: const ProfileAddressesPage()),
                   ),
-                ],
+                  ],
               ),
             ],
           ),
