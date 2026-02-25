@@ -1,32 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
-import '../../data/tour_detail_mock.dart';
+import '../../data/tour_repository_provider.dart';
 import '../../domain/tour_detail.dart';
 
 /// 旅行团详情页（沉浸式头图、半透明渐变、立体时间轴、分组费用卡、底部悬浮预订栏）
-class TourDetailPage extends StatefulWidget {
+class TourDetailPage extends ConsumerWidget {
   const TourDetailPage({super.key, required this.id});
 
   final String id;
 
+  static const double _heroHeight = 260;
+
   @override
-  State<TourDetailPage> createState() => _TourDetailPageState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncDetail = ref.watch(tourDetailProvider(id));
+    return asyncDetail.when(
+      data: (detail) => _TourDetailContent(detail: detail),
+      loading: () => Scaffold(
+        backgroundColor: AppColors.surface,
+        appBar: AppBar(title: const Text(''), backgroundColor: Colors.transparent),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (err, _) => Scaffold(
+        appBar: AppBar(title: const Text('详情')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(err.toString(), textAlign: TextAlign.center),
+              TextButton(
+                onPressed: () => ref.invalidate(tourDetailProvider(id)),
+                child: Text(AppLocalizations.of(context)?.commonRetry ?? '重试'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _TourDetailPageState extends State<TourDetailPage> {
-  late TourDetail _detail;
-
-  @override
-  void initState() {
-    super.initState();
-    _detail = getTourDetail(widget.id);
-  }
+class _TourDetailContent extends StatelessWidget {
+  const _TourDetailContent({required this.detail});
 
   static const double _heroHeight = 260;
+
+  final TourDetail detail;
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +60,14 @@ class _TourDetailPageState extends State<TourDetailPage> {
       appBar: _buildAppBar(context),
       body: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(child: _buildHeroImage()),
-          SliverToBoxAdapter(child: _buildTitleBlock()),
-          SliverToBoxAdapter(child: _buildSection('行程时间轴', _buildItinerary())),
-          SliverToBoxAdapter(child: _buildSection('行程亮点', _buildHighlights())),
-          SliverToBoxAdapter(child: _buildSection('费用说明', _buildCost())),
-          SliverToBoxAdapter(child: _buildSection('酒店信息', _buildHotels())),
-          SliverToBoxAdapter(child: _buildSection('退改政策', _buildPolicy())),
-          SliverToBoxAdapter(child: _buildSection('用户评价', _buildReviews())),
+          SliverToBoxAdapter(child: _buildHeroImage(context)),
+          SliverToBoxAdapter(child: _buildTitleBlock(context)),
+          SliverToBoxAdapter(child: _buildSection(context, '行程时间轴', _buildItinerary(context))),
+          SliverToBoxAdapter(child: _buildSection(context, '行程亮点', _buildHighlights(context))),
+          SliverToBoxAdapter(child: _buildSection(context, '费用说明', _buildCost(context))),
+          SliverToBoxAdapter(child: _buildSection(context, '酒店信息', _buildHotels(context))),
+          SliverToBoxAdapter(child: _buildSection(context, '退改政策', _buildPolicy(context))),
+          SliverToBoxAdapter(child: _buildSection(context, '用户评价', _buildReviews(context))),
           SliverToBoxAdapter(child: SizedBox(height: 100.h)),
         ],
       ),
@@ -96,7 +120,7 @@ class _TourDetailPageState extends State<TourDetailPage> {
     );
   }
 
-  Widget _buildHeroImage() {
+  Widget _buildHeroImage(BuildContext context) {
     return SizedBox(
       height: _heroHeight,
       width: double.infinity,
@@ -153,7 +177,7 @@ class _TourDetailPageState extends State<TourDetailPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '${_detail.days}天${_detail.days - 1}晚',
+                    '${detail.days}天${detail.days - 1}晚',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 13.sp,
@@ -163,7 +187,7 @@ class _TourDetailPageState extends State<TourDetailPage> {
                 ),
                 SizedBox(width: 10.w),
                 Text(
-                  '${_detail.city}出发',
+                  '${detail.city}出发',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.95),
                     fontSize: 13.sp,
@@ -177,7 +201,7 @@ class _TourDetailPageState extends State<TourDetailPage> {
     );
   }
 
-  Widget _buildTitleBlock() {
+  Widget _buildTitleBlock(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 20.h),
@@ -191,7 +215,7 @@ class _TourDetailPageState extends State<TourDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _detail.title,
+            detail.title,
             style: AppTextStyles.headlineMedium.copyWith(
               color: AppColors.textPrimary,
               height: 1.3,
@@ -199,10 +223,10 @@ class _TourDetailPageState extends State<TourDetailPage> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          if (_detail.subtitle.isNotEmpty) ...[
+          if (detail.subtitle.isNotEmpty) ...[
             SizedBox(height: 8.h),
             Text(
-              _detail.subtitle,
+              detail.subtitle,
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -215,7 +239,7 @@ class _TourDetailPageState extends State<TourDetailPage> {
             children: [
               Text('¥', style: AppTextStyles.priceLarge.copyWith(fontSize: 16.sp)),
               Text(
-                _detail.price.toStringAsFixed(0),
+                detail.price.toStringAsFixed(0),
                 style: AppTextStyles.priceLarge.copyWith(fontSize: 28.sp),
               ),
               Padding(
@@ -232,7 +256,7 @@ class _TourDetailPageState extends State<TourDetailPage> {
     );
   }
 
-  Widget _buildSection(String title, Widget child) {
+  Widget _buildSection(BuildContext context, String title, Widget child) {
     return Padding(
       padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 0),
       child: Column(
@@ -249,11 +273,11 @@ class _TourDetailPageState extends State<TourDetailPage> {
     );
   }
 
-  Widget _buildItinerary() {
+  Widget _buildItinerary(BuildContext context) {
     return Column(
-      children: List.generate(_detail.itinerary.length, (i) {
-        final day = _detail.itinerary[i];
-        final isLast = i == _detail.itinerary.length - 1;
+      children: List.generate(detail.itinerary.length, (i) {
+        final day = detail.itinerary[i];
+        final isLast = i == detail.itinerary.length - 1;
         return IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -382,7 +406,7 @@ class _TourDetailPageState extends State<TourDetailPage> {
     );
   }
 
-  Widget _buildHighlights() {
+  Widget _buildHighlights(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -392,9 +416,9 @@ class _TourDetailPageState extends State<TourDetailPage> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: _detail.highlights.asMap().entries.map((e) {
+        children: detail.highlights.asMap().entries.map((e) {
           return Padding(
-            padding: EdgeInsets.only(bottom: e.key < _detail.highlights.length - 1 ? 12.h : 0),
+            padding: EdgeInsets.only(bottom: e.key < detail.highlights.length - 1 ? 12.h : 0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -414,13 +438,13 @@ class _TourDetailPageState extends State<TourDetailPage> {
     );
   }
 
-  Widget _buildCost() {
+  Widget _buildCost(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _costGroupCard('费用包含', _detail.costIncluded, true),
+        _costGroupCard('费用包含', detail.costIncluded, true),
         SizedBox(height: 14.h),
-        _costGroupCard('费用不含', _detail.costExcluded, false),
+        _costGroupCard('费用不含', detail.costExcluded, false),
       ],
     );
   }
@@ -488,7 +512,7 @@ class _TourDetailPageState extends State<TourDetailPage> {
     );
   }
 
-  Widget _buildHotels() {
+  Widget _buildHotels(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -498,10 +522,10 @@ class _TourDetailPageState extends State<TourDetailPage> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: _detail.hotels.asMap().entries.map((e) {
+        children: detail.hotels.asMap().entries.map((e) {
           final h = e.value;
           return Padding(
-            padding: EdgeInsets.only(bottom: e.key < _detail.hotels.length - 1 ? 14.h : 0),
+            padding: EdgeInsets.only(bottom: e.key < detail.hotels.length - 1 ? 14.h : 0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -539,7 +563,7 @@ class _TourDetailPageState extends State<TourDetailPage> {
     );
   }
 
-  Widget _buildPolicy() {
+  Widget _buildPolicy(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(16.w),
@@ -549,15 +573,15 @@ class _TourDetailPageState extends State<TourDetailPage> {
         boxShadow: AppShadow.card,
       ),
       child: Text(
-        _detail.refundPolicy,
+        detail.refundPolicy,
         style: AppTextStyles.bodyMedium.copyWith(height: 1.6, color: AppColors.textSecondary),
       ),
     );
   }
 
-  Widget _buildReviews() {
+  Widget _buildReviews(BuildContext context) {
     return Column(
-      children: _detail.reviews.map((r) {
+      children: detail.reviews.map((r) {
         return Padding(
           padding: EdgeInsets.only(bottom: 12.h),
           child: Container(
@@ -626,7 +650,7 @@ class _TourDetailPageState extends State<TourDetailPage> {
           children: [
             Text('¥', style: AppTextStyles.priceLarge.copyWith(fontSize: 16.sp)),
             Text(
-              _detail.price.toStringAsFixed(0),
+              detail.price.toStringAsFixed(0),
               style: AppTextStyles.priceLarge.copyWith(fontSize: 26.sp),
             ),
             Padding(
@@ -641,7 +665,7 @@ class _TourDetailPageState extends State<TourDetailPage> {
               width: 160.w,
               child: AppButton(
                 label: l10n?.tourBookNow ?? '立即预订',
-                onPressed: () => context.push('/tours/${_detail.id}/order'),
+                onPressed: () => context.push('/tours/${detail.id}/order'),
                 minHeight: 48,
                 expand: true,
               ),

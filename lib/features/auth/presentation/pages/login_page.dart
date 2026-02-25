@@ -16,6 +16,7 @@ import '../widgets/auth_input_field.dart';
 import '../../providers/auth_provider.dart';
 
 /// 登录页（手机号+密码，可切换验证码登录）
+/// 支持通过 query [phone] 预填手机号（验证码验证成功后跳转）
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
@@ -29,6 +30,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _agreed = false;
   bool _loading = false;
   String? _error;
+  bool _prefilledPhone = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_prefilledPhone) {
+      final phone = GoRouterState.of(context).uri.queryParameters['phone'];
+      if (phone != null && phone.isNotEmpty && _phoneController.text.isEmpty) {
+        _phoneController.text = phone;
+        _prefilledPhone = true;
+      }
+    }
+  }
 
   @override
   void dispose() {

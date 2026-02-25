@@ -1,42 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../data/tour_list_mock.dart';
+import '../../data/tour_repository_provider.dart';
 import '../../domain/tour_item.dart';
 import '../widgets/tour_card.dart';
 import '../widgets/tour_filter_bar.dart';
 
-/// 旅行团列表页（筛选 + 高级卡片）
-class ToursListPage extends StatefulWidget {
+/// 旅行团列表页（筛选 + API 数据）
+class ToursListPage extends ConsumerStatefulWidget {
   const ToursListPage({super.key});
 
   @override
-  State<ToursListPage> createState() => _ToursListPageState();
+  ConsumerState<ToursListPage> createState() => _ToursListPageState();
 }
 
-class _ToursListPageState extends State<ToursListPage> {
+class _ToursListPageState extends ConsumerState<ToursListPage> {
   TourFilters _filters = const TourFilters();
-  late List<TourItem> _tours;
 
-  @override
-  void initState() {
-    super.initState();
-    _tours = getTourList(_filters);
-  }
-
-  void _applyFilters(TourFilters f) {
-    setState(() {
-      _filters = f;
-      _tours = getTourList(_filters);
-    });
-  }
+  TourListParams get _listParams => TourListParams(
+        page: 1,
+        pageSize: 20,
+        minPrice: _filters.priceMin,
+        maxPrice: _filters.priceMax,
+        minDays: _filters.daysMin,
+        maxDays: _filters.daysMax,
+        region: _filters.city?.isNotEmpty == true ? _filters.city : null,
+      );
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final asyncList = ref.watch(tourListProvider(_listParams));
     return Scaffold(
       backgroundColor: AppColors.warmBackground,
       appBar: AppBar(
@@ -62,7 +61,7 @@ class _ToursListPageState extends State<ToursListPage> {
             ),
             child: TourFilterBar(
               filters: _filters,
-              onFiltersChanged: _applyFilters,
+              onFiltersChanged: (f) => setState(() => _filters = f),
               cities: mockCities,
               types: mockTypes,
             ),
@@ -74,21 +73,39 @@ class _ToursListPageState extends State<ToursListPage> {
                 color: AppColors.homeSectionYellow,
                 border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
               ),
-              child: _tours.isEmpty
-                  ? _buildEmpty(context)
-                  : ListView.separated(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                      cacheExtent: 200,
-                      itemCount: _tours.length,
-                      separatorBuilder: (_, __) => SizedBox(height: 16.h),
-                      itemBuilder: (context, index) {
-                        final tour = _tours[index];
-                        return TourCard(
-                          tour: tour,
-                          onTap: () => context.push('/tours/${tour.id}'),
-                        );
-                      },
-                    ),
+              child: asyncList.when(
+                data: (res) => res.items.isEmpty
+                    ? _buildEmpty(context)
+                    : ListView.separated(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                        cacheExtent: 200,
+                        itemCount: res.items.length,
+                        separatorBuilder: (_, __) => SizedBox(height: 16.h),
+                        itemBuilder: (context, index) {
+                          final tour = res.items[index];
+                          return TourCard(
+                            tour: tour,
+                            onTap: () => context.push('/tours/${tour.id}'),
+                          );
+                        },
+                      ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, _) => Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.error_outline_rounded, size: 48.sp, color: AppColors.error),
+                      SizedBox(height: 12.h),
+                      Text(err.toString(), textAlign: TextAlign.center, style: AppTextStyles.bodySmall),
+                      SizedBox(height: 12.h),
+                      TextButton(
+                        onPressed: () => ref.invalidate(tourListProvider(_listParams)),
+                        child: Text(l10n?.commonRetry ?? '重试'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -110,7 +127,7 @@ class _ToursListPageState extends State<ToursListPage> {
           ),
           SizedBox(height: 8.h),
           TextButton(
-            onPressed: () => _applyFilters(const TourFilters()),
+            onPressed: () => setState(() => _filters = const TourFilters()),
             child: Text(l10n?.filterClear ?? '清除筛选', style: TextStyle(color: AppColors.primary)),
           ),
         ],

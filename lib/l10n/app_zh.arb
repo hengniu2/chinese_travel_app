@@ -341,6 +341,7 @@
   "authConfirmReset": "确认重置",
   "authUsePasswordLogin": "使用密码登录",
   "authVerifyCodeSent": "验证码已发送",
+  "authPhoneVerified": "验证成功，请使用密码登录",
   "authPasswordResetSuccess": "密码已重置，请登录",
   "authAgreementRequired": "请先阅读并同意用户协议和隐私政策",
   "authForgotPasswordPageTitle": "忘记密码",

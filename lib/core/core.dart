@@ -3,6 +3,7 @@
 export 'analytics/analytics.dart';
 export 'constants/app_constants.dart';
 export 'locale/locale_provider.dart';
+export 'network/api_error.dart';
 export 'network/dio_client.dart';
 export 'router/app_router.dart';
 export 'router/app_router_provider.dart';

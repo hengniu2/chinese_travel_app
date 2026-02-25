@@ -1012,10 +1012,12 @@ class _SmartLayout extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+        child: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
             Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.bottomRight,
@@ -1198,7 +1200,8 @@ class _SmartLayout extends StatelessWidget {
                 ],
               ],
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -2,14 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/network/dio_client.dart';
 import '../data/auth_repository.dart';
 import '../data/token_storage.dart';
 
 final tokenStorageProvider = Provider<TokenStorage>((ref) => TokenStorage());
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  final dio = ref.watch(dioClientProvider);
   final storage = ref.watch(tokenStorageProvider);
-  return AuthRepository(storage);
+  return AuthRepository(dio, storage);
 });
 
 /// 认证状态：未登录 | 已登录 | 加载中 | 已失效
@@ -40,10 +42,10 @@ class AuthNotifier extends Notifier<AuthState> {
     final repo = ref.read(authRepositoryProvider);
     final token = await repo.getStoredToken();
     final expired = await repo.isTokenExpired();
-    if (token != null && !expired) {
+    if (token != null && token.isNotEmpty && !expired) {
       state = AuthState(token: token, status: AuthStatus.authenticated);
     } else {
-      if (token != null && expired) await repo.logout();
+      if (token != null) await repo.logout();
       state = const AuthState();
     }
   }
@@ -61,24 +63,24 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<void> loginByCode(String phone, String code) async {
-    state = AuthState(status: AuthStatus.loading);
-    try {
-      final repo = ref.read(authRepositoryProvider);
-      final result = await repo.loginByCode(phone, code);
-      await repo.persistAuth(result);
-      state = AuthState(token: result.token, status: AuthStatus.authenticated);
-    } catch (e) {
-      state = AuthState(status: AuthStatus.initial);
-      rethrow;
-    }
+  /// 验证码登录：仅验证手机，验证成功后需到登录页用密码登录（后端无验证码登录接口）
+  Future<void> verifyPhoneOnly(String phone, String code) async {
+    final repo = ref.read(authRepositoryProvider);
+    await repo.verifyPhone(phone, code);
   }
 
-  Future<void> register(String phone, String code, String password) async {
+  /// 仅注册（不验证、不登录）；成功 201 后由 UI 跳转到手机验证页
+  Future<void> registerOnly(String phone, String password) async {
+    final repo = ref.read(authRepositoryProvider);
+    await repo.register(phone, password);
+  }
+
+  /// 注册：验证码 + 密码提交 → 验证手机并登录（用于其他入口如验证码登录后补全）
+  Future<void> registerThenVerifyAndLogin(String phone, String code, String password) async {
     state = AuthState(status: AuthStatus.loading);
     try {
       final repo = ref.read(authRepositoryProvider);
-      final result = await repo.register(phone, code, password);
+      final result = await repo.registerThenVerifyAndLogin(phone: phone, code: code, password: password);
       await repo.persistAuth(result);
       state = AuthState(token: result.token, status: AuthStatus.authenticated);
     } catch (e) {

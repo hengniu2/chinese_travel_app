@@ -7,6 +7,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/user_agreement_page.dart';
 import '../../features/auth/presentation/pages/verify_code_login_page.dart';
+import '../../features/auth/presentation/pages/verify_phone_page.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/chat/presentation/pages/chat_conversation_page.dart';
 import '../../features/chat/presentation/pages/chat_shell_page.dart';
@@ -493,6 +494,11 @@ GoRouter createAppRouter(Ref ref) {
         path: '/auth/register',
         name: 'register',
         pageBuilder: (context, state) => slideTransitionPage(child: const RegisterPage()),
+      ),
+      GoRoute(
+        path: '/auth/verify-phone',
+        name: 'verifyPhone',
+        pageBuilder: (context, state) => slideTransitionPage(child: const VerifyPhonePage()),
       ),
       GoRoute(
         path: '/auth/verify-code',

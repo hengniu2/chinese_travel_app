@@ -1976,6 +1976,12 @@ abstract class AppLocalizations {
   /// **'验证码已发送'**
   String get authVerifyCodeSent;
 
+  /// No description provided for @authPhoneVerified.
+  ///
+  /// In zh, this message translates to:
+  /// **'验证成功，请使用密码登录'**
+  String get authPhoneVerified;
+
   /// No description provided for @authPasswordResetSuccess.
   ///
   /// In zh, this message translates to:

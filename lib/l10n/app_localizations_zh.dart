@@ -972,6 +972,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get authVerifyCodeSent => '验证码已发送';
 
   @override
+  String get authPhoneVerified => '验证成功，请使用密码登录';
+
+  @override
   String get authPasswordResetSuccess => '密码已重置，请登录';
 
   @override

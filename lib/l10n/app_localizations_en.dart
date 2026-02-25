@@ -978,6 +978,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authVerifyCodeSent => 'Verification code sent';
 
   @override
+  String get authPhoneVerified => 'Verified. Please log in with your password';
+
+  @override
   String get authPasswordResetSuccess => 'Password reset. Please log in';
 
   @override

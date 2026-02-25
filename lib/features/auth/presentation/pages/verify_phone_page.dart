@@ -11,63 +11,57 @@ import '../../../../shared/design_system/app_colors.dart';
 import '../../../../shared/design_system/app_spacing.dart';
 import '../../../../shared/design_system/app_text_styles.dart';
 import '../../../../shared/design_system/app_top_bar.dart';
-import '../widgets/auth_agreement_checkbox.dart';
 import '../widgets/auth_code_button.dart';
 import '../widgets/auth_input_field.dart';
 import '../../providers/auth_provider.dart';
 
-/// 验证码登录页
-class VerifyCodeLoginPage extends ConsumerStatefulWidget {
-  const VerifyCodeLoginPage({super.key});
+/// 手机验证页（注册成功后进入）：发送/重发验证码 → 验证 → 跳转登录
+class VerifyPhonePage extends ConsumerStatefulWidget {
+  const VerifyPhonePage({super.key});
 
   @override
-  ConsumerState<VerifyCodeLoginPage> createState() => _VerifyCodeLoginPageState();
+  ConsumerState<VerifyPhonePage> createState() => _VerifyPhonePageState();
 }
 
-class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
-  final _phoneController = TextEditingController();
+class _VerifyPhonePageState extends ConsumerState<VerifyPhonePage> {
   final _codeController = TextEditingController();
-  bool _agreed = false;
   bool _loading = false;
   String? _error;
 
-  @override
-  void initState() {
-    super.initState();
-    _phoneController.addListener(() => setState(() {}));
+  String get _phone {
+    return GoRouterState.of(context).uri.queryParameters['phone'] ?? '';
   }
 
   @override
   void dispose() {
-    _phoneController.dispose();
     _codeController.dispose();
     super.dispose();
   }
 
   Future<void> _sendCode() async {
-    final phone = _phoneController.text.trim();
+    final phone = _phone;
     if (phone.length < 11) {
-      setState(() => _error = '请输入正确手机号');
+      setState(() => _error = '手机号无效');
       return;
     }
     setState(() => _error = null);
     try {
       await ref.read(authProvider.notifier).sendCode(phone);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)?.authVerifyCodeSent ?? '验证码已发送')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)?.authVerifyCodeSent ?? '验证码已发送')),
+        );
+      }
     } catch (e) {
       if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
-  Future<void> _submit() async {
-    if (!_agreed) {
-      setState(() => _error = AppLocalizations.of(context)?.authAgreementRequired ?? '请先阅读并同意用户协议和隐私政策');
-      return;
-    }
-    final phone = _phoneController.text.trim();
+  Future<void> _verify() async {
+    final phone = _phone;
     final code = _codeController.text.trim();
     if (phone.length < 11) {
-      setState(() => _error = '请输入正确手机号');
+      setState(() => _error = '手机号无效');
       return;
     }
     if (code.length < 4) {
@@ -81,7 +75,9 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
     try {
       await ref.read(authProvider.notifier).verifyPhoneOnly(phone, code);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)?.authPhoneVerified ?? '验证成功，请使用密码登录')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)?.authPhoneVerified ?? '验证成功，请使用密码登录')),
+        );
         context.go('/auth/login?phone=${Uri.encodeComponent(phone)}');
       }
     } catch (e) {
@@ -94,10 +90,22 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final phone = _phone;
+    if (phone.isEmpty) {
+      return Scaffold(
+        appBar: AppTopBar(title: l10n?.authVerifyCode ?? '验证手机', onLeadingTap: () => context.pop()),
+        body: Center(
+          child: Text(
+            '缺少手机号，请从注册页进入',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppTopBar(
-        title: l10n?.authVerifyCodeLogin ?? '验证码登录',
+        title: l10n?.authVerifyCode ?? '验证手机',
         onLeadingTap: () => context.pop(),
       ),
       body: SafeArea(
@@ -107,20 +115,16 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(height: 24.h),
-              Text(l10n?.authVerifyCodeLogin ?? '验证码登录', style: AppTextStyles.headlineLarge),
-              SizedBox(height: 8.h),
-              Text(l10n?.authVerifyCodeLoginSubtitle ?? '未注册手机号验证后将自动创建账号', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
-              SizedBox(height: 32.h),
-              AuthInputField(
-                controller: _phoneController,
-                label: l10n?.authPhone ?? '手机号',
-                hint: '${l10n?.authPhone ?? '手机号'}',
-                keyboardType: TextInputType.phone,
-                prefixIcon: Icon(Icons.phone_android_outlined, size: 22, color: AppColors.textTertiary),
-                maxLength: 11,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              Text(
+                '验证手机号',
+                style: AppTextStyles.headlineLarge,
               ),
-              SizedBox(height: AppSpacing.lg.h),
+              SizedBox(height: 8.h),
+              Text(
+                '我们已向 $phone 发送验证码，请输入收到的 6 位数字',
+                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+              ),
+              SizedBox(height: 32.h),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -128,10 +132,11 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
                     child: AuthInputField(
                       controller: _codeController,
                       label: l10n?.authVerifyCode ?? '验证码',
-                      hint: '${l10n?.authVerifyCode ?? '验证码'}',
+                      hint: l10n?.authVerifyCode ?? '验证码',
                       keyboardType: TextInputType.number,
                       maxLength: 6,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      prefixIcon: Icon(Icons.sms_outlined, size: 22, color: AppColors.textTertiary),
                     ),
                   ),
                   SizedBox(width: 12.w),
@@ -139,7 +144,8 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
                     padding: EdgeInsets.only(top: 24.h),
                     child: AuthCodeButton(
                       onPressed: _sendCode,
-                      enabled: _phoneController.text.trim().length >= 11,
+                      enabled: true,
+                      durationSeconds: 30,
                     ),
                   ),
                 ],
@@ -148,25 +154,11 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
                 SizedBox(height: 12.h),
                 Text(_error!, style: AppTextStyles.bodySmall.copyWith(color: AppColors.error)),
               ],
-              SizedBox(height: 20.h),
-              AuthAgreementCheckbox(
-                value: _agreed,
-                onChanged: (v) => setState(() => _agreed = v),
-                onAgreementTap: () => context.push('/auth/agreement?type=user'),
-                onPrivacyTap: () => context.push('/auth/agreement?type=privacy'),
-              ),
               SizedBox(height: 28.h),
               AppButton(
-                label: l10n?.authLogin ?? '登录',
+                label: '验证',
                 loading: _loading,
-                onPressed: _submit,
-              ),
-              SizedBox(height: 16.h),
-              Center(
-                child: TextButton(
-                  onPressed: () => context.pop(),
-                  child: Text(l10n?.authUsePasswordLogin ?? '使用密码登录', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary)),
-                ),
+                onPressed: _verify,
               ),
             ],
           ),

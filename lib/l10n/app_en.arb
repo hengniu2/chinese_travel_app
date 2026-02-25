@@ -320,6 +320,7 @@
   "authConfirmReset": "Confirm reset",
   "authUsePasswordLogin": "Use password login",
   "authVerifyCodeSent": "Verification code sent",
+  "authPhoneVerified": "Verified. Please log in with your password",
   "authPasswordResetSuccess": "Password reset. Please log in",
   "authAgreementRequired": "Please read and agree to the user agreement and privacy policy",
   "authForgotPasswordPageTitle": "Forgot password",
