@@ -52,6 +52,7 @@ import '../../features/hotels/presentation/pages/hotel_booking_success_page.dart
 import '../../features/hotels/presentation/pages/hotel_compare_page.dart';
 import '../../features/hotels/presentation/pages/hotel_map_page.dart';
 import '../../features/orders/presentation/pages/order_detail_page.dart';
+import '../../features/orders/presentation/pages/order_create_page.dart';
 import '../../features/orders/presentation/pages/orders_shell_page.dart';
 import '../../features/orders/presentation/pages/payment_page.dart';
 import '../../features/profile/presentation/pages/profile_shell_page.dart';
@@ -105,12 +106,23 @@ class RouteNames {
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 // Unique keys per shell branch to avoid HeroControllerScope key reservation conflicts.
-final GlobalKey<NavigatorState> _shellHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
-final GlobalKey<NavigatorState> _shellTravelServiceKey = GlobalKey<NavigatorState>(debugLabel: 'shellTravelService');
-final GlobalKey<NavigatorState> _shellJoinUsKey = GlobalKey<NavigatorState>(debugLabel: 'shellJoinUs');
-final GlobalKey<NavigatorState> _shellPlannerKey = GlobalKey<NavigatorState>(debugLabel: 'shellPlanner');
-final GlobalKey<NavigatorState> _shellMessagesKey = GlobalKey<NavigatorState>(debugLabel: 'shellMessages');
-final GlobalKey<NavigatorState> _shellProfileKey = GlobalKey<NavigatorState>(debugLabel: 'shellProfile');
+final GlobalKey<NavigatorState> _shellHomeKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellHome',
+);
+final GlobalKey<NavigatorState> _shellTravelServiceKey =
+    GlobalKey<NavigatorState>(debugLabel: 'shellTravelService');
+final GlobalKey<NavigatorState> _shellJoinUsKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellJoinUs',
+);
+final GlobalKey<NavigatorState> _shellPlannerKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellPlanner',
+);
+final GlobalKey<NavigatorState> _shellMessagesKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellMessages',
+);
+final GlobalKey<NavigatorState> _shellProfileKey = GlobalKey<NavigatorState>(
+  debugLabel: 'shellProfile',
+);
 
 GoRouter createAppRouter(Ref ref) {
   final refreshListenable = ref.watch(authRefreshListenableProvider);
@@ -138,24 +150,28 @@ GoRouter createAppRouter(Ref ref) {
               GoRoute(
                 path: '/${RouteNames.home}',
                 name: RouteNames.home,
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: HomeShellPage(),
-                ),
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: HomeShellPage()),
                 routes: [
                   GoRoute(
                     path: 'seed-list',
                     name: 'seedList',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const SeedListPage()),
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const SeedListPage()),
                   ),
                   GoRoute(
                     path: 'child-activity-list',
                     name: 'childActivityList',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ChildActivityListPage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const ChildActivityListPage(),
+                    ),
                   ),
                   GoRoute(
                     path: 'nearby-activity-list',
                     name: 'nearbyActivityList',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const NearbyActivityListPage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const NearbyActivityListPage(),
+                    ),
                   ),
                 ],
               ),
@@ -167,16 +183,14 @@ GoRouter createAppRouter(Ref ref) {
               GoRoute(
                 path: '/${RouteNames.planner}',
                 name: RouteNames.planner,
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: TravelLandingPage(),
-                ),
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: TravelLandingPage()),
                 routes: [
                   GoRoute(
                     path: 'discovery',
                     name: 'travelDiscovery',
-                    pageBuilder: (_, __) => slideTransitionPage(
-                      child: const TravelDiscoveryPage(),
-                    ),
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const TravelDiscoveryPage()),
                   ),
                   GoRoute(
                     path: 'detail/:id',
@@ -259,9 +273,8 @@ GoRouter createAppRouter(Ref ref) {
                   GoRoute(
                     path: 'planner',
                     name: 'travelPlanner',
-                    pageBuilder: (_, __) => slideTransitionPage(
-                      child: const TravelPlannerPage(),
-                    ),
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const TravelPlannerPage()),
                     routes: [
                       GoRoute(
                         path: 'result',
@@ -336,9 +349,8 @@ GoRouter createAppRouter(Ref ref) {
               GoRoute(
                 path: '/${RouteNames.joinUs}',
                 name: RouteNames.joinUs,
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: CompanionListPage(),
-                ),
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: CompanionListPage()),
               ),
             ],
           ),
@@ -348,16 +360,17 @@ GoRouter createAppRouter(Ref ref) {
               GoRoute(
                 path: '/${RouteNames.messages}',
                 name: RouteNames.messages,
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: ChatShellPage(),
-                ),
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: ChatShellPage()),
                 routes: [
                   GoRoute(
                     path: 'chat/:id',
                     name: 'chatConversation',
                     pageBuilder: (context, state) {
                       final id = state.pathParameters['id'] ?? '';
-                      return slideTransitionPage(child: ChatConversationPage(chatId: id));
+                      return slideTransitionPage(
+                        child: ChatConversationPage(chatId: id),
+                      );
                     },
                   ),
                 ],
@@ -370,101 +383,129 @@ GoRouter createAppRouter(Ref ref) {
               GoRoute(
                 path: '/${RouteNames.profile}',
                 name: RouteNames.profile,
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: ProfileShellPage(),
-                ),
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: ProfileShellPage()),
                 routes: [
                   GoRoute(
                     path: 'my-friends',
                     name: 'profileMyFriends',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileMyFriendsPage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const ProfileMyFriendsPage(),
+                    ),
                   ),
                   GoRoute(
                     path: 'coupons',
                     name: 'profileCoupons',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileCouponsPage()),
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const ProfileCouponsPage()),
                   ),
                   GoRoute(
                     path: 'membership',
                     name: 'profileMembership',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const MembershipCenterPage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const MembershipCenterPage(),
+                    ),
                   ),
                   GoRoute(
                     path: 'hotels',
                     name: 'profileHotels',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileHotelsPage()),
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const ProfileHotelsPage()),
                   ),
                   GoRoute(
                     path: 'flights',
                     name: 'profileFlights',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileFlightsPage()),
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const ProfileFlightsPage()),
                   ),
                   GoRoute(
                     path: 'invoice',
                     name: 'profileInvoice',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileInvoicePage()),
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const ProfileInvoicePage()),
                   ),
                   GoRoute(
                     path: 'invite-friends',
                     name: 'profileInviteFriends',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileInviteFriendsPage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const ProfileInviteFriendsPage(),
+                    ),
                   ),
                   GoRoute(
                     path: 'course-orders',
                     name: 'profileCourseOrders',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileCourseOrdersPage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const ProfileCourseOrdersPage(),
+                    ),
                   ),
                   GoRoute(
                     path: 'flight-orders',
                     name: 'profileFlightOrders',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileFlightOrdersPage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const ProfileFlightOrdersPage(),
+                    ),
                   ),
                   GoRoute(
                     path: 'hotel-orders',
                     name: 'profileHotelOrders',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileHotelOrdersPage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const ProfileHotelOrdersPage(),
+                    ),
                   ),
                   GoRoute(
                     path: 'prizes',
                     name: 'profilePrizes',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfilePrizesPage()),
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const ProfilePrizesPage()),
                   ),
                   GoRoute(
                     path: 'referrer',
                     name: 'profileReferrer',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileReferrerPage()),
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const ProfileReferrerPage()),
                   ),
                   GoRoute(
                     path: 'feedback',
                     name: 'profileFeedback',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileFeedbackPage()),
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const ProfileFeedbackPage()),
                   ),
                   GoRoute(
                     path: 'travel-collection',
                     name: 'profileTravelCollection',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileTravelCollectionPage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const ProfileTravelCollectionPage(),
+                    ),
                   ),
                   GoRoute(
                     path: 'data-stats',
                     name: 'profileDataStats',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileDataStatsPage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const ProfileDataStatsPage(),
+                    ),
                   ),
                   GoRoute(
                     path: 'clear-cache',
                     name: 'profileClearCache',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileClearCachePage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const ProfileClearCachePage(),
+                    ),
                   ),
                   GoRoute(
                     path: 'frequent-travelers',
                     name: 'profileFrequentTravelers',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileFrequentTravelersPage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const ProfileFrequentTravelersPage(),
+                    ),
                   ),
                   GoRoute(
                     path: 'addresses',
                     name: 'profileAddresses',
-                    pageBuilder: (_, __) => slideTransitionPage(child: const ProfileAddressesPage()),
+                    pageBuilder: (_, __) => slideTransitionPage(
+                      child: const ProfileAddressesPage(),
+                    ),
                   ),
-                  ],
+                ],
               ),
             ],
           ),
@@ -473,9 +514,8 @@ GoRouter createAppRouter(Ref ref) {
       GoRoute(
         path: '/${RouteNames.orders}',
         name: RouteNames.orders,
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: OrdersShellPage(),
-        ),
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: OrdersShellPage()),
       ),
       GoRoute(
         path: '/orders/:id',
@@ -486,29 +526,40 @@ GoRouter createAppRouter(Ref ref) {
         },
       ),
       GoRoute(
+        path: '/orders/create',
+        name: 'orderCreate',
+        pageBuilder: (context, state) =>
+            slideTransitionPage(child: const OrderCreatePage()),
+      ),
+      GoRoute(
         path: '/auth/login',
         name: 'login',
-        pageBuilder: (context, state) => slideTransitionPage(child: const LoginPage()),
+        pageBuilder: (context, state) =>
+            slideTransitionPage(child: const LoginPage()),
       ),
       GoRoute(
         path: '/auth/register',
         name: 'register',
-        pageBuilder: (context, state) => slideTransitionPage(child: const RegisterPage()),
+        pageBuilder: (context, state) =>
+            slideTransitionPage(child: const RegisterPage()),
       ),
       GoRoute(
         path: '/auth/verify-phone',
         name: 'verifyPhone',
-        pageBuilder: (context, state) => slideTransitionPage(child: const VerifyPhonePage()),
+        pageBuilder: (context, state) =>
+            slideTransitionPage(child: const VerifyPhonePage()),
       ),
       GoRoute(
         path: '/auth/verify-code',
         name: 'verifyCode',
-        pageBuilder: (context, state) => slideTransitionPage(child: const VerifyCodeLoginPage()),
+        pageBuilder: (context, state) =>
+            slideTransitionPage(child: const VerifyCodeLoginPage()),
       ),
       GoRoute(
         path: '/auth/forgot-password',
         name: 'forgotPassword',
-        pageBuilder: (context, state) => slideTransitionPage(child: const ForgotPasswordPage()),
+        pageBuilder: (context, state) =>
+            slideTransitionPage(child: const ForgotPasswordPage()),
       ),
       GoRoute(
         path: '/auth/agreement',
@@ -521,32 +572,38 @@ GoRouter createAppRouter(Ref ref) {
       GoRoute(
         path: '/social-travel',
         name: 'socialTravel',
-        pageBuilder: (_, __) => slideTransitionPage(child: const SocialTravelPage()),
+        pageBuilder: (_, __) =>
+            slideTransitionPage(child: const SocialTravelPage()),
       ),
       GoRoute(
         path: '/family-travel',
         name: 'familyTravel',
-        pageBuilder: (_, __) => slideTransitionPage(child: const FamilyTravelPage()),
+        pageBuilder: (_, __) =>
+            slideTransitionPage(child: const FamilyTravelPage()),
       ),
       GoRoute(
         path: '/custom-travel',
         name: 'customTravel',
-        pageBuilder: (_, __) => slideTransitionPage(child: const CustomTravelPage()),
+        pageBuilder: (_, __) =>
+            slideTransitionPage(child: const CustomTravelPage()),
       ),
       GoRoute(
         path: '/small-group',
         name: 'smallGroup',
-        pageBuilder: (_, __) => slideTransitionPage(child: const SmallGroupPage()),
+        pageBuilder: (_, __) =>
+            slideTransitionPage(child: const SmallGroupPage()),
       ),
       GoRoute(
         path: '/surrounding-activities',
         name: 'surroundingActivities',
-        pageBuilder: (_, __) => slideTransitionPage(child: const SurroundingActivitiesPage()),
+        pageBuilder: (_, __) =>
+            slideTransitionPage(child: const SurroundingActivitiesPage()),
       ),
       GoRoute(
         path: '/card-gift',
         name: 'cardGift',
-        pageBuilder: (_, __) => slideTransitionPage(child: const CardGiftPage()),
+        pageBuilder: (_, __) =>
+            slideTransitionPage(child: const CardGiftPage()),
       ),
       GoRoute(
         path: '/notes',
@@ -574,7 +631,9 @@ GoRouter createAppRouter(Ref ref) {
         name: 'companionDetail',
         pageBuilder: (context, state) {
           final id = state.pathParameters['id'] ?? '1';
-          return companionDetailTransitionPage(child: CompanionDetailPage(id: id));
+          return companionDetailTransitionPage(
+            child: CompanionDetailPage(id: id),
+          );
         },
         routes: [
           GoRoute(
@@ -583,8 +642,15 @@ GoRouter createAppRouter(Ref ref) {
             pageBuilder: (context, state) {
               final id = state.pathParameters['id'] ?? '1';
               final packageIndex = state.uri.queryParameters['packageIndex'];
-              final index = packageIndex != null ? int.tryParse(packageIndex) : null;
-              return slideTransitionPage(child: CompanionBookingPage(companionId: id, packageIndex: index));
+              final index = packageIndex != null
+                  ? int.tryParse(packageIndex)
+                  : null;
+              return slideTransitionPage(
+                child: CompanionBookingPage(
+                  companionId: id,
+                  packageIndex: index,
+                ),
+              );
             },
             routes: [
               GoRoute(
@@ -593,9 +659,15 @@ GoRouter createAppRouter(Ref ref) {
                 pageBuilder: (context, state) {
                   final payload = state.extra as CompanionOrderConfirmPayload?;
                   if (payload == null) {
-                    return slideTransitionPage(child: CompanionBookingPage(companionId: state.pathParameters['id'] ?? '1'));
+                    return slideTransitionPage(
+                      child: CompanionBookingPage(
+                        companionId: state.pathParameters['id'] ?? '1',
+                      ),
+                    );
                   }
-                  return slideTransitionPage(child: CompanionOrderConfirmPage(payload: payload));
+                  return slideTransitionPage(
+                    child: CompanionOrderConfirmPage(payload: payload),
+                  );
                 },
               ),
             ],
@@ -605,9 +677,8 @@ GoRouter createAppRouter(Ref ref) {
       GoRoute(
         path: '/tours',
         name: 'tours',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: ToursListPage(),
-        ),
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: ToursListPage()),
       ),
       GoRoute(
         path: '/tours/:id',
@@ -628,7 +699,8 @@ GoRouter createAppRouter(Ref ref) {
       GoRoute(
         path: '/verify-name',
         name: 'realNameVerify',
-        pageBuilder: (context, state) => slideTransitionPage(child: const RealNameVerifyPage()),
+        pageBuilder: (context, state) =>
+            slideTransitionPage(child: const RealNameVerifyPage()),
       ),
       GoRoute(
         path: '/article/:id',
@@ -643,7 +715,8 @@ GoRouter createAppRouter(Ref ref) {
         name: 'payment',
         pageBuilder: (context, state) {
           final q = state.uri.queryParameters;
-          final simulateFail = q['simulateFail'] == '1' || q['simulateFail'] == 'true';
+          final simulateFail =
+              q['simulateFail'] == '1' || q['simulateFail'] == 'true';
           return slideTransitionPage(
             child: PaymentPage(
               orderId: q['orderId'] ?? '',
@@ -657,9 +730,8 @@ GoRouter createAppRouter(Ref ref) {
       GoRoute(
         path: '/hotels',
         name: 'hotels',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: HotelShellPage(),
-        ),
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: HotelShellPage()),
       ),
       GoRoute(
         path: '/hotels/compare',

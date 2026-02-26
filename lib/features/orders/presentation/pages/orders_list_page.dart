@@ -80,12 +80,28 @@ class _OrdersListPageState extends ConsumerState<OrdersListPage>
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20.sp, color: AppColors.textPrimary),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20.sp,
+            color: AppColors.textPrimary,
+          ),
           onPressed: () => context.pop(),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.tune_rounded, size: 22.sp, color: AppColors.textSecondary),
+            icon: Icon(
+              Icons.add_circle_outline_rounded,
+              size: 22.sp,
+              color: AppColors.textSecondary,
+            ),
+            onPressed: () => context.push('/orders/create'),
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.tune_rounded,
+              size: 22.sp,
+              color: AppColors.textSecondary,
+            ),
             onPressed: () {},
           ),
         ],
@@ -164,10 +180,7 @@ class _OrdersTabBar extends StatelessWidget {
                 color: const Color(0xFF666666),
                 fontSize: 14.sp,
               ),
-              tabs: List.generate(
-                labels.length,
-                (i) => Tab(text: labels[i]),
-              ),
+              tabs: List.generate(labels.length, (i) => Tab(text: labels[i])),
               onTap: onTap,
             ),
           ),
@@ -299,7 +312,8 @@ class _EmptyState extends StatelessWidget {
             ),
             SizedBox(height: 8.h),
             Text(
-              l10n?.orderNoOrdersDescription ?? 'Your travel orders will appear here',
+              l10n?.orderNoOrdersDescription ??
+                  'Your travel orders will appear here',
               style: AppTextStyles.bodySmall.copyWith(
                 color: AppColors.textSecondary,
               ),

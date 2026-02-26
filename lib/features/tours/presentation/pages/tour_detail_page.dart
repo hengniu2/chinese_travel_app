@@ -202,56 +202,59 @@ class _TourDetailContent extends StatelessWidget {
   }
 
   Widget _buildTitleBlock(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 20.h),
-      margin: EdgeInsets.fromLTRB(16.w, -24.h, 16.w, 0),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-        boxShadow: AppShadow.medium,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            detail.title,
-            style: AppTextStyles.headlineMedium.copyWith(
-              color: AppColors.textPrimary,
-              height: 1.3,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (detail.subtitle.isNotEmpty) ...[
-            SizedBox(height: 8.h),
+    return Transform.translate(
+      offset: Offset(0, -24.h),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 20.h),
+        margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 0),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+          boxShadow: AppShadow.medium,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Text(
-              detail.subtitle,
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-              maxLines: 1,
+              detail.title,
+              style: AppTextStyles.headlineMedium.copyWith(
+                color: AppColors.textPrimary,
+                height: 1.3,
+              ),
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-          ],
-          SizedBox(height: 16.h),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text('¥', style: AppTextStyles.priceLarge.copyWith(fontSize: 16.sp)),
+            if (detail.subtitle.isNotEmpty) ...[
+              SizedBox(height: 8.h),
               Text(
-                detail.price.toStringAsFixed(0),
-                style: AppTextStyles.priceLarge.copyWith(fontSize: 28.sp),
-              ),
-              Padding(
-                padding: EdgeInsets.only(left: 4.w),
-                child: Text(
-                  '起/人',
-                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary),
-                ),
+                detail.subtitle,
+                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
-          ),
-        ],
+            SizedBox(height: 16.h),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text('¥', style: AppTextStyles.priceLarge.copyWith(fontSize: 16.sp)),
+                Text(
+                  detail.price.toStringAsFixed(0),
+                  style: AppTextStyles.priceLarge.copyWith(fontSize: 28.sp),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(left: 4.w),
+                  child: Text(
+                    '起/人',
+                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
