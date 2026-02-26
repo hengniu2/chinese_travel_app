@@ -29,7 +29,7 @@ class AuthAgreementCheckbox extends StatelessWidget {
           child: Checkbox(
             value: value,
             onChanged: (v) => onChanged(v ?? false),
-            activeColor: AppColors.primary,
+            activeColor: AppColors.authPrimary,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           ),
         ),
@@ -48,7 +48,7 @@ class AuthAgreementCheckbox extends StatelessWidget {
                   onTap: onAgreementTap,
                   child: Text(
                     '《用户协议》',
-                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w500),
+                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.authLink, fontWeight: FontWeight.w500),
                   ),
                 ),
                 Text(
@@ -59,7 +59,7 @@ class AuthAgreementCheckbox extends StatelessWidget {
                   onTap: onPrivacyTap,
                   child: Text(
                     '《隐私政策》',
-                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w500),
+                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.authLink, fontWeight: FontWeight.w500),
                   ),
                 ),
               ],

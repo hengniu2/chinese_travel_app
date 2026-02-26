@@ -160,12 +160,14 @@ class _VerifyCodeLoginPageState extends ConsumerState<VerifyCodeLoginPage> {
                 label: l10n?.authLogin ?? '登录',
                 loading: _loading,
                 onPressed: _submit,
+                backgroundColor: AppColors.authPrimary,
+                foregroundColor: Colors.white,
               ),
               SizedBox(height: 16.h),
               Center(
                 child: TextButton(
                   onPressed: () => context.pop(),
-                  child: Text(l10n?.authUsePasswordLogin ?? '使用密码登录', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary)),
+                  child: Text(l10n?.authUsePasswordLogin ?? '使用密码登录', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.authLink, fontWeight: FontWeight.w500)),
                 ),
               ),
             ],

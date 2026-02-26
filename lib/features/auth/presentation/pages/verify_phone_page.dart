@@ -159,6 +159,8 @@ class _VerifyPhonePageState extends ConsumerState<VerifyPhonePage> {
                 label: '验证',
                 loading: _loading,
                 onPressed: _verify,
+                backgroundColor: AppColors.authPrimary,
+                foregroundColor: Colors.white,
               ),
             ],
           ),

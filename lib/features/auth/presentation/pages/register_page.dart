@@ -139,6 +139,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 label: l10n?.authRegister ?? '注册',
                 loading: _loading,
                 onPressed: _submit,
+                backgroundColor: AppColors.authPrimary,
+                foregroundColor: Colors.white,
               ),
               SizedBox(height: 16.h),
               Row(
@@ -147,7 +149,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   Text(l10n?.authHasAccount ?? '已有账号？', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
                   TextButton(
                     onPressed: () => context.pop(),
-                    child: Text(l10n?.authGoToLogin ?? '去登录', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                    child: Text(l10n?.authGoToLogin ?? '去登录', style: AppTextStyles.bodySmall.copyWith(color: AppColors.authLink, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),

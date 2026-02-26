@@ -172,6 +172,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 label: AppLocalizations.of(context)?.authConfirmReset ?? '确认重置',
                 loading: _loading,
                 onPressed: _submit,
+                backgroundColor: AppColors.authPrimary,
+                foregroundColor: Colors.white,
               ),
             ],
           ),

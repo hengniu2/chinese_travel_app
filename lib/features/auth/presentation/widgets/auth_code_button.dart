@@ -65,7 +65,7 @@ class _AuthCodeButtonState extends State<AuthCodeButton> {
           child: Text(
             _countdown > 0 ? '${_countdown}s 后重发' : '获取验证码',
             style: AppTextStyles.bodySmall.copyWith(
-              color: canTap ? AppColors.primary : AppColors.textTertiary,
+              color: canTap ? AppColors.authLink : AppColors.textTertiary,
               fontWeight: FontWeight.w500,
             ),
           ),

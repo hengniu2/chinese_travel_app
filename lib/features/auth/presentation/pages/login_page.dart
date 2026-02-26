@@ -133,12 +133,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 label: l10n?.authLogin ?? '登录',
                 loading: _loading,
                 onPressed: _submit,
+                backgroundColor: AppColors.authPrimary,
+                foregroundColor: Colors.white,
               ),
               SizedBox(height: 16.h),
               Center(
                 child: TextButton(
                   onPressed: () => context.push('/auth/verify-code'),
-                  child: Text(l10n?.authVerifyCodeLogin ?? '验证码登录', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary)),
+                  child: Text(l10n?.authVerifyCodeLogin ?? '验证码登录', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.authLink, fontWeight: FontWeight.w500)),
                 ),
               ),
               Center(
@@ -154,7 +156,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   Text(l10n?.authNoAccount ?? '还没有账号？', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
                   TextButton(
                     onPressed: () => context.push('/auth/register'),
-                    child: Text(l10n?.authRegisterNow ?? '立即注册', style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                    child: Text(l10n?.authRegisterNow ?? '立即注册', style: AppTextStyles.bodySmall.copyWith(color: AppColors.authLink, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),

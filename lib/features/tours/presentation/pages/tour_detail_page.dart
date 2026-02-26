@@ -14,7 +14,7 @@ class TourDetailPage extends ConsumerWidget {
 
   final String id;
 
-  static const double _heroHeight = 260;
+  static const double _heroHeight = 200;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,7 +48,7 @@ class TourDetailPage extends ConsumerWidget {
 class _TourDetailContent extends StatelessWidget {
   const _TourDetailContent({required this.detail});
 
-  static const double _heroHeight = 260;
+  static const double _heroHeight = 200;
 
   final TourDetail detail;
 
@@ -62,6 +62,9 @@ class _TourDetailContent extends StatelessWidget {
         slivers: [
           SliverToBoxAdapter(child: _buildHeroImage(context)),
           SliverToBoxAdapter(child: _buildTitleBlock(context)),
+          SliverToBoxAdapter(child: _buildQuickInfoAndTrust(context)),
+          SliverToBoxAdapter(child: _buildProductHighlightsStrip(context)),
+          SliverToBoxAdapter(child: SizedBox(height: 20.h)),
           SliverToBoxAdapter(child: _buildSection(context, '行程时间轴', _buildItinerary(context))),
           SliverToBoxAdapter(child: _buildSection(context, '行程亮点', _buildHighlights(context))),
           SliverToBoxAdapter(child: _buildSection(context, '费用说明', _buildCost(context))),
@@ -121,31 +124,21 @@ class _TourDetailContent extends StatelessWidget {
   }
 
   Widget _buildHeroImage(BuildContext context) {
+    final hasImage = detail.imageUrl != null && detail.imageUrl!.trim().isNotEmpty;
     return SizedBox(
       height: _heroHeight,
       width: double.infinity,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primary.withValues(alpha: 0.85),
-                  AppColors.primaryDark.withValues(alpha: 0.9),
-                ],
-              ),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.image_outlined,
-                size: 64.sp,
-                color: Colors.white.withValues(alpha: 0.4),
-              ),
-            ),
-          ),
+          if (hasImage)
+            Image.network(
+              detail.imageUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _heroGradientPlaceholder(),
+            )
+          else
+            _heroGradientPlaceholder(),
           Positioned(
             left: 0,
             right: 0,
@@ -201,21 +194,41 @@ class _TourDetailContent extends StatelessWidget {
     );
   }
 
-  Widget _buildTitleBlock(BuildContext context) {
-    return Transform.translate(
-      offset: Offset(0, -24.h),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 20.h),
-        margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 0),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-          boxShadow: AppShadow.medium,
+  Widget _heroGradientPlaceholder() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withValues(alpha: 0.85),
+            AppColors.primaryDark.withValues(alpha: 0.9),
+          ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      ),
+      child: Center(
+        child: Icon(
+          Icons.image_outlined,
+          size: 64.sp,
+          color: Colors.white.withValues(alpha: 0.4),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitleBlock(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 16.h),
+      margin: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: AppShadow.medium,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
             Text(
               detail.title,
               style: AppTextStyles.headlineMedium.copyWith(
@@ -234,26 +247,160 @@ class _TourDetailContent extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ],
-            SizedBox(height: 16.h),
+            SizedBox(height: 12.h),
             Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('¥', style: AppTextStyles.priceLarge.copyWith(fontSize: 16.sp)),
+                Text(
+                  '¥',
+                  style: AppTextStyles.priceLarge.copyWith(
+                    fontSize: 18.sp,
+                    color: AppColors.price,
+                  ),
+                ),
                 Text(
                   detail.price.toStringAsFixed(0),
-                  style: AppTextStyles.priceLarge.copyWith(fontSize: 28.sp),
+                  style: AppTextStyles.priceLarge.copyWith(
+                    fontSize: 26.sp,
+                    color: AppColors.price,
+                  ),
                 ),
                 Padding(
                   padding: EdgeInsets.only(left: 4.w),
                   child: Text(
                     '起/人',
-                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary),
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textTertiary,
+                      fontSize: 13.sp,
+                    ),
                   ),
                 ),
               ],
             ),
           ],
+        ),
+    );
+  }
+
+  /// 马蜂窝风格：行程要点 + 保障标签（退改、真实评价、官方）
+  Widget _buildQuickInfoAndTrust(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 0),
+      padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 14.h),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: AppShadow.card,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 10.w,
+            runSpacing: 8.h,
+            children: [
+              _infoChip(Icons.calendar_today_rounded, '${detail.days}天${detail.days - 1}晚'),
+              _infoChip(Icons.location_on_outlined, '${detail.city}出发'),
+              if (detail.type.isNotEmpty) _infoChip(Icons.label_outline_rounded, detail.type),
+            ],
+          ),
+          SizedBox(height: 14.h),
+          Row(
+            children: [
+              Icon(Icons.verified_rounded, size: 18.sp, color: AppColors.primary),
+              SizedBox(width: 6.w),
+              Text(
+                '退改保障',
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+              ),
+              SizedBox(width: 16.w),
+              Icon(Icons.rate_review_outlined, size: 18.sp, color: AppColors.primary),
+              SizedBox(width: 6.w),
+              Text(
+                '真实评价',
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+              ),
+              SizedBox(width: 16.w),
+              Icon(Icons.store_rounded, size: 18.sp, color: AppColors.primary),
+              SizedBox(width: 6.w),
+              Text(
+                '官方直营',
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoChip(IconData icon, String label) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: AppColors.primaryPale,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16.sp, color: AppColors.primary),
+          SizedBox(width: 6.w),
+          Text(
+            label,
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 产品亮点横条（有数据用数据，无数据用默认卖点）
+  Widget _buildProductHighlightsStrip(BuildContext context) {
+    final labels = detail.highlights.isNotEmpty
+        ? detail.highlights.take(5)
+        : ['专业导游带队', '含住宿·部分餐饮', '支持退改', '精选景点', '小团出行'];
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: labels
+              .map(
+                (l) => Padding(
+                  padding: EdgeInsets.only(right: 10.w),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: AppShadow.card,
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check_circle_rounded, size: 16.sp, color: AppColors.primary),
+                        SizedBox(width: 6.w),
+                        Text(
+                          l,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
         ),
       ),
     );
@@ -277,6 +424,12 @@ class _TourDetailContent extends StatelessWidget {
   }
 
   Widget _buildItinerary(BuildContext context) {
+    if (detail.itinerary.isEmpty) {
+      return _buildEmptySectionCard(
+        icon: Icons.route_rounded,
+        message: '行程安排正在完善中，敬请期待。\n您可点击下方「立即预订」或联系客服获取详细行程。',
+      );
+    }
     return Column(
       children: List.generate(detail.itinerary.length, (i) {
         final day = detail.itinerary[i];
@@ -410,6 +563,9 @@ class _TourDetailContent extends StatelessWidget {
   }
 
   Widget _buildHighlights(BuildContext context) {
+    final list = detail.highlights.isNotEmpty
+        ? detail.highlights
+        : ['专业中文导游全程讲解', '含行程所列住宿及部分餐饮', '出发前可免费退改，安心预订', '精选景点，行程合理'];
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -419,9 +575,9 @@ class _TourDetailContent extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: detail.highlights.asMap().entries.map((e) {
+        children: list.asMap().entries.map((e) {
           return Padding(
-            padding: EdgeInsets.only(bottom: e.key < detail.highlights.length - 1 ? 12.h : 0),
+            padding: EdgeInsets.only(bottom: e.key < list.length - 1 ? 12.h : 0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -441,13 +597,45 @@ class _TourDetailContent extends StatelessWidget {
     );
   }
 
+  Widget _buildEmptySectionCard({required IconData icon, required String message}) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 24.h, horizontal: 16.w),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: AppShadow.card,
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 40.sp, color: AppColors.textTertiary),
+          SizedBox(height: 12.h),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCost(BuildContext context) {
+    if (detail.costIncluded.isEmpty && detail.costExcluded.isEmpty) {
+      return _buildEmptySectionCard(
+        icon: Icons.receipt_long_rounded,
+        message: '费用说明加载中。预订时可查看完整费用明细。',
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _costGroupCard('费用包含', detail.costIncluded, true),
-        SizedBox(height: 14.h),
-        _costGroupCard('费用不含', detail.costExcluded, false),
+        if (detail.costIncluded.isNotEmpty) _costGroupCard('费用包含', detail.costIncluded, true),
+        if (detail.costIncluded.isNotEmpty && detail.costExcluded.isNotEmpty) SizedBox(height: 14.h),
+        if (detail.costExcluded.isNotEmpty) _costGroupCard('费用不含', detail.costExcluded, false),
       ],
     );
   }
@@ -516,6 +704,12 @@ class _TourDetailContent extends StatelessWidget {
   }
 
   Widget _buildHotels(BuildContext context) {
+    if (detail.hotels.isEmpty) {
+      return _buildEmptySectionCard(
+        icon: Icons.hotel_rounded,
+        message: '酒店信息将在确认订单后提供。一般为行程所列同级标准。',
+      );
+    }
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -567,6 +761,9 @@ class _TourDetailContent extends StatelessWidget {
   }
 
   Widget _buildPolicy(BuildContext context) {
+    final text = detail.refundPolicy.trim().isEmpty
+        ? '具体退改规则以预订时页面为准。一般支持出发前一定期限内免费取消。'
+        : detail.refundPolicy;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(16.w),
@@ -576,13 +773,19 @@ class _TourDetailContent extends StatelessWidget {
         boxShadow: AppShadow.card,
       ),
       child: Text(
-        detail.refundPolicy,
+        text,
         style: AppTextStyles.bodyMedium.copyWith(height: 1.6, color: AppColors.textSecondary),
       ),
     );
   }
 
   Widget _buildReviews(BuildContext context) {
+    if (detail.reviews.isEmpty) {
+      return _buildEmptySectionCard(
+        icon: Icons.rate_review_outlined,
+        message: '暂无用户评价。成为首批体验者，分享您的旅行感受吧。',
+      );
+    }
     return Column(
       children: detail.reviews.map((r) {
         return Padding(
@@ -639,33 +842,84 @@ class _TourDetailContent extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final bottomPad = MediaQuery.of(context).padding.bottom;
     return Container(
-      padding: EdgeInsets.fromLTRB(20.w, 14.h, 20.w, 14.h + bottomPad),
+      padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 10.h + bottomPad),
       decoration: BoxDecoration(
         color: AppColors.card,
-        boxShadow: AppShadow.heavy,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        border: Border(top: BorderSide(color: AppColors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            offset: const Offset(0, -2),
+            blurRadius: 8,
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text('¥', style: AppTextStyles.priceLarge.copyWith(fontSize: 16.sp)),
-            Text(
-              detail.price.toStringAsFixed(0),
-              style: AppTextStyles.priceLarge.copyWith(fontSize: 26.sp),
-            ),
-            Padding(
-              padding: EdgeInsets.only(left: 4.w),
-              child: Text(
-                '起/人',
-                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary, fontSize: 13.sp),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '起',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textTertiary,
+                      fontSize: 11.sp,
+                    ),
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        '¥',
+                        style: AppTextStyles.priceLarge.copyWith(
+                          fontSize: 16.sp,
+                          color: AppColors.price,
+                        ),
+                      ),
+                      Text(
+                        detail.price.toStringAsFixed(0),
+                        style: AppTextStyles.priceLarge.copyWith(
+                          fontSize: 22.sp,
+                          color: AppColors.price,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 4.w),
+                        child: Text(
+                          '/人',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.textTertiary,
+                            fontSize: 13.sp,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            const Spacer(),
+            TextButton.icon(
+              onPressed: () {
+                // 客服：可跳转聊天或拨号
+              },
+              icon: Icon(Icons.support_agent_rounded, size: 20.sp, color: AppColors.textSecondary),
+              label: Text(
+                '客服',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            SizedBox(width: 8.w),
             SizedBox(
-              width: 160.w,
+              height: 44,
               child: AppButton(
                 label: l10n?.tourBookNow ?? '立即预订',
                 onPressed: () => context.push(
@@ -676,8 +930,10 @@ class _TourDetailContent extends StatelessWidget {
                     'unitPrice': detail.price.toInt(),
                   },
                 ),
-                minHeight: 48,
-                expand: true,
+                minHeight: 44,
+                expand: false,
+                backgroundColor: AppColors.authPrimary,
+                foregroundColor: Colors.white,
               ),
             ),
           ],

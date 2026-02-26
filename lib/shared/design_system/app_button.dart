@@ -28,10 +28,16 @@ class AppButton extends StatefulWidget {
     this.loading = false,
     this.minHeight = 48,
     this.expand = true,
+    this.backgroundColor,
+    this.foregroundColor,
   });
 
   final String label;
   final AppButtonVariant variant;
+  /// 覆盖主按钮背景（如登录/注册用深绿）
+  final Color? backgroundColor;
+  /// 覆盖主按钮文字/图标色
+  final Color? foregroundColor;
   final VoidCallback? onPressed;
   final Widget? icon;
   final Widget? iconTrailing;
@@ -83,7 +89,7 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
               strokeWidth: 2,
               valueColor: AlwaysStoppedAnimation<Color>(
                 widget.variant == AppButtonVariant.primary
-                    ? Colors.white
+                    ? foregroundColor
                     : AppColors.primary,
               ),
             ),
@@ -152,11 +158,9 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
   (Color, Color, Color?) _resolveColors() {
     switch (widget.variant) {
       case AppButtonVariant.primary:
-        return (
-          _enabled ? AppColors.primary : AppColors.primaryPale,
-          Colors.white,
-          null,
-        );
+        final bg = widget.backgroundColor ?? (_enabled ? AppColors.primary : AppColors.primaryPale);
+        final fg = widget.foregroundColor ?? Colors.white;
+        return (bg, fg, null);
       case AppButtonVariant.secondary:
         return (
           Colors.white,

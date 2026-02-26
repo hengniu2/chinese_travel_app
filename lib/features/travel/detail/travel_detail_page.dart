@@ -337,7 +337,7 @@ class _CircleIconButton extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Title block
+// Title block + quick info strip (commercial: always show structure)
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _TitleBlock extends StatelessWidget {
@@ -365,7 +365,7 @@ class _TitleBlock extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           if (package.tags.isNotEmpty) ...[
             Wrap(
               spacing: 6,
@@ -374,8 +374,11 @@ class _TitleBlock extends StatelessWidget {
                   .map((t) => TagPill(label: t))
                   .toList(),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
           ],
+          // Quick info strip: duration, departure, group (always visible)
+          _QuickInfoStrip(package: package, l10n: l10n),
+          const SizedBox(height: 12),
           if (package.rating != null) ...[
             Row(
               children: [
@@ -397,7 +400,7 @@ class _TitleBlock extends StatelessWidget {
                 ],
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
           ],
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -415,6 +418,92 @@ class _TitleBlock extends StatelessWidget {
                 style: TravelDesignTokens.caption(AppColors.textTertiary),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickInfoStrip extends StatelessWidget {
+  const _QuickInfoStrip({required this.package, required this.l10n});
+
+  final TravelPackage package;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasDuration = package.durationDays != null;
+    final hasDeparture = package.departureCity != null && package.departureCity!.isNotEmpty;
+    final hasGroup = package.groupSize != null && package.groupSize!.isNotEmpty;
+    final hasDest = package.destinations.isNotEmpty;
+    if (!hasDuration && !hasDeparture && !hasGroup && !hasDest) return const SizedBox.shrink();
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 8,
+      children: [
+        if (hasDuration)
+          _QuickInfoChip(
+            icon: Icons.calendar_today_rounded,
+            label: '${package.durationDays}天',
+          ),
+        if (hasDeparture)
+          _QuickInfoChip(
+            icon: Icons.location_on_outlined,
+            label: package.departureCity!,
+          ),
+        if (hasGroup)
+          _QuickInfoChip(
+            icon: Icons.groups_outlined,
+            label: package.groupSize!,
+          ),
+        if (hasDest && package.destinations.length <= 3)
+          _QuickInfoChip(
+            icon: Icons.map_outlined,
+            label: package.destinations.join(' · '),
+          )
+        else if (hasDest)
+          _QuickInfoChip(
+            icon: Icons.map_outlined,
+            label: '${package.destinations.length}个目的地',
+          ),
+      ],
+    );
+  }
+}
+
+class _QuickInfoChip extends StatelessWidget {
+  const _QuickInfoChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: TravelDesignTokens.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: TravelDesignTokens.primary.withValues(alpha: 0.25),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: TravelDesignTokens.primary),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TravelDesignTokens.caption(AppColors.textPrimary).copyWith(
+              fontWeight: FontWeight.w500,
+              fontSize: 13,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -577,7 +666,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Overview tab
+// Overview tab (commercial: about trip, key info cards, what's included preview)
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _OverviewTab extends StatelessWidget {
@@ -588,45 +677,173 @@ class _OverviewTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cost = package.costBreakdown;
+    final hasIncluded = cost != null && cost.included.isNotEmpty;
+
     return Padding(
-      padding: const EdgeInsets.all(TravelDesignTokens.screenHorizontal),
+      padding: const EdgeInsets.fromLTRB(
+        TravelDesignTokens.screenHorizontal,
+        20,
+        TravelDesignTokens.screenHorizontal,
+        32,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // About this trip
           SectionHeader(title: l10n.detailOverviewSubtitle),
           const SizedBox(height: 12),
-          Text(
-            package.subtitle,
-            style: TravelDesignTokens.body(null),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(TravelDesignTokens.cardPadding),
+            decoration: BoxDecoration(
+              color: TravelDesignTokens.card,
+              borderRadius: TravelDesignTokens.borderRadiusMedium,
+              border: Border.all(color: AppColors.border),
+              boxShadow: TravelDesignTokens.shadowLevel1,
+            ),
+            child: Text(
+              package.subtitle.trim().isEmpty
+                  ? '精选行程，专业导游，舒适出行。'
+                  : package.subtitle,
+              style: TravelDesignTokens.body(null).copyWith(height: 1.5),
+            ),
           ),
-          const SizedBox(height: 16),
-          if (package.durationDays != null)
-            Text(
-              '${package.durationDays} days · ${package.durationNights ?? package.durationDays! - 1} nights',
-              style: TravelDesignTokens.caption(null),
-            ),
-          if (package.departureCity != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Departure: ${package.departureCity}',
-              style: TravelDesignTokens.caption(null),
-            ),
-          ],
-          if (package.destinations.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Destinations: ${package.destinations.join(', ')}',
-              style: TravelDesignTokens.caption(null),
-            ),
-          ],
-          if (package.groupSize != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Group: ${package.groupSize}',
-              style: TravelDesignTokens.caption(null),
-            ),
+          const SizedBox(height: 20),
+          // Key information grid (always show when we have data)
+          _OverviewKeyInfoGrid(package: package, l10n: l10n),
+          if (hasIncluded) ...[
+            const SizedBox(height: 24),
+            SectionHeader(title: l10n.detailIncluded),
+            const SizedBox(height: 10),
+            ...cost!.included.take(4).map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.check_circle_rounded,
+                          size: 18,
+                          color: TravelDesignTokens.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            item,
+                            style: TravelDesignTokens.body(null),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            if (cost.included.length > 4)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '更多详见${l10n.detailTabCost}',
+                  style: TravelDesignTokens.caption(TravelDesignTokens.primary)
+                      .copyWith(fontWeight: FontWeight.w500),
+                ),
+              ),
           ],
           const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}
+
+class _OverviewKeyInfoGrid extends StatelessWidget {
+  const _OverviewKeyInfoGrid({required this.package, required this.l10n});
+
+  final TravelPackage package;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <Widget>[];
+    if (package.durationDays != null) {
+      items.add(_OverviewInfoCard(
+        icon: Icons.calendar_today_rounded,
+        label: '${package.durationDays}天${package.durationNights != null ? ' / ${package.durationNights}晚' : ''}',
+      ));
+    }
+    if (package.departureCity != null && package.departureCity!.isNotEmpty) {
+      items.add(_OverviewInfoCard(
+        icon: Icons.location_on_outlined,
+        label: package.departureCity!,
+      ));
+    }
+    if (package.destinations.isNotEmpty) {
+      items.add(_OverviewInfoCard(
+        icon: Icons.map_outlined,
+        label: package.destinations.length > 3
+            ? '${package.destinations.take(3).join('、')}等'
+            : package.destinations.join('、'),
+      ));
+    }
+    if (package.groupSize != null && package.groupSize!.isNotEmpty) {
+      items.add(_OverviewInfoCard(
+        icon: Icons.groups_outlined,
+        label: package.groupSize!,
+      ));
+    }
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '行程要点',
+          style: TravelDesignTokens.titleL(AppColors.textPrimary),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: items,
+        ),
+      ],
+    );
+  }
+}
+
+class _OverviewInfoCard extends StatelessWidget {
+  const _OverviewInfoCard({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: TravelDesignTokens.primary.withValues(alpha: 0.08),
+        borderRadius: TravelDesignTokens.borderRadiusSmall,
+        border: Border.all(
+          color: TravelDesignTokens.primary.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 20, color: TravelDesignTokens.primary),
+          const SizedBox(width: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 160),
+            child: Text(
+              label,
+              style: TravelDesignTokens.body(AppColors.textPrimary).copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -1812,7 +2029,7 @@ class _ReviewsTab extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Sticky booking bar
+// Sticky booking bar (compact, commercial: price + normal CTA)
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _StickyBookingBar extends StatelessWidget {
@@ -1835,32 +2052,36 @@ class _StickyBookingBar extends StatelessWidget {
     return Container(
       padding: EdgeInsets.fromLTRB(
         TravelDesignTokens.screenHorizontal,
-        12,
+        10,
         TravelDesignTokens.screenHorizontal,
-        12 + MediaQuery.paddingOf(context).bottom,
+        10 + MediaQuery.paddingOf(context).bottom,
       ),
       decoration: BoxDecoration(
         color: TravelDesignTokens.card,
+        border: Border(top: BorderSide(color: AppColors.border)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            offset: const Offset(0, -2),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: 0.04),
+            offset: const Offset(0, -1),
+            blurRadius: 6,
           ),
         ],
       ),
       child: SafeArea(
         top: false,
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     l10n.detailFrom,
-                    style: TravelDesignTokens.caption(AppColors.textTertiary),
+                    style: TravelDesignTokens.caption(AppColors.textTertiary)
+                        .copyWith(fontSize: 11),
                   ),
                   PriceTag(
                     price: price,
@@ -1871,12 +2092,15 @@ class _StickyBookingBar extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 16),
-            TravelPrimaryButton(
-              label: label,
-              onPressed: onBook,
-              expand: false,
-              minHeight: 48,
+            const SizedBox(width: 12),
+            SizedBox(
+              height: 44,
+              child: TravelPrimaryButton(
+                label: label,
+                onPressed: onBook,
+                expand: false,
+                minHeight: 44,
+              ),
             ),
           ],
         ),

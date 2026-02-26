@@ -545,36 +545,42 @@ GoRouter createAppRouter(Ref ref) {
       GoRoute(
         path: '/auth/login',
         name: 'login',
+        parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) =>
             slideTransitionPage(child: const LoginPage()),
       ),
       GoRoute(
         path: '/auth/register',
         name: 'register',
+        parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) =>
             slideTransitionPage(child: const RegisterPage()),
       ),
       GoRoute(
         path: '/auth/verify-phone',
         name: 'verifyPhone',
+        parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) =>
             slideTransitionPage(child: const VerifyPhonePage()),
       ),
       GoRoute(
         path: '/auth/verify-code',
         name: 'verifyCode',
+        parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) =>
             slideTransitionPage(child: const VerifyCodeLoginPage()),
       ),
       GoRoute(
         path: '/auth/forgot-password',
         name: 'forgotPassword',
+        parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) =>
             slideTransitionPage(child: const ForgotPasswordPage()),
       ),
       GoRoute(
         path: '/auth/agreement',
         name: 'agreement',
+        parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) {
           final type = state.uri.queryParameters['type'] ?? 'user';
           return slideTransitionPage(child: UserAgreementPage(type: type));
