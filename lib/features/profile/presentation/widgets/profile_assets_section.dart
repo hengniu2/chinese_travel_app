@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
@@ -57,7 +58,7 @@ class ProfileAssetsSection extends StatelessWidget {
                 iconColor: AppColors.accentGold,
                 label: l10n?.profileWallet ?? '钱包',
                 trailing: (state.walletBalance ?? 0) > 0 ? '¥${(state.walletBalance ?? 0).toStringAsFixed(2)}' : null,
-                onTap: () => onPlaceholder(l10n?.profileWallet ?? '钱包'),
+                onTap: () => context.push('/profile/wallet'),
               ),
               Divider(height: 1, indent: 16.w + _kTileIconSize.w + 12.w, endIndent: 16.w, color: AppColors.divider),
               _AssetTile(

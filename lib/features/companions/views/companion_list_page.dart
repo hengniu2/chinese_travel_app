@@ -14,20 +14,20 @@ import '../data/companion_list_provider.dart';
 import '../models/companion_list_item.dart';
 import '../widgets/rating_widget.dart';
 
-/// Companion card design system: radius 16–18, 1px border, soft shadow, layered feel
+/// Companion card design system: professional commercial look — radius 16, subtle elevation
 const double _kCompanionCardRadius = 16;
 const List<BoxShadow> _kCompanionCardShadow = [
   BoxShadow(
-    color: Colors.black12,
+    color: Color(0x0D000000),
     offset: Offset(0, 2),
     blurRadius: 8,
     spreadRadius: 0,
   ),
   BoxShadow(
-    color: Color(0x0A000000),
-    offset: Offset(0, 1),
-    blurRadius: 4,
-    spreadRadius: 0,
+    color: Color(0x08000000),
+    offset: Offset(0, 4),
+    blurRadius: 12,
+    spreadRadius: -2,
   ),
 ];
 
@@ -413,6 +413,17 @@ class CompanionListPage extends ConsumerStatefulWidget {
   ConsumerState<CompanionListPage> createState() => _CompanionListPageState();
 }
 
+/// Match companion by keyword: name, city, or tags (skills).
+bool _companionMatchesSearch(CompanionListItem c, String query) {
+  if (query.trim().isEmpty) return true;
+  final q = query.trim().toLowerCase();
+  if (c.name.toLowerCase().contains(q)) return true;
+  if (c.city.toLowerCase().contains(q)) return true;
+  if (c.tags.any((t) => t.toLowerCase().contains(q))) return true;
+  if (c.languages?.any((l) => l.toLowerCase().contains(q)) ?? false) return true;
+  return false;
+}
+
 class _CompanionListPageState extends ConsumerState<CompanionListPage>
     with TickerProviderStateMixin {
   CompanionListFilters _filters = const CompanionListFilters();
@@ -429,6 +440,9 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
   int _filterIndex = 0;
   static const int _pageSize = 10;
 
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   static const List<String> _filterLabels = [
     '热度',
     '评分',
@@ -439,6 +453,10 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(() {
+      final q = _searchController.text.trim();
+      if (q != _searchQuery) setState(() => _searchQuery = q);
+    });
     final controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2200),
@@ -453,9 +471,21 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
 
   @override
   void dispose() {
+    _searchController.dispose();
     _floatController?.dispose();
     super.dispose();
   }
+
+  List<CompanionListItem> get _filteredList =>
+      _searchQuery.isEmpty ? _list : _list.where((c) => _companionMatchesSearch(c, _searchQuery)).toList();
+  List<CompanionListItem> get _filteredSponsored =>
+      _searchQuery.isEmpty ? _sponsored : _sponsored.where((c) => _companionMatchesSearch(c, _searchQuery)).toList();
+  List<CompanionListItem> get _filteredFeatured =>
+      _searchQuery.isEmpty ? _featured : _featured.where((c) => _companionMatchesSearch(c, _searchQuery)).toList();
+  List<CompanionListItem> get _filteredSmartRecommendations =>
+      _searchQuery.isEmpty ? _smartRecommendations : _smartRecommendations.where((c) => _companionMatchesSearch(c, _searchQuery)).toList();
+  List<CompanionListItem> get _filteredRecommended =>
+      _searchQuery.isEmpty ? _recommended : _recommended.where((c) => _companionMatchesSearch(c, _searchQuery)).toList();
 
   CompanionSort get _sort => switch (_filterIndex) {
         1 => CompanionSort.rating,
@@ -593,63 +623,69 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final topPadding = MediaQuery.of(context).padding.top;
     final compact = _isCompact(context);
-
+    final topPadding = MediaQuery.paddingOf(context).top;
+    final totalHeaderHeight = _headerHeight + topPadding;
     final searchBarOverlap = 24.0;
-    final searchBarTop = _headerHeight + topPadding - _searchBarHeight - searchBarOverlap;
+    final searchBarTop = totalHeaderHeight - _searchBarHeight - searchBarOverlap;
 
     return Scaffold(
       backgroundColor: AppColors.companionSectionBright,
       body: Stack(
         clipBehavior: Clip.none,
         children: [
-          NotificationListener<ScrollNotification>(
-            onNotification: (n) {
-              if (n is ScrollEndNotification) return false;
-              final m = n.metrics;
-              if (m.pixels >= m.maxScrollExtent - 200) _loadMore();
-              return false;
-            },
-            child: RefreshIndicator(
-              onRefresh: _onRefresh,
-              color: AppColors.primary,
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                cacheExtent: 400,
-                clipBehavior: Clip.none,
-                slivers: [
-                  _buildHeader(context, topPadding, l10n),
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 8),
+          // Scrollable content with top spacer so it starts below the fixed header
+          Positioned.fill(
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                if (n is ScrollEndNotification) return false;
+                final m = n.metrics;
+                if (m.pixels >= m.maxScrollExtent - 200) _loadMore();
+                return false;
+              },
+              child: RefreshIndicator(
+                onRefresh: _onRefresh,
+                color: AppColors.primary,
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
+                  cacheExtent: 400,
+                  clipBehavior: Clip.none,
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: SizedBox(height: totalHeaderHeight + 8),
+                    ),
                   SliverToBoxAdapter(
                     child: Container(
                       margin: EdgeInsets.fromLTRB(
                         compact ? 12 : 16,
                         0,
                         compact ? 12 : 16,
-                        8,
+                        10,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceWarmWhite,
-                        borderRadius: BorderRadius.circular(14),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.sectionCompanion.withValues(alpha: 0.08),
+                          color: AppColors.border.withValues(alpha: 0.5),
                           width: 0.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
+                            color: Colors.black.withValues(alpha: 0.04),
+                            offset: const Offset(0, 2),
+                            blurRadius: 8,
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
                             offset: const Offset(0, 1),
-                            blurRadius: 5,
+                            blurRadius: 3,
                           ),
                         ],
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                         child: _buildFilterCapsules(),
                       ),
                     ),
@@ -665,23 +701,34 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
                   _sectionSpacer(AppColors.companionSectionBright),
                   ..._buildAllSection(context, l10n),
                   if (_loadingMore) _buildLoadingMoreSliver(),
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: MediaQuery.of(context).padding.bottom + 24,
+                        SliverToBoxAdapter(
+                          child: SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 24,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
+              ),
+            // Fixed header: always visible, image stretched to top of screen
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SizedBox(
+                height: totalHeaderHeight,
+                child: _buildFixedHeader(context, topPadding, l10n),
               ),
             ),
-          ),
-          Positioned(
-            top: searchBarTop,
-            left: compact ? 12 : 16,
-            right: compact ? 12 : 16,
-            child: _buildFloatingSearchBar(l10n),
-          ),
-        ],
-      ),
+            Positioned(
+              top: searchBarTop,
+              left: compact ? 12 : 16,
+              right: compact ? 12 : 16,
+              child: _buildFloatingSearchBar(l10n),
+            ),
+          ],
+        ),
     );
   }
 
@@ -690,58 +737,57 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
     bottomRight: Radius.circular(_headerBottomRadius),
   );
 
-  Widget _buildHeader(
+  /// Fixed-height header that does not scroll or shrink (stays full size).
+  Widget _buildFixedHeader(
     BuildContext context,
     double topPadding,
     AppLocalizations? l10n,
   ) {
-    return SliverToBoxAdapter(
-      child: Container(
-        height: _headerHeight + topPadding,
-        decoration: BoxDecoration(
-          borderRadius: _headerRadius,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              offset: const Offset(0, 4),
-              blurRadius: 12,
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: _headerRadius,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: _headerRadius,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              'assets/header_companion.png',
+              fit: BoxFit.cover,
             ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: _headerRadius,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Positioned.fill(
-                child: Image.asset(
-                  'assets/header_companion.png',
-                  fit: BoxFit.cover,
-                ),
-              ),
-              // Content: left text, right glass square
-              Positioned(
-                top: topPadding,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final compact = constraints.maxWidth < 360;
-                    return Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        compact ? 12 : 16,
-                        14,
-                        compact ? 12 : 16,
-                        36,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Spacer(),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+            Positioned(
+              top: topPadding,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 360;
+                  return Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      compact ? 12 : 16,
+                      14,
+                      compact ? 12 : 16,
+                      36,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Spacer(),
+                        Flexible(
+                          child: Column(
                             mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               Text(
                                 l10n?.companionDiscoveryTitle ?? '找陪游',
@@ -776,16 +822,16 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
                               ),
                             ],
                           ),
-                          const SizedBox(width: 8),
-                          _buildFloatingGlassLuggage(),
-                        ],
-                      ),
-                );
-                  },
-                ),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFloatingGlassLuggage(),
+                      ],
+                    ),
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -838,17 +884,17 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(_searchBarRadius),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.4), width: 0.5),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            offset: const Offset(0, 4),
-            blurRadius: 16,
-          ),
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
             offset: const Offset(0, 2),
-            blurRadius: 8,
+            blurRadius: 10,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            offset: const Offset(0, 1),
+            blurRadius: 4,
           ),
         ],
       ),
@@ -901,31 +947,38 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
               color: AppColors.divider,
             ),
             Expanded(
-              child: InkWell(
-                onTap: () {},
-                borderRadius: BorderRadius.circular(_searchBarRadius),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.search_rounded,
-                        size: 20,
-                        color: AppColors.textTertiary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          l10n?.companionSearchPlaceholder ?? '城市、技能、关键词',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.textTertiary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+              child: TextField(
+                controller: _searchController,
+                onChanged: (_) => setState(() {}),
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                ),
+                decoration: InputDecoration(
+                  hintText: l10n?.companionSearchPlaceholder ?? '城市、技能、关键词',
+                  hintStyle: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textTertiary,
+                    fontSize: 13,
                   ),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    size: 20,
+                    color: AppColors.textTertiary,
+                  ),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                 ),
               ),
             ),
@@ -979,7 +1032,7 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
   }
 
   List<Widget> _buildSponsoredSection(AppLocalizations? l10n) {
-    if (_sponsored.isEmpty) return [];
+    if (_filteredSponsored.isEmpty) return [];
     return [
       SliverStickyHeader.builder(
         builder: (context, state) => CompanionSectionHeader(
@@ -1014,10 +1067,10 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                itemCount: _sponsored.length,
+                itemCount: _filteredSponsored.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (_, i) {
-                  final c = _sponsored[i];
+                  final c = _filteredSponsored[i];
                   return RepaintBoundary(
                     child: CompanionCard(
                       config: CompanionCardConfig(
@@ -1043,7 +1096,7 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
   }
 
   List<Widget> _buildFeaturedSection(AppLocalizations? l10n) {
-    if (_featured.isEmpty) return [];
+    if (_filteredFeatured.isEmpty) return [];
     return [
       SliverStickyHeader.builder(
         builder: (context, state) => CompanionSectionHeader(
@@ -1066,10 +1119,10 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                itemCount: _featured.length,
+                itemCount: _filteredFeatured.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (_, i) {
-                  final c = _featured[i];
+                  final c = _filteredFeatured[i];
                   return RepaintBoundary(
                     child: CompanionCard(
                       config: CompanionCardConfig(
@@ -1093,8 +1146,8 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
   }
 
   List<Widget> _buildSmartRecommendationSection(AppLocalizations? l10n) {
-    if (_smartRecommendations.isEmpty) return [];
-    final items = _smartRecommendations;
+    if (_filteredSmartRecommendations.isEmpty) return [];
+    final items = _filteredSmartRecommendations;
     return [
       SliverStickyHeader.builder(
         builder: (context, state) => CompanionSectionHeader(
@@ -1150,8 +1203,8 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
   }
 
   List<Widget> _buildRecommendedSection(AppLocalizations? l10n) {
-    if (_recommended.isEmpty) return [];
-    final items = _recommended;
+    if (_filteredRecommended.isEmpty) return [];
+    final items = _filteredRecommended;
     return [
       SliverStickyHeader.builder(
         builder: (context, state) => CompanionSectionHeader(
@@ -1230,7 +1283,7 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
                       ),
                     ),
                   )
-                : _list.isEmpty
+                : _filteredList.isEmpty
                     ? Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         child: EmptyState(
@@ -1239,22 +1292,24 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
                             size: 48,
                             color: AppColors.textTertiary,
                           ),
-                          message: l10n?.companionEmpty ?? '暂无符合条件的陪游',
+                          message: _searchQuery.isNotEmpty
+                              ? '未找到匹配的陪游'
+                              : (l10n?.companionEmpty ?? '暂无符合条件的陪游'),
                           actionLabel: l10n?.companionFilterAll ?? '全部',
-                          onAction: _onRefresh,
+                          onAction: _searchQuery.isNotEmpty ? () { _searchController.clear(); setState(() => _searchQuery = ''); } : _onRefresh,
                         ),
                       )
                     : ListView.separated(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
+                          horizontal: 14,
+                          vertical: 10,
                         ),
-                        itemCount: _list.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 6),
+                        itemCount: _filteredList.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (_, index) {
-                          final companion = _list[index];
+                          final companion = _filteredList[index];
                           return FadeIn(
                             delay: Duration(milliseconds: (index % 8) * 35),
                             offsetY: 6,

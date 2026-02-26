@@ -12,40 +12,83 @@ class MultiTripResultPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: LuxuryTravelTheme.background,
-      appBar: AppBar(
-        title: const Text('多程航班搜索结果'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => context.pop(),
-        ),
-        backgroundColor: LuxuryTravelTheme.cardBackground,
-        foregroundColor: LuxuryTravelTheme.darkText,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-              children: [
-                _MultiTripSummaryCard(option: _multiTripOption),
-              ],
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            backgroundColor: LuxuryTravelTheme.cardBackground,
+            foregroundColor: LuxuryTravelTheme.darkText,
+            elevation: 0,
+            scrolledUnderElevation: 2,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+              onPressed: () => context.pop(),
+            ),
+            title: Text(
+              '多程航班',
+              style: LuxuryTravelTheme.headlineMedium(LuxuryTravelTheme.darkText).copyWith(fontSize: 18),
+            ),
+            centerTitle: true,
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: LuxuryTravelTheme.cardBackground,
+              child: Row(
+                children: [
+                  Icon(Icons.route_rounded, size: 18, color: LuxuryTravelTheme.primaryGold),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${_multiTripOption.segments.length} 段行程',
+                      style: LuxuryTravelTheme.bodyMedium(LuxuryTravelTheme.darkText)
+                          .copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: LuxuryTravelTheme.primaryGoldPale,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '多程',
+                      style: LuxuryTravelTheme.caption(LuxuryTravelTheme.darkText)
+                          .copyWith(fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          FlightDetailBookingBar(
-            totalPrice: _multiTripOption.totalPrice,
-            onReserveTap: () {
-              // TODO: Confirm booking
-            },
-            buttonLabel: '确认预订',
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+              child: Text(
+                '行程概览',
+                style: LuxuryTravelTheme.titleSmall(LuxuryTravelTheme.darkText)
+                    .copyWith(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+            sliver: SliverToBoxAdapter(
+              child: _MultiTripSummaryCard(option: _multiTripOption),
+            ),
           ),
         ],
       ),
+      bottomNavigationBar: FlightDetailBookingBar(
+        totalPrice: _multiTripOption.totalPrice,
+        onReserveTap: () {
+          // TODO: Confirm booking
+        },
+        buttonLabel: '确认预订',
+      ),
     );
   }
-
 }
 
 // ——— Data ———
@@ -128,10 +171,11 @@ class _MultiTripSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: LuxuryTravelTheme.cardBackground,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: LuxuryTravelTheme.border.withValues(alpha: 0.6), width: 0.5),
         boxShadow: LuxuryTravelTheme.softShadow,
       ),
       child: Column(

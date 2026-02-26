@@ -486,6 +486,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileWallet => '钱包';
 
   @override
+  String get profileWalletBalance => '余额';
+
+  @override
+  String get profileWalletSubtitle => '旅行钱包 · 安全便捷';
+
+  @override
+  String get profileWalletTopUp => '充值';
+
+  @override
+  String get profileWalletWithdraw => '提现';
+
+  @override
+  String get profileWalletDetails => '明细';
+
+  @override
+  String get profileWalletTransactions => '交易记录';
+
+  @override
+  String get profileWalletNoTransactions => '暂无交易记录';
+
+  @override
   String get profileCoupons => '优惠券';
 
   @override

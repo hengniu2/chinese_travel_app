@@ -11,7 +11,10 @@ import 'discovery_filter_sheet.dart';
 /// Discovery marketplace: search, category tabs, filter chips, vertical cards,
 /// pull to refresh, skeleton, empty state, sort & advanced filter.
 class TravelDiscoveryPage extends ConsumerStatefulWidget {
-  const TravelDiscoveryPage({super.key});
+  const TravelDiscoveryPage({super.key, this.initialQuery});
+
+  /// When opening from home search bar, pass the search query to pre-fill and filter.
+  final String? initialQuery;
 
   @override
   ConsumerState<TravelDiscoveryPage> createState() => _TravelDiscoveryPageState();
@@ -25,8 +28,14 @@ class _TravelDiscoveryPageState extends ConsumerState<TravelDiscoveryPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final discovery = ref.read(discoveryStateProvider);
-      _searchController.text = discovery.searchQuery;
+      final initial = widget.initialQuery?.trim();
+      if (initial != null && initial.isNotEmpty) {
+        ref.read(discoveryStateProvider.notifier).setSearchQuery(initial);
+        _searchController.text = initial;
+      } else {
+        final discovery = ref.read(discoveryStateProvider);
+        _searchController.text = discovery.searchQuery;
+      }
     });
   }
 

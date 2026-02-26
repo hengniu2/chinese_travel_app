@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_router.dart';
 import '../../../../shared/design_system/design_system.dart';
-import '../data/companion_detail_mock.dart';
+import '../../chat/data/chat_repository_provider.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../data/companion_detail_provider.dart';
 import '../data/companion_list_mock.dart';
 import '../models/companion_detail.dart';
 import '../models/companion_list_item.dart';
@@ -21,24 +25,78 @@ IconData _skillTagToIcon(String tag) {
   return Icons.auto_awesome_rounded;
 }
 
-/// 陪游详情页 — 大封面 + 分层区块 + 底部固定预订栏
-class CompanionDetailPage extends StatefulWidget {
+/// 陪游详情页 — 大封面 + 分层区块 + 底部固定预订栏（数据来自 API：companion + rating + reviews + availability）
+class CompanionDetailPage extends ConsumerWidget {
   const CompanionDetailPage({super.key, required this.id});
 
   final String id;
 
   @override
-  State<CompanionDetailPage> createState() => _CompanionDetailPageState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncDetail = ref.watch(companionDetailProvider(id));
+    return asyncDetail.when(
+      loading: () => Scaffold(
+        backgroundColor: AppColors.warmBackground,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(color: AppColors.primary),
+              SizedBox(height: 16.h),
+              Text(
+                '加载中...',
+                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      ),
+      error: (err, _) => Scaffold(
+        backgroundColor: AppColors.warmBackground,
+        appBar: AppBar(backgroundColor: AppColors.surface, title: const Text('陪游详情')),
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.w),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline_rounded, size: 48.sp, color: AppColors.textTertiary),
+                SizedBox(height: 16.h),
+                Text(
+                  err.toString().replaceFirst('Exception: ', ''),
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                ),
+                SizedBox(height: 24.h),
+                FilledButton.icon(
+                  onPressed: () => ref.invalidate(companionDetailProvider(id)),
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('重试'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      data: (detail) => _CompanionDetailContent(detail: detail, companionId: id),
+    );
+  }
 }
 
-class _CompanionDetailPageState extends State<CompanionDetailPage>
+class _CompanionDetailContent extends ConsumerStatefulWidget {
+  const _CompanionDetailContent({required this.detail, required this.companionId});
+
+  final CompanionDetail detail;
+  final String companionId;
+
+  @override
+  ConsumerState<_CompanionDetailContent> createState() => _CompanionDetailContentState();
+}
+
+class _CompanionDetailContentState extends ConsumerState<_CompanionDetailContent>
     with SingleTickerProviderStateMixin {
-  late CompanionDetail _detail;
-  bool _bioExpanded = false;
   late AnimationController _avatarFadeController;
   late Animation<double> _avatarFade;
-  int _selectedDateIndex = 0;
-  int _reviewFilterIndex = 0; // 0=全部 1=5星 2=4星 3=有图
 
   static const double _expandedHeight = 200;
   static const List<String> _weekdayLabels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
@@ -50,10 +108,16 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
   static const Color _coverGradientStart = Color(0x00000000);
   static const Color _coverGradientEnd = Color(0xE6000000);
 
+  CompanionDetail get _detail => widget.detail;
+  String get _companionId => widget.companionId;
+
+  bool _bioExpanded = false;
+  int _selectedDateIndex = 0;
+  int _reviewFilterIndex = 0;
+
   @override
   void initState() {
     super.initState();
-    _detail = getCompanionDetail(widget.id);
     _avatarFadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 480),
@@ -79,6 +143,40 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
     if (fromImages.isNotEmpty) return fromImages.take(5).toList();
     if (_detail.avatar.trim().isNotEmpty) return [_detail.avatar];
     return [];
+  }
+
+  /// Create a chat channel between the current user and this companion, then open it on the Chat tab.
+  /// Uses companion's user id from API (detail.id) so the backend can find-or-create the conversation.
+  Future<void> _openChatWithCompanion(BuildContext context) async {
+    if (!ref.read(authProvider).isAuthenticated) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('请先登录后再发起聊天')),
+        );
+      }
+      return;
+    }
+    final companionUserId = _detail.id;
+    if (companionUserId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('无法获取陪游信息')),
+        );
+      }
+      return;
+    }
+    try {
+      final repo = ref.read(chatRepositoryProvider);
+      final conv = await repo.createConversation(otherUserId: companionUserId);
+      if (!mounted) return;
+      context.go('/${RouteNames.messages}/chat/${conv.id}');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('无法发起聊天: ${e.toString().replaceFirst('Exception: ', '')}')),
+        );
+      }
+    }
   }
 
   @override
@@ -172,6 +270,26 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
         ),
       ),
       actions: [
+        AppTapScale(
+          child: IconButton(
+            icon: Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.95),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    offset: const Offset(0, 2),
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+              child: Icon(Icons.chat_bubble_outline_rounded, size: 20.sp, color: AppColors.textPrimary),
+            ),
+            onPressed: () => _openChatWithCompanion(context),
+          ),
+        ),
         Padding(
           padding: EdgeInsets.only(right: 8.w),
           child: AppTapScale(
@@ -230,7 +348,7 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Hero(
-                      tag: 'companion_avatar_${widget.id}',
+                      tag: 'companion_avatar_$_companionId',
                       child: FadeTransition(
                         opacity: _avatarFade,
                         child: CircleAvatar(
@@ -559,9 +677,16 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
     );
   }
 
-  /// 6. Availability calendar preview
+  /// 6. Availability calendar preview (from API when available)
   Widget _buildAvailabilitySection() {
+    final slots = _detail.availabilitySlots;
     final today = DateTime.now();
+    final dateCount = slots != null && slots.isNotEmpty
+        ? slots.length
+        : 7;
+    final dates = slots != null && slots.isNotEmpty
+        ? slots.map((s) => s.date).toList()
+        : List.generate(7, (i) => today.add(Duration(days: i)));
     return _buildSection(
       title: '可预约时间',
       child: Column(
@@ -573,10 +698,10 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
-              itemCount: 7,
+              itemCount: dateCount,
               separatorBuilder: (_, __) => SizedBox(width: 8.w),
               itemBuilder: (context, i) {
-                final d = today.add(Duration(days: i));
+                final d = dates[i];
                 final weekday = _weekdayLabels[d.weekday - 1];
                 final selected = _selectedDateIndex == i;
                 return _buildDateCard(
@@ -590,7 +715,9 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
           ),
           SizedBox(height: 8.h),
           Text(
-            '本周已预约 3 次',
+            slots != null && slots.isNotEmpty
+                ? '${slots.length} 个可预约日期'
+                : '暂无档期数据，可联系咨询',
             style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary, fontSize: 11.sp),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -826,7 +953,7 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
 
   /// 9. Similar companions section
   Widget _buildSimilarCompanionsSection() {
-    final similar = getSimilarCompanions(widget.id, _detail.city);
+    final similar = getSimilarCompanions(_companionId, _detail.city);
     if (similar.isEmpty) return const SizedBox.shrink();
 
     return Padding(
@@ -1083,7 +1210,7 @@ class _CompanionDetailPageState extends State<CompanionDetailPage>
               SizedBox(width: 16.w),
               // Right: large yellow gradient button — 立即预约 (tap scale)
               AppTapScale(
-                onTap: () => context.push('/companions/${widget.id}/order'),
+                onTap: () => context.push('/companions/$_companionId/order'),
                 pressedScale: 0.97,
                 child: Container(
                   height: 48.h,

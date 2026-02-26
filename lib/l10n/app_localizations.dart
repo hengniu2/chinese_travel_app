@@ -1040,6 +1040,48 @@ abstract class AppLocalizations {
   /// **'钱包'**
   String get profileWallet;
 
+  /// No description provided for @profileWalletBalance.
+  ///
+  /// In zh, this message translates to:
+  /// **'余额'**
+  String get profileWalletBalance;
+
+  /// No description provided for @profileWalletSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'旅行钱包 · 安全便捷'**
+  String get profileWalletSubtitle;
+
+  /// No description provided for @profileWalletTopUp.
+  ///
+  /// In zh, this message translates to:
+  /// **'充值'**
+  String get profileWalletTopUp;
+
+  /// No description provided for @profileWalletWithdraw.
+  ///
+  /// In zh, this message translates to:
+  /// **'提现'**
+  String get profileWalletWithdraw;
+
+  /// No description provided for @profileWalletDetails.
+  ///
+  /// In zh, this message translates to:
+  /// **'明细'**
+  String get profileWalletDetails;
+
+  /// No description provided for @profileWalletTransactions.
+  ///
+  /// In zh, this message translates to:
+  /// **'交易记录'**
+  String get profileWalletTransactions;
+
+  /// No description provided for @profileWalletNoTransactions.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无交易记录'**
+  String get profileWalletNoTransactions;
+
   /// No description provided for @profileCoupons.
   ///
   /// In zh, this message translates to:

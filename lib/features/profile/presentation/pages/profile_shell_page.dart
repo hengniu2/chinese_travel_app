@@ -17,8 +17,8 @@ import '../widgets/profile_header_sample_section.dart';
 import '../widgets/profile_quick_cards_section.dart';
 import '../widgets/profile_tools_grid_section.dart';
 
-/// 页面背景色（样本风格浅灰）
-const Color _kProfilePageBackground = Color(0xFFF5F6FA);
+/// 页面背景色：与白色卡片区分，提升对比度
+const Color _kProfilePageBackground = Color(0xFFE5E7EB);
 
 /// 区块间距（16dp，与样本一致）
 const double _kSectionSpacing = 16;
@@ -215,11 +215,17 @@ class _OrderStatusSkeleton extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(24.r),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.08),
             offset: const Offset(0, 2),
             blurRadius: 12,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            offset: const Offset(0, 1),
+            blurRadius: 4,
           ),
         ],
       ),

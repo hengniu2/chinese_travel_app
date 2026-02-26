@@ -8,6 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../../shared/widgets/app_network_image.dart';
 import '../../data/chat_repository_provider.dart';
+import '../../domain/chat_list_item.dart';
 import '../../domain/chat_message.dart';
 import '../widgets/chat_message_bubble.dart';
 
@@ -125,10 +126,24 @@ class _ChatConversationPageState extends ConsumerState<ChatConversationPage> wit
     );
   }
 
+  /// Resolve conversation/companion name from chat list; fallback to localized "消息".
+  String _companionTitle(AppLocalizations? l10n, List<ChatListItem> chats) {
+    final match = chats.where((c) => c.id == widget.chatId).toList();
+    final item = match.isEmpty ? null : match.first;
+    if (item == null) return l10n?.chatTitle ?? '消息';
+    final nickname = item.nickname;
+    if (nickname == 'Chat' || nickname == 'Messages') return l10n?.chatTitle ?? nickname;
+    return nickname;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final asyncMessages = ref.watch(chatMessagesProvider(widget.chatId));
+    final asyncChats = ref.watch(chatListProvider);
+    final companionTitle = asyncChats.valueOrNull != null
+        ? _companionTitle(l10n, asyncChats.valueOrNull!)
+        : (l10n?.chatTitle ?? '消息');
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -139,7 +154,7 @@ class _ChatConversationPageState extends ConsumerState<ChatConversationPage> wit
             bottom: false,
             child: Column(
               children: [
-                _buildAppBar(context),
+                _buildAppBar(context, companionTitle: companionTitle),
                 _buildSmartTipsStrip(context, l10n),
                 Expanded(
                   child: asyncMessages.when(
@@ -248,8 +263,8 @@ class _ChatConversationPageState extends ConsumerState<ChatConversationPage> wit
     );
   }
 
-  /// 对话页顶栏：奶油底 + 返回/伴游头像/昵称/在线状态/更多，黄品牌无绿
-  Widget _buildAppBar(BuildContext context) {
+  /// 对话页顶栏：奶油底 + 返回/伴游头像/昵称或标题/在线状态/更多
+  Widget _buildAppBar(BuildContext context, {required String companionTitle}) {
     const double barHeight = 56;
     final topPadding = MediaQuery.of(context).padding.top;
     final totalHeight = barHeight.h + topPadding;
@@ -282,7 +297,7 @@ class _ChatConversationPageState extends ConsumerState<ChatConversationPage> wit
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Chat',
+                    companionTitle,
                     style: AppTextStyles.titleMedium.copyWith(
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,

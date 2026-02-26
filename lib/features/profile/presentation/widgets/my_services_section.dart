@@ -91,7 +91,7 @@ class MyServicesSection extends StatelessWidget {
         SizedBox(height: 8.h),
         _ServiceCard(
           items: [
-            _ServiceTile(icon: Icons.account_balance_wallet_outlined, iconColor: AppColors.accentGold, label: l10n?.profileWallet ?? 'Wallet', onTap: () => onPlaceholder(l10n?.profileWallet ?? 'Wallet')),
+            _ServiceTile(icon: Icons.account_balance_wallet_outlined, iconColor: AppColors.accentGold, label: l10n?.profileWallet ?? 'Wallet', onTap: () => context.push('/profile/wallet')),
             _ServiceTile(icon: Icons.confirmation_number_outlined, iconColor: AppColors.accentWarm, label: l10n?.profileCoupons ?? 'Coupons', onTap: () => onPlaceholder(l10n?.profileCoupons ?? 'Coupons')),
             _ServiceTile(icon: Icons.stars_rounded, iconColor: AppColors.primary, label: l10n?.profilePoints ?? 'Points', onTap: () => onPlaceholder(l10n?.profilePoints ?? 'Points')),
             _ServiceTile(icon: Icons.receipt_long_outlined, iconColor: AppColors.iconOutlineOnLight, label: l10n?.profileInvoice ?? 'Invoice', onTap: () => onPlaceholder(l10n?.profileInvoice ?? 'Invoice')),

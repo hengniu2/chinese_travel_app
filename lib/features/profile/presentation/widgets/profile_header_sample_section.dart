@@ -21,8 +21,8 @@ const String kProfileHeaderImageAsset = 'assets/header_profile_xmy.png';
 /// Default cartoon avatar when no user photo (profile screen).
 const String kProfileAvatarDefaultAsset = 'assets/avatar_profile_default.png';
 
-/// Fixed stretched header with profile content inside (like sample). Full width, image + gradient + profile row.
-class ProfileHeaderStrip extends StatelessWidget {
+/// Fixed stretched header with profile content inside (like sample). Full width, image + gradient + avatar | white search bar | edit.
+class ProfileHeaderStrip extends StatefulWidget {
   const ProfileHeaderStrip({
     super.key,
     required this.auth,
@@ -44,6 +44,19 @@ class ProfileHeaderStrip extends StatelessWidget {
   final VoidCallback? onLogout;
   final VoidCallback? onMore;
 
+  @override
+  State<ProfileHeaderStrip> createState() => _ProfileHeaderStripState();
+}
+
+class _ProfileHeaderStripState extends State<ProfileHeaderStrip> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   static Widget _avatarPlaceholder(BuildContext context) {
     return Container(
       color: AppColors.primaryPale,
@@ -63,6 +76,10 @@ class ProfileHeaderStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final auth = widget.auth;
+    final profileState = widget.profileState;
+    final membershipProfile = widget.membershipProfile;
+    final customerProfile = widget.customerProfile;
     return Container(
       height: _kHeaderHeight.h,
       width: double.infinity,
@@ -117,11 +134,11 @@ class ProfileHeaderStrip extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: Icon(Icons.more_horiz_rounded, size: 24.sp, color: Colors.white),
-                      onPressed: onMore ?? () {},
+                      onPressed: widget.onMore ?? () {},
                     ),
                     IconButton(
                       icon: Icon(Icons.settings_outlined, size: 24.sp, color: Colors.white),
-                      onPressed: onSettings ?? () {},
+                      onPressed: widget.onSettings ?? () {},
                     ),
                   ],
                 ),
@@ -194,81 +211,77 @@ class ProfileHeaderStrip extends StatelessWidget {
                     ),
                     SizedBox(width: 12.w),
                     Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  auth.isAuthenticated
-                                      ? (customerProfile?.displayName != null && customerProfile!.displayName.isNotEmpty
-                                            ? customerProfile!.displayName
-                                            : (l10n?.profileUserLabel('') ?? '用户'))
-                                      : (l10n?.profileLogin ?? '点击登录'),
-                                  style: AppTextStyles.header(Colors.white, fontSize: 18.sp),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (membershipProfile != null && membershipProfile!.isVip) ...[
-                                SizedBox(width: 8.w),
-                                _VipBadge(label: l10n?.vipBadgeLabel ?? 'VIP'),
-                              ],
-                            ],
-                          ),
-                          SizedBox(height: 4.h),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.25),
-                              borderRadius: BorderRadius.circular(20.r),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+                      child: Container(
+                        height: 44.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(22.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              offset: const Offset(0, 2),
+                              blurRadius: 8,
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.emoji_emotions_outlined, size: 12.sp, color: Colors.white),
-                                SizedBox(width: 4.w),
-                                Expanded(
-                                  child: Text(
-                                    profileState != null
-                                        ? _membershipLabel(l10n, profileState!.membershipLevel)
-                                        : (l10n?.profileMembershipTourist ?? '游客'),
-                                    style: TextStyle(
-                                      fontSize: 11.sp,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onSubmitted: (value) {
+                            final q = value.trim();
+                            if (q.isNotEmpty) {
+                              context.push('/planner/discovery', extra: q);
+                            } else {
+                              context.push('/planner/discovery');
+                            }
+                          },
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.textPrimary,
+                            fontSize: 14.sp,
                           ),
-                        ],
+                          decoration: InputDecoration(
+                            hintText: l10n?.discoverySearchHint ?? '搜索目的地、行程…',
+                            hintStyle: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.textTertiary,
+                              fontSize: 13.sp,
+                            ),
+                            prefixIcon: Icon(Icons.search_rounded, size: 22.sp, color: AppColors.textTertiary),
+                            filled: true,
+                            fillColor: Colors.white,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(22.r),
+                              borderSide: BorderSide(color: AppColors.border),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(22.r),
+                              borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.6), width: 1.5),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(22.r),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                          ),
+                        ),
                       ),
                     ),
                     SizedBox(width: 8.w),
                     if (auth.isAuthenticated)
                       Material(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(20.r),
+                        elevation: 1,
+                        shadowColor: Colors.black.withValues(alpha: 0.15),
                         child: InkWell(
                           onTap: () {},
                           borderRadius: BorderRadius.circular(20.r),
                           child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
                             child: Text(
                               l10n?.profileEditProfile ?? '编辑资料',
                               style: TextStyle(
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.textSecondary,
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -278,19 +291,21 @@ class ProfileHeaderStrip extends StatelessWidget {
                       )
                     else
                       Material(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(20.r),
+                        elevation: 1,
+                        shadowColor: Colors.black.withValues(alpha: 0.15),
                         child: InkWell(
                           onTap: () => context.push('/auth/login'),
                           borderRadius: BorderRadius.circular(20.r),
                           child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
                             child: Text(
                               l10n?.profileLoginNow ?? '立即登录',
                               style: TextStyle(
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primaryDark,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -456,40 +471,54 @@ class ProfileHeaderUserCard extends StatelessWidget {
               ),
             ),
             if (auth.isAuthenticated)
-              Material(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(20.r),
-                child: InkWell(
-                  onTap: () {},
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20.r),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
-                    child: Text(
-                      l10n?.profileEditProfile ?? '编辑资料',
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
+                  border: Border.all(color: AppColors.border, width: 1),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(20.r),
+                  child: InkWell(
+                    onTap: () {},
+                    borderRadius: BorderRadius.circular(20.r),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
+                      child: Text(
+                        l10n?.profileEditProfile ?? '编辑资料',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                   ),
                 ),
               )
             else
-              Material(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(20.r),
-                child: InkWell(
-                  onTap: () => context.push('/auth/login'),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.primaryPale,
                   borderRadius: BorderRadius.circular(20.r),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
-                    child: Text(
-                      l10n?.profileLoginNow ?? '立即登录',
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.5), width: 1),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(20.r),
+                  child: InkWell(
+                    onTap: () => context.push('/auth/login'),
+                    borderRadius: BorderRadius.circular(20.r),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
+                      child: Text(
+                        l10n?.profileLoginNow ?? '立即登录',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryDark,
+                        ),
                       ),
                     ),
                   ),

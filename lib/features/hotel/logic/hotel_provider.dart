@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../catalog/data/catalog_repository_provider.dart';
 import '../data/hotel_mappers.dart';
 import '../data/hotel_model.dart';
 import '../data/hotel_repository.dart';
-import '../data/hotel_repository_mock.dart';
+import '../data/hotel_repository_catalog_adapter.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Repository (swap mock for API implementation)
+// Repository (catalog API)
 // ─────────────────────────────────────────────────────────────────────────────
 
 final hotelRepositoryProvider = Provider<HotelRepository>((ref) {
-  return HotelRepositoryMock(simulateNoInternet: false, simulateApiError: false);
+  final catalog = ref.watch(catalogRepositoryProvider);
+  return HotelRepositoryCatalogAdapter(catalog);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

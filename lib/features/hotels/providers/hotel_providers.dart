@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../catalog/data/catalog_repository_provider.dart';
 import '../data/hotel_mappers.dart';
 import '../data/hotel_recommendation_service.dart';
 import '../data/hotel_repository.dart';
+import '../data/hotel_repository_catalog.dart';
 import '../data/hotel_repository_mock.dart';
 import '../domain/hotel.dart';
 import '../domain/hotel_detail.dart';
@@ -15,7 +17,8 @@ import '../domain/hotel_recommendation_prefs.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 
 final hotelRepositoryProvider = Provider<HotelRepository>((ref) {
-  return HotelRepositoryMock(simulateNoInternet: false, simulateApiError: false);
+  final catalog = ref.watch(catalogRepositoryProvider);
+  return HotelRepositoryCatalog(catalog);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

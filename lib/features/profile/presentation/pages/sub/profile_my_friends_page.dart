@@ -62,11 +62,31 @@ class _ProfileMyFriendsPageState extends State<ProfileMyFriendsPage> {
             padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 8.h),
             child: TextField(
               controller: _searchCtrl,
+              onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 hintText: '搜索好友',
                 prefixIcon: Icon(Icons.search_rounded, size: 22.sp, color: AppColors.textTertiary),
+                suffixIcon: _searchCtrl.text.trim().isEmpty
+                    ? null
+                    : IconButton(
+                        icon: Icon(Icons.clear_rounded, size: 20.sp, color: AppColors.textTertiary),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          setState(() {});
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.w),
+                      ),
                 filled: true,
-                fillColor: AppColors.card,
+                fillColor: Colors.white,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(color: AppColors.border, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.6), width: 1.5),
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
                   borderSide: BorderSide.none,
@@ -81,10 +101,16 @@ class _ProfileMyFriendsPageState extends State<ProfileMyFriendsPage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.people_outline_rounded, size: 64.sp, color: AppColors.textTertiary),
+                        Icon(
+                          _searchCtrl.text.trim().isEmpty
+                              ? Icons.people_outline_rounded
+                              : Icons.search_off_rounded,
+                          size: 64.sp,
+                          color: AppColors.textTertiary,
+                        ),
                         SizedBox(height: 16.h),
                         Text(
-                          '暂无好友',
+                          _searchCtrl.text.trim().isEmpty ? '暂无好友' : '未找到匹配的好友',
                           style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
                         ),
                       ],

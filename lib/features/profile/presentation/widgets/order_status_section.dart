@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../data/profile_ui_state.dart';
+import '../theme/profile_theme.dart';
 
 const double _kCardRadius = 24;
 const double _kIconSize = 52;
@@ -32,7 +33,7 @@ class OrderStatusSection extends StatelessWidget {
             l10n?.profileMyOrders ?? 'My Orders',
             style: AppTextStyles.headlineSmall.copyWith(
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: ProfileTheme.sectionTitle,
               fontSize: 17.sp,
             ),
           ),
@@ -44,11 +45,17 @@ class OrderStatusSection extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(_kCardRadius.r),
+            border: Border.all(color: AppColors.border, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withValues(alpha: 0.08),
                 offset: const Offset(0, 2),
                 blurRadius: 12,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                offset: const Offset(0, 1),
+                blurRadius: 4,
               ),
             ],
           ),
@@ -137,8 +144,9 @@ class _OrderGridItem extends StatelessWidget {
                 height: _kIconSize.w,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.14),
+                  color: iconColor.withValues(alpha: 0.22),
                   borderRadius: BorderRadius.circular(16.r),
+                  border: Border.all(color: iconColor.withValues(alpha: 0.35), width: 1),
                 ),
                 child: Icon(icon, size: 26.sp, color: iconColor),
               ),
@@ -164,7 +172,8 @@ class _OrderGridItem extends StatelessWidget {
           Text(
             label,
             style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
+              color: ProfileTheme.label,
+              fontWeight: FontWeight.w500,
               fontSize: 12.sp,
             ),
             maxLines: 1,

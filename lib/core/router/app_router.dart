@@ -75,6 +75,20 @@ import '../../features/profile/presentation/pages/sub/profile_my_friends_page.da
 import '../../features/profile/presentation/pages/sub/profile_prizes_page.dart';
 import '../../features/profile/presentation/pages/sub/profile_referrer_page.dart';
 import '../../features/profile/presentation/pages/sub/profile_travel_collection_page.dart';
+import '../../features/profile/presentation/pages/sub/profile_wallet_page.dart';
+import '../../features/profile/presentation/pages/sub/wallet/wallet_top_up_page.dart';
+import '../../features/profile/presentation/pages/sub/wallet/wallet_withdraw_page.dart';
+import '../../features/profile/presentation/pages/sub/wallet/wallet_transactions_page.dart';
+import '../../features/insurance/presentation/pages/insurance_detail_page.dart';
+import '../../features/insurance/presentation/pages/insurance_list_page.dart';
+import '../../features/itineraries/presentation/pages/itinerary_create_page.dart';
+import '../../features/itineraries/presentation/pages/itinerary_detail_page.dart';
+import '../../features/itineraries/presentation/pages/itinerary_edit_page.dart';
+import '../../features/itineraries/presentation/pages/itineraries_list_page.dart';
+import '../../features/reviews/presentation/pages/my_reviews_list_page.dart';
+import '../../features/reviews/presentation/pages/submit_review_page.dart';
+import '../../features/tickets/presentation/pages/ticket_detail_page.dart';
+import '../../features/tickets/presentation/pages/tickets_list_page.dart';
 import '../../features/tours/presentation/pages/tour_detail_page.dart';
 import '../../features/tours/presentation/pages/tour_order_page.dart';
 import '../../features/tours/presentation/pages/tours_list_page.dart';
@@ -189,8 +203,11 @@ GoRouter createAppRouter(Ref ref) {
                   GoRoute(
                     path: 'discovery',
                     name: 'travelDiscovery',
-                    pageBuilder: (_, __) =>
-                        slideTransitionPage(child: const TravelDiscoveryPage()),
+                    pageBuilder: (context, state) => slideTransitionPage(
+                      child: TravelDiscoveryPage(
+                        initialQuery: state.extra is String ? state.extra as String? : null,
+                      ),
+                    ),
                   ),
                   GoRoute(
                     path: 'detail/:id',
@@ -400,6 +417,30 @@ GoRouter createAppRouter(Ref ref) {
                         slideTransitionPage(child: const ProfileCouponsPage()),
                   ),
                   GoRoute(
+                    path: 'wallet',
+                    name: 'profileWallet',
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const ProfileWalletPage()),
+                  ),
+                  GoRoute(
+                    path: 'wallet/top-up',
+                    name: 'walletTopUp',
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const WalletTopUpPage()),
+                  ),
+                  GoRoute(
+                    path: 'wallet/withdraw',
+                    name: 'walletWithdraw',
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const WalletWithdrawPage()),
+                  ),
+                  GoRoute(
+                    path: 'wallet/transactions',
+                    name: 'walletTransactions',
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const WalletTransactionsPage()),
+                  ),
+                  GoRoute(
                     path: 'membership',
                     name: 'profileMembership',
                     pageBuilder: (_, __) => slideTransitionPage(
@@ -504,6 +545,86 @@ GoRouter createAppRouter(Ref ref) {
                     pageBuilder: (_, __) => slideTransitionPage(
                       child: const ProfileAddressesPage(),
                     ),
+                  ),
+                  GoRoute(
+                    path: 'tickets',
+                    name: 'profileTickets',
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const TicketsListPage()),
+                  ),
+                  GoRoute(
+                    path: 'tickets/:id',
+                    name: 'profileTicketDetail',
+                    pageBuilder: (context, state) {
+                      final id = state.pathParameters['id'] ?? '';
+                      return slideTransitionPage(child: TicketDetailPage(id: id));
+                    },
+                  ),
+                  GoRoute(
+                    path: 'insurance',
+                    name: 'profileInsurance',
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const InsuranceListPage()),
+                  ),
+                  GoRoute(
+                    path: 'insurance/:id',
+                    name: 'profileInsuranceDetail',
+                    pageBuilder: (context, state) {
+                      final id = state.pathParameters['id'] ?? '';
+                      return slideTransitionPage(child: InsuranceDetailPage(id: id));
+                    },
+                  ),
+                  GoRoute(
+                    path: 'itineraries',
+                    name: 'profileItineraries',
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const ItinerariesListPage()),
+                  ),
+                  GoRoute(
+                    path: 'itineraries/create',
+                    name: 'profileItineraryCreate',
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const ItineraryCreatePage()),
+                  ),
+                  GoRoute(
+                    path: 'itineraries/:id',
+                    name: 'profileItineraryDetail',
+                    pageBuilder: (context, state) {
+                      final id = state.pathParameters['id'] ?? '';
+                      return slideTransitionPage(child: ItineraryDetailPage(id: id));
+                    },
+                  ),
+                  GoRoute(
+                    path: 'itineraries/:id/edit',
+                    name: 'profileItineraryEdit',
+                    pageBuilder: (context, state) {
+                      final id = state.pathParameters['id'] ?? '';
+                      return slideTransitionPage(child: ItineraryEditPage(id: id));
+                    },
+                  ),
+                  GoRoute(
+                    path: 'reviews',
+                    name: 'profileReviews',
+                    pageBuilder: (_, __) =>
+                        slideTransitionPage(child: const MyReviewsListPage()),
+                  ),
+                  GoRoute(
+                    path: 'reviews/submit',
+                    name: 'profileSubmitReview',
+                    pageBuilder: (context, state) {
+                      final targetType = state.uri.queryParameters['targetType'];
+                      final targetId = state.uri.queryParameters['targetId'];
+                      final orderId = state.uri.queryParameters['orderId'];
+                      final targetName = state.uri.queryParameters['targetName'];
+                      return slideTransitionPage(
+                        child: SubmitReviewPage(
+                          targetType: targetType ?? '',
+                          targetId: targetId ?? '',
+                          orderId: orderId,
+                          targetName: targetName,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -690,6 +811,83 @@ GoRouter createAppRouter(Ref ref) {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: '/tickets',
+        name: 'tickets',
+        pageBuilder: (context, state) =>
+            slideTransitionPage(child: const TicketsListPage()),
+      ),
+      GoRoute(
+        path: '/tickets/:id',
+        name: 'ticketDetail',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return slideTransitionPage(child: TicketDetailPage(id: id));
+        },
+      ),
+      GoRoute(
+        path: '/insurance',
+        name: 'insurance',
+        pageBuilder: (_, __) => slideTransitionPage(child: const InsuranceListPage()),
+      ),
+      GoRoute(
+        path: '/insurance/:id',
+        name: 'insuranceDetail',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return slideTransitionPage(child: InsuranceDetailPage(id: id));
+        },
+      ),
+      GoRoute(
+        path: '/itineraries',
+        name: 'itineraries',
+        pageBuilder: (_, __) => slideTransitionPage(child: const ItinerariesListPage()),
+      ),
+      GoRoute(
+        path: '/itineraries/create',
+        name: 'itineraryCreate',
+        pageBuilder: (_, __) => slideTransitionPage(child: const ItineraryCreatePage()),
+      ),
+      GoRoute(
+        path: '/itineraries/:id',
+        name: 'itineraryDetail',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return slideTransitionPage(child: ItineraryDetailPage(id: id));
+        },
+      ),
+      GoRoute(
+        path: '/itineraries/:id/edit',
+        name: 'itineraryEdit',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return slideTransitionPage(child: ItineraryEditPage(id: id));
+        },
+      ),
+      GoRoute(
+        path: '/reviews',
+        name: 'myReviews',
+        pageBuilder: (_, __) => slideTransitionPage(child: const MyReviewsListPage()),
+      ),
+      GoRoute(
+        path: '/reviews/submit',
+        name: 'submitReview',
+        pageBuilder: (context, state) {
+          final q = state.uri.queryParameters;
+          final targetType = q['targetType'] ?? 'PACKAGE';
+          final targetId = q['targetId'] ?? '';
+          final orderId = q['orderId'];
+          final targetName = q['targetName'];
+          return slideTransitionPage(
+            child: SubmitReviewPage(
+              targetType: targetType,
+              targetId: targetId,
+              orderId: orderId,
+              targetName: targetName,
+            ),
+          );
+        },
       ),
       GoRoute(
         path: '/tours',

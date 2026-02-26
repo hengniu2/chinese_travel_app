@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/analytics/analytics.dart';
 import '../../theme/luxury_travel_theme.dart';
 import '../widgets/luxury_empty_state.dart';
 
@@ -75,75 +74,169 @@ class _FlightResultPageState extends State<FlightResultPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: LuxuryTravelTheme.background,
-      appBar: AppBar(
-        title: Text('航班搜索结果', style: LuxuryTravelTheme.headlineMedium(LuxuryTravelTheme.darkText)),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => context.pop(),
-        ),
-        backgroundColor: LuxuryTravelTheme.cardBackground,
-        foregroundColor: LuxuryTravelTheme.darkText,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildFilterRow(),
-          Expanded(
-            child: _flights.isEmpty
-                ? LuxuryEmptyState.flightNoResults(
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(context),
+          SliverToBoxAdapter(child: _buildSearchSummary(context)),
+          SliverToBoxAdapter(child: _buildFilterRow()),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Row(
+                children: [
+                  Text(
+                    '共 ${_flights.length} 个航班',
+                    style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textSecondary)
+                        .copyWith(fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _flights.isEmpty
+              ? SliverFillRemaining(
+                  child: LuxuryEmptyState.flightNoResults(
                     ctaLabel: '调整筛选',
                     onCtaTap: () {
                       // TODO: Open filters or clear filters
                     },
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                    itemCount: _flights.length,
-                    itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: _FlightCard(
-                        flight: _flights[index],
-                        onBook: () {
-                          // TODO: Navigate to booking
-                        },
+                  ),
+                )
+              : SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: _FlightCard(
+                          flight: _flights[index],
+                          onBook: () => _onBookFlight(context, _flights[index]),
+                        ),
                       ),
+                      childCount: _flights.length,
                     ),
                   ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return SliverAppBar(
+      pinned: true,
+      backgroundColor: LuxuryTravelTheme.cardBackground,
+      foregroundColor: LuxuryTravelTheme.darkText,
+      elevation: 0,
+      scrolledUnderElevation: 2,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+        onPressed: () => context.pop(),
+      ),
+      title: Text(
+        '航班搜索结果',
+        style: LuxuryTravelTheme.headlineMedium(LuxuryTravelTheme.darkText).copyWith(fontSize: 18),
+      ),
+      centerTitle: true,
+    );
+  }
+
+  Widget _buildSearchSummary(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: LuxuryTravelTheme.cardBackground,
+      child: Row(
+        children: [
+          Icon(Icons.flight_takeoff_rounded, size: 18, color: LuxuryTravelTheme.primaryGold),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '北京 → 上海',
+              style: LuxuryTravelTheme.bodyMedium(LuxuryTravelTheme.darkText)
+                  .copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: LuxuryTravelTheme.primaryGoldPale,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '单程',
+              style: LuxuryTravelTheme.caption(LuxuryTravelTheme.darkText)
+                  .copyWith(fontSize: 12, fontWeight: FontWeight.w500),
+            ),
           ),
         ],
       ),
     );
   }
 
+  void _onBookFlight(BuildContext context, _FlightItem flight) {
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('确认预订'),
+        content: Text(
+          '${flight.departureCity} → ${flight.arrivalCity}\n'
+          '${flight.departureTime} - ${flight.arrivalTime} · ${flight.duration}\n'
+          '${flight.airlineName} · ¥${flight.price}',
+          style: LuxuryTravelTheme.bodyMedium(LuxuryTravelTheme.darkText),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('取消', style: TextStyle(color: LuxuryTravelTheme.textSecondary)),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: LuxuryTravelTheme.primaryGold, foregroundColor: LuxuryTravelTheme.darkText),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed == true && context.mounted) {
+        context.push('/orders');
+      }
+    });
+  }
+
   Widget _buildFilterRow() {
     return Container(
-      color: LuxuryTravelTheme.cardBackground,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+      color: LuxuryTravelTheme.background,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       child: Row(
         children: List.generate(_filterLabels.length, (i) {
           final selected = _filterIndex == i;
           return Padding(
             padding: EdgeInsets.only(right: i < _filterLabels.length - 1 ? 10 : 0),
             child: Material(
-              color: selected ? LuxuryTravelTheme.primaryGold.withValues(alpha: 0.15) : LuxuryTravelTheme.surfaceMuted,
-              borderRadius: BorderRadius.circular(20),
+              color: selected
+                  ? LuxuryTravelTheme.primaryGold.withValues(alpha: 0.18)
+                  : LuxuryTravelTheme.cardBackground,
+              borderRadius: BorderRadius.circular(22),
+              elevation: selected ? 0 : 0,
+              shadowColor: Colors.transparent,
               child: InkWell(
-                onTap: () {
-                  setState(() => _filterIndex = i);
-                  context.analytics.logEvent(FilterApplyEvent(
-                    filterType: _filterLabels[i],
-                    screen: 'flight_result',
-                  ));
-                },
-                borderRadius: BorderRadius.circular(20),
+                onTap: () => setState(() => _filterIndex = i),
+                borderRadius: BorderRadius.circular(22),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    border: selected
+                        ? Border.all(color: LuxuryTravelTheme.primaryGold.withValues(alpha: 0.5), width: 1)
+                        : null,
+                  ),
                   child: Text(
                     _filterLabels[i],
-                    style: LuxuryTravelTheme.bodyMedium(selected ? LuxuryTravelTheme.darkText : LuxuryTravelTheme.textSecondary)
-                        .copyWith(fontSize: 14, fontWeight: selected ? FontWeight.w600 : FontWeight.w500),
+                    style: LuxuryTravelTheme.bodyMedium(
+                            selected ? LuxuryTravelTheme.darkText : LuxuryTravelTheme.textSecondary)
+                        .copyWith(
+                            fontSize: 14, fontWeight: selected ? FontWeight.w600 : FontWeight.w500),
                   ),
                 ),
               ),
@@ -217,6 +310,10 @@ class _FlightCardState extends State<_FlightCard> {
           decoration: BoxDecoration(
             color: _cream,
             borderRadius: BorderRadius.circular(_cardRadius),
+            border: Border.all(
+              color: LuxuryTravelTheme.border.withValues(alpha: 0.6),
+              width: 0.5,
+            ),
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFF000000).withValues(alpha: 0.05),

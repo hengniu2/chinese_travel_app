@@ -488,6 +488,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileWallet => 'Wallet';
 
   @override
+  String get profileWalletBalance => 'Balance';
+
+  @override
+  String get profileWalletSubtitle => 'Travel wallet · Safe & convenient';
+
+  @override
+  String get profileWalletTopUp => 'Top up';
+
+  @override
+  String get profileWalletWithdraw => 'Withdraw';
+
+  @override
+  String get profileWalletDetails => 'Details';
+
+  @override
+  String get profileWalletTransactions => 'Transaction history';
+
+  @override
+  String get profileWalletNoTransactions => 'No transactions yet';
+
+  @override
   String get profileCoupons => 'Coupons';
 
   @override

@@ -26,6 +26,23 @@ class LuxuryTravelTheme {
   static const Color success = Color(0xFF6B8E6B);
   static const Color error = Color(0xFFC45C5C);
 
+  /// Gradient colors for Travel Service FABs (beautiful, distinct).
+  static const List<Color> gradientConcierge = [
+    Color(0xFFB8985C),
+    Color(0xFFD4BC8A),
+    Color(0xFFE8D4A8),
+  ];
+  static const List<Color> gradientOrder = [
+    Color(0xFF5A8F6E),
+    Color(0xFF7AAF85),
+    Color(0xFF9AC99E),
+  ];
+  static const List<Color> gradientHome = [
+    Color(0xFFC96B45),
+    Color(0xFFE08B65),
+    Color(0xFFE8A080),
+  ];
+
   // ─── Luxury spacing (no overcrowded layout) ───────────────────────────────
   static const double spacingXs = 6;
   static const double spacingSm = 12;

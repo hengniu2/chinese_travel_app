@@ -84,7 +84,7 @@ class QuickStatsCard extends StatelessWidget {
               iconColor: AppColors.accentGold,
               label: l10n?.profileWallet ?? '钱包',
               value: (state.walletBalance ?? 0) > 0 ? '¥${(state.walletBalance ?? 0).toStringAsFixed(0)}' : '0',
-              onTap: () => showPlaceholder?.call(l10n?.profileWallet ?? '钱包'),
+              onTap: () => context.push('/profile/wallet'),
             ),
             _Divider(),
             _StatItem(

@@ -63,8 +63,9 @@ class CompanionSectionHeader extends StatelessWidget {
                   title,
                   style: AppTextStyles.headlineSmall.copyWith(
                     fontSize: 17,
+                    fontWeight: FontWeight.w700,
                     color: const Color(0xFF1A1A1A),
-                    letterSpacing: 0.8,
+                    letterSpacing: 0.3,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

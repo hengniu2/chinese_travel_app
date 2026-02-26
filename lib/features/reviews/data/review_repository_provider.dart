@@ -7,3 +7,8 @@ final reviewRepositoryProvider = Provider<ReviewRepository>((ref) {
   final dio = ref.watch(authenticatedDioProvider);
   return ReviewRepository(dio);
 });
+
+final myReviewsListProvider = FutureProvider<ReviewListResponse>((ref) async {
+  final repo = ref.watch(reviewRepositoryProvider);
+  return repo.listMy(page: 1, pageSize: 50);
+});

@@ -102,11 +102,18 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
                 widget.icon!,
                 SizedBox(width: AppSpacing.sm),
               ],
-              Text(
-                widget.label,
-                style: widget.variant == AppButtonVariant.primary
-                    ? AppTextStyles.button.copyWith(color: foregroundColor)
-                    : AppTextStyles.buttonSecondary.copyWith(color: foregroundColor),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    widget.label,
+                    style: widget.variant == AppButtonVariant.primary
+                        ? AppTextStyles.button.copyWith(color: foregroundColor)
+                        : AppTextStyles.buttonSecondary.copyWith(color: foregroundColor),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ),
               if (widget.iconTrailing != null) ...[
                 SizedBox(width: AppSpacing.sm),

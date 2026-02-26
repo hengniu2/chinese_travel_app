@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../data/chat_assets.dart';
 import '../../../../shared/widgets/app_network_image.dart';
 import '../../domain/chat_list_item.dart';
@@ -27,8 +28,17 @@ class ChatListItemTile extends StatelessWidget {
     return '${t.month}/${t.day}';
   }
 
+  /// Display name: use localized "消息"/"Messages" when nickname is the default "Chat"/"Messages".
+  static String _displayName(BuildContext context, String nickname) {
+    if (nickname == 'Chat' || nickname == 'Messages') {
+      return AppLocalizations.of(context)?.chatTitle ?? nickname;
+    }
+    return nickname;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final displayName = _displayName(context, item.nickname);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
       decoration: BoxDecoration(
@@ -60,7 +70,7 @@ class ChatListItemTile extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        item.nickname,
+                        displayName,
                         style: TextStyle(
                           fontSize: 15.sp,
                           fontWeight: FontWeight.w700,

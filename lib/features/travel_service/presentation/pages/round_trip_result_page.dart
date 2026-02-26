@@ -11,29 +11,84 @@ class RoundTripResultPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: LuxuryTravelTheme.background,
-      appBar: AppBar(
-        title: const Text('往返航班搜索结果'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => context.pop(),
-        ),
-        backgroundColor: LuxuryTravelTheme.cardBackground,
-        foregroundColor: LuxuryTravelTheme.darkText,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        itemCount: _roundTripOptions.length,
-        itemBuilder: (context, index) => Padding(
-          padding: const EdgeInsets.only(bottom: 14),
-          child: _RoundTripCard(
-            option: _roundTripOptions[index],
-            onBook: () {
-              // TODO: Navigate to round-trip booking
-            },
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            backgroundColor: LuxuryTravelTheme.cardBackground,
+            foregroundColor: LuxuryTravelTheme.darkText,
+            elevation: 0,
+            scrolledUnderElevation: 2,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+              onPressed: () => context.pop(),
+            ),
+            title: Text(
+              '往返航班',
+              style: LuxuryTravelTheme.headlineMedium(LuxuryTravelTheme.darkText).copyWith(fontSize: 18),
+            ),
+            centerTitle: true,
           ),
-        ),
+          SliverToBoxAdapter(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: LuxuryTravelTheme.cardBackground,
+              child: Row(
+                children: [
+                  Icon(Icons.flight_rounded, size: 18, color: LuxuryTravelTheme.primaryGold),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '北京 ⇄ 上海',
+                      style: LuxuryTravelTheme.bodyMedium(LuxuryTravelTheme.darkText)
+                          .copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: LuxuryTravelTheme.primaryGoldPale,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '往返',
+                      style: LuxuryTravelTheme.caption(LuxuryTravelTheme.darkText)
+                          .copyWith(fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                '共 ${_roundTripOptions.length} 个组合',
+                style: LuxuryTravelTheme.caption(LuxuryTravelTheme.textSecondary)
+                    .copyWith(fontWeight: FontWeight.w500),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: _RoundTripCard(
+                    option: _roundTripOptions[index],
+                    onBook: () {
+                      // TODO: Navigate to round-trip booking
+                    },
+                  ),
+                ),
+                childCount: _roundTripOptions.length,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -153,10 +208,11 @@ class _RoundTripCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: LuxuryTravelTheme.cardBackground,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: LuxuryTravelTheme.border.withValues(alpha: 0.6), width: 0.5),
         boxShadow: LuxuryTravelTheme.softShadow,
       ),
       child: Column(

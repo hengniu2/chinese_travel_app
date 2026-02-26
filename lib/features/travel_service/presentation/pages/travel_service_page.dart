@@ -82,7 +82,7 @@ class _TravelServicePageState extends State<TravelServicePage> {
             right: 0,
             child: _buildTopBar(context),
           ),
-          // Floating buttons: Concierge, Order, Home
+          // Floating buttons: Concierge, Order, Home (gradients + bright icons)
           Positioned(
             right: 20,
             bottom: 24 + MediaQuery.paddingOf(context).bottom,
@@ -95,11 +95,15 @@ class _TravelServicePageState extends State<TravelServicePage> {
                 _FloatingNavButton(
                   icon: Icons.receipt_long_rounded,
                   onTap: () => context.go('/${RouteNames.orders}'),
+                  gradientColors: LuxuryTravelTheme.gradientOrder,
+                  iconColor: Colors.white,
                 ),
                 const SizedBox(height: 12),
                 _FloatingNavButton(
                   icon: Icons.home_rounded,
                   onTap: () => context.go('/${RouteNames.home}'),
+                  gradientColors: LuxuryTravelTheme.gradientHome,
+                  iconColor: Colors.white,
                 ),
               ],
             ),
@@ -131,15 +135,20 @@ class _TravelServicePageState extends State<TravelServicePage> {
   }
 }
 
-/// Circular luxury gold FAB with soft shadow and scale animation on tap.
+/// Circular FAB with gradient, soft shadow, and bright icon.
 class _FloatingNavButton extends StatefulWidget {
   const _FloatingNavButton({
     required this.icon,
     required this.onTap,
-  });
+    List<Color>? gradientColors,
+    Color? iconColor,
+  })  : gradientColors = gradientColors ?? LuxuryTravelTheme.gradientConcierge,
+        iconColor = iconColor ?? Colors.white;
 
   final IconData icon;
   final VoidCallback onTap;
+  final List<Color> gradientColors;
+  final Color iconColor;
 
   @override
   State<_FloatingNavButton> createState() => _FloatingNavButtonState();
@@ -148,8 +157,8 @@ class _FloatingNavButton extends StatefulWidget {
 class _FloatingNavButtonState extends State<_FloatingNavButton> {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
+    final colors = widget.gradientColors;
+    final shadowColor = colors.isNotEmpty ? colors.first : LuxuryTravelTheme.primaryGold;
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
@@ -163,13 +172,17 @@ class _FloatingNavButtonState extends State<_FloatingNavButton> {
           width: 52,
           height: 52,
           decoration: BoxDecoration(
-            color: primary,
             shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: colors,
+            ),
             boxShadow: [
               BoxShadow(
-                color: primary.withValues(alpha: 0.35),
+                color: shadowColor.withValues(alpha: 0.45),
                 offset: const Offset(0, 4),
-                blurRadius: 12,
+                blurRadius: 14,
               ),
               ...LuxuryTravelTheme.softShadow,
             ],
@@ -177,7 +190,7 @@ class _FloatingNavButtonState extends State<_FloatingNavButton> {
           child: Icon(
             widget.icon,
             size: 26,
-            color: LuxuryTravelTheme.darkText,
+            color: widget.iconColor,
           ),
         ),
       ),

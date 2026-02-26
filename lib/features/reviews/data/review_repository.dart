@@ -38,9 +38,9 @@ class ApiReviewDto {
     return ApiReviewDto(
       id: id,
       targetType: json['target_type'] as String? ?? '',
-      targetId: tid,
+      targetId: tid ?? '',
       rating: (json['rating'] as num?)?.toInt() ?? 0,
-      authorId: aid,
+      authorId: aid ?? '',
       orderId: oid,
       content: json['content'] as String? ?? '',
       status: json['status'] as String? ?? 'PENDING',

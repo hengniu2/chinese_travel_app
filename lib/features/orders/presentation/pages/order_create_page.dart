@@ -394,8 +394,9 @@ class _OrderCreatePageState extends ConsumerState<OrderCreatePage> {
 
   Widget _buildBottomBar() {
     final bottomInset = MediaQuery.of(context).padding.bottom;
+    final safeBottom = bottomInset > 0 ? bottomInset : 16.h;
     return Container(
-      padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 10.h + bottomInset),
+      padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 14.h + safeBottom),
       decoration: BoxDecoration(
         color: AppColors.card,
         boxShadow: AppShadow.heavy,
@@ -422,8 +423,7 @@ class _OrderCreatePageState extends ConsumerState<OrderCreatePage> {
             ),
           ),
           SizedBox(
-            width: 166.w,
-            height: 44.h,
+            height: 48.h,
             child: ElevatedButton(
               onPressed: _submitting ? null : _submitOrder,
               style: ElevatedButton.styleFrom(
@@ -431,20 +431,31 @@ class _OrderCreatePageState extends ConsumerState<OrderCreatePage> {
                 foregroundColor: AppColors.iconOutlineOnLight,
                 shape: const StadiumBorder(),
                 elevation: 0,
+                padding: EdgeInsets.symmetric(horizontal: 28.w, vertical: 14.h),
+                minimumSize: Size(160.w, 48.h),
               ),
               child: _submitting
                   ? SizedBox(
-                      width: 18.w,
-                      height: 18.w,
+                      width: 22.w,
+                      height: 22.w,
                       child: const CircularProgressIndicator(
                         strokeWidth: 2,
                         color: Colors.white,
                       ),
                     )
-                  : Text(
-                      '提交订单',
-                      style: AppTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w700,
+                  : FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4.w),
+                        child: Text(
+                          AppLocalizations.of(context)?.companionSubmitOrder ?? '提交订单',
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16.sp,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
             ),

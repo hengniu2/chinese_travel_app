@@ -230,30 +230,6 @@ class _TravelLandingPageState extends ConsumerState<TravelLandingPage> {
                 ),
               ),
             ),
-            // Subtle AI brand at bottom of hero
-            Positioned(
-              left: 20,
-              right: 20,
-              bottom: 16,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.auto_awesome_rounded,
-                    size: 12,
-                    color: Colors.white.withValues(alpha: 0.8),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Powered by 智行AI',
-                    style: TravelTypography.hint(
-                      Colors.white.withValues(alpha: 0.85),
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     ),

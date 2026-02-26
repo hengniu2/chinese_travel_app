@@ -22,6 +22,7 @@ class CompanionDetail {
     this.languages,
     this.responseTime,
     this.acceptRate,
+    this.availabilitySlots,
   });
 
   final String id;
@@ -45,6 +46,22 @@ class CompanionDetail {
   final List<String>? languages;
   final String? responseTime;
   final String? acceptRate;
+  /// From API GET /catalog/companions/:id/availability (optional).
+  final List<CompanionAvailabilitySlot>? availabilitySlots;
+}
+
+/// One availability slot from API (date + optional time range).
+class CompanionAvailabilitySlot {
+  const CompanionAvailabilitySlot({
+    required this.date,
+    this.status = 'AVAILABLE',
+    this.slotStart,
+    this.slotEnd,
+  });
+  final DateTime date;
+  final String status;
+  final String? slotStart;
+  final String? slotEnd;
 }
 
 class CompanionPackage {

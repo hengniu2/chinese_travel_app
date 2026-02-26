@@ -302,6 +302,17 @@ class _HeaderSearchBarFullState extends State<_HeaderSearchBarFull> {
           Expanded(
             child: TextField(
               controller: _controller,
+              onSubmitted: (value) {
+                final q = value.trim();
+                if (q.isNotEmpty) {
+                  context.push('/planner/discovery', extra: q);
+                } else {
+                  context.push('/planner/discovery');
+                }
+              },
+              onTap: () {
+                // Optional: scroll or focus so user can type then submit
+              },
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textPrimary,
                 fontSize: 12,

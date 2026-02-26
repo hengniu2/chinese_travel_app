@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
+import '../theme/profile_theme.dart';
 
 const double _kCardRadius = 16;
 const double _kIconSize = 44;
@@ -31,7 +32,7 @@ class ProfileCommonSettingsSection extends StatelessWidget {
             l10n?.profileSectionCommonSettings ?? '常用设置',
             style: AppTextStyles.headlineSmall.copyWith(
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: ProfileTheme.sectionTitle,
               fontSize: 17.sp,
             ),
           ),
@@ -43,11 +44,17 @@ class ProfileCommonSettingsSection extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(_kCardRadius.r),
+            border: Border.all(color: AppColors.border, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withValues(alpha: 0.08),
                 offset: const Offset(0, 2),
                 blurRadius: 12,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                offset: const Offset(0, 1),
+                blurRadius: 4,
               ),
             ],
           ),
@@ -112,16 +119,18 @@ class _SettingItem extends StatelessWidget {
             height: _kIconSize.w,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.12),
+              color: AppColors.primary.withValues(alpha: 0.22),
               borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.4), width: 1),
             ),
-            child: Icon(icon, size: 24.sp, color: AppColors.primary),
+            child: Icon(icon, size: 24.sp, color: AppColors.primaryDark),
           ),
           SizedBox(height: 8.h),
           Text(
             label,
             style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
+              color: ProfileTheme.label,
+              fontWeight: FontWeight.w500,
               fontSize: 11.sp,
             ),
             maxLines: 1,

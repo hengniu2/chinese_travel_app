@@ -26,17 +26,24 @@ class ConciergeFloatingButton extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: LuxuryTravelTheme.cardBackground,
-              border: Border.all(
-                color: LuxuryTravelTheme.primaryGold,
-                width: 2,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: LuxuryTravelTheme.gradientConcierge,
               ),
-              boxShadow: LuxuryTravelTheme.softShadow,
+              boxShadow: [
+                BoxShadow(
+                  color: LuxuryTravelTheme.primaryGoldDark.withValues(alpha: 0.45),
+                  offset: const Offset(0, 4),
+                  blurRadius: 14,
+                ),
+                ...LuxuryTravelTheme.softShadow,
+              ],
             ),
-            child: Icon(
+            child: const Icon(
               Icons.support_agent_rounded,
               size: 26,
-              color: LuxuryTravelTheme.darkText,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 6),

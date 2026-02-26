@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../shared/design_system/design_system.dart';
 
-/// Subtle AI brand presence: sparkle icon + "Powered by 智行AI".
-/// Use near smart features across Travel Planner.
+/// Placeholder for removed AI branding ("Powered by 智行AI").
+/// Kept for API compatibility; renders nothing.
 class AiBranding extends StatelessWidget {
   const AiBranding({
     super.key,
@@ -19,21 +19,7 @@ class AiBranding extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.auto_awesome_rounded,
-          size: iconSize,
-          color: AppColors.textTertiary,
-        ),
-        SizedBox(width: compact ? 4 : 6),
-        Text(
-          'Powered by 智行AI',
-          style: TravelTypography.hint(AppColors.textTertiary, fontSize: fontSize),
-        ),
-      ],
-    );
+    return const SizedBox.shrink();
   }
 }
 
