@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,7 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../../shared/widgets/tap_scale.dart';
 import '../../data/chat_assets.dart';
-import '../../data/chat_list_mock.dart';
+import '../../data/chat_repository_provider.dart';
 import '../../domain/chat_list_item.dart';
 import '../widgets/chat_list_item_tile.dart';
 
@@ -25,17 +26,16 @@ class _GuessChip {
   final IconData icon;
 }
 
-/// 聊天列表页：暖色头图、标题右置、浮动搜索、猜你想问、浮动卡片列表
-class ChatListPage extends StatefulWidget {
+/// 聊天列表页：暖色头图、标题右置、浮动搜索、猜你想问、浮动卡片列表（API 数据）
+class ChatListPage extends ConsumerStatefulWidget {
   const ChatListPage({super.key});
 
   @override
-  State<ChatListPage> createState() => _ChatListPageState();
+  ConsumerState<ChatListPage> createState() => _ChatListPageState();
 }
 
-class _ChatListPageState extends State<ChatListPage>
+class _ChatListPageState extends ConsumerState<ChatListPage>
     with SingleTickerProviderStateMixin {
-  late List<ChatListItem> _chats;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   late AnimationController _listAnimController;
@@ -45,7 +45,6 @@ class _ChatListPageState extends State<ChatListPage>
   @override
   void initState() {
     super.initState();
-    _chats = getChatList();
     _searchController.addListener(() {
       setState(() => _searchQuery = _searchController.text.trim());
     });
@@ -74,21 +73,21 @@ class _ChatListPageState extends State<ChatListPage>
     super.dispose();
   }
 
-  List<ChatListItem> get _filteredChats {
-    if (_searchQuery.isEmpty) return _chats;
+  List<ChatListItem> _filteredChats(List<ChatListItem> chats) {
+    if (_searchQuery.isEmpty) return chats;
     final q = _searchQuery.toLowerCase();
-    return _chats
+    return chats
         .where((c) =>
             c.nickname.toLowerCase().contains(q) ||
             c.lastMessage.toLowerCase().contains(q))
         .toList();
   }
 
-  void _onGuessChipTap(String chatId) {
+  void _onGuessChipTap(String chatId, List<ChatListItem> chats) {
     if (chatId.isNotEmpty) {
       context.push('/messages/chat/$chatId');
-    } else if (_chats.isNotEmpty) {
-      context.push('/messages/chat/${_chats.first.id}');
+    } else if (chats.isNotEmpty) {
+      context.push('/messages/chat/${chats.first.id}');
     }
   }
 
@@ -96,6 +95,7 @@ class _ChatListPageState extends State<ChatListPage>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final topPadding = MediaQuery.of(context).padding.top;
+    final asyncChats = ref.watch(chatListProvider);
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -116,21 +116,37 @@ class _ChatListPageState extends State<ChatListPage>
               child: _buildSearchPill(context, l10n),
             ),
             SizedBox(height: 14.h),
-            _buildGuessYouAsk(context, l10n),
+            _buildGuessYouAsk(context, l10n, asyncChats.valueOrNull ?? const []),
             Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  _filteredChats.isEmpty
-                      ? _buildEmptyState(context, l10n)
-                      : FadeTransition(
-                          opacity: _listOpacity,
-                          child: SlideTransition(
-                            position: _listSlide,
-                            child: _buildChatList(context, l10n),
-                          ),
-                        ),
-                ],
+              child: asyncChats.when(
+                data: (chats) {
+                  final filtered = _filteredChats(chats);
+                  if (filtered.isEmpty) {
+                    return _buildEmptyState(context, l10n, chats);
+                  }
+                  return RefreshIndicator(
+                    onRefresh: () => ref.refresh(chatListProvider.future),
+                    child: FadeTransition(
+                      opacity: _listOpacity,
+                      child: SlideTransition(
+                        position: _listSlide,
+                        child: _buildChatList(context, l10n, filtered),
+                      ),
+                    ),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, __) => Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton(
+                        onPressed: () => ref.refresh(chatListProvider),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
@@ -304,7 +320,7 @@ class _ChatListPageState extends State<ChatListPage>
   }
 
   /// 猜你想问：胶囊、渐变 pastel、图标、横滑、加大间距
-  Widget _buildGuessYouAsk(BuildContext context, AppLocalizations? l10n) {
+  Widget _buildGuessYouAsk(BuildContext context, AppLocalizations? l10n, List<ChatListItem> chats) {
     final chips = [
       _GuessChip(l10n?.chatConsultTrip ?? '行程咨询', 'c1', Icons.route_rounded),
       _GuessChip(l10n?.chatOrderIssue ?? '订单问题', 'c2', Icons.receipt_long_rounded),
@@ -347,7 +363,7 @@ class _ChatListPageState extends State<ChatListPage>
               itemBuilder: (context, index) {
                 final c = chips[index];
                 return TapScale(
-                  onTap: () => _onGuessChipTap(c.chatId),
+                  onTap: () => _onGuessChipTap(c.chatId, chats),
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
                     decoration: BoxDecoration(
@@ -393,7 +409,7 @@ class _ChatListPageState extends State<ChatListPage>
     );
   }
 
-  Widget _buildChatList(BuildContext context, AppLocalizations? l10n) {
+  Widget _buildChatList(BuildContext context, AppLocalizations? l10n, List<ChatListItem> filtered) {
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(
         _kSectionPadH.w,
@@ -402,9 +418,9 @@ class _ChatListPageState extends State<ChatListPage>
         24.h + MediaQuery.of(context).padding.bottom,
       ),
       cacheExtent: 200,
-      itemCount: _filteredChats.length,
+      itemCount: filtered.length,
       itemBuilder: (context, index) {
-        final item = _filteredChats[index];
+        final item = filtered[index];
         return Padding(
           padding: EdgeInsets.only(bottom: _kCardGap.h),
           child: TapScale(
@@ -416,7 +432,7 @@ class _ChatListPageState extends State<ChatListPage>
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, AppLocalizations? l10n) {
+  Widget _buildEmptyState(BuildContext context, AppLocalizations? l10n, List<ChatListItem> chats) {
     final isSearch = _searchQuery.isNotEmpty;
     return Center(
       child: Column(
@@ -461,10 +477,10 @@ class _ChatListPageState extends State<ChatListPage>
               fontWeight: FontWeight.w500,
             ),
           ),
-          if (_chats.isNotEmpty) ...[
+          if (chats.isNotEmpty) ...[
             SizedBox(height: 20.h),
             TapScale(
-              onTap: () => context.push('/messages/chat/${_chats.first.id}'),
+              onTap: () => context.push('/messages/chat/${chats.first.id}'),
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 28.w, vertical: 14.h),
                 decoration: BoxDecoration(

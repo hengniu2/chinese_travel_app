@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,6 +10,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../components/companion_components.dart';
 import '../data/companion_list_mock.dart';
+import '../data/companion_list_provider.dart';
 import '../models/companion_list_item.dart';
 import '../widgets/rating_widget.dart';
 
@@ -404,17 +406,18 @@ class _FavoriteButtonState extends State<_FavoriteButton>
 }
 
 /// 找陪游 · 陪游发现页
-class CompanionListPage extends StatefulWidget {
+class CompanionListPage extends ConsumerStatefulWidget {
   const CompanionListPage({super.key});
 
   @override
-  State<CompanionListPage> createState() => _CompanionListPageState();
+  ConsumerState<CompanionListPage> createState() => _CompanionListPageState();
 }
 
-class _CompanionListPageState extends State<CompanionListPage>
+class _CompanionListPageState extends ConsumerState<CompanionListPage>
     with TickerProviderStateMixin {
   CompanionListFilters _filters = const CompanionListFilters();
   List<CompanionListItem> _list = [];
+  List<CompanionListItem> _fullListFromApi = [];
   List<CompanionListItem> _sponsored = [];
   List<CompanionListItem> _featured = [];
   List<CompanionListItem> _smartRecommendations = [];
@@ -482,14 +485,26 @@ class _CompanionListPageState extends State<CompanionListPage>
       _loading = true;
       _loadedCount = 0;
     });
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-    final full = getCompanionList(_filters);
-    setState(() {
-      _list = full.take(_pageSize).toList();
-      _loadedCount = _list.length;
-      _loading = false;
-    });
+    try {
+      final fromApi = await ref.read(companionListFromApiProvider(_filters.city).future);
+      if (!mounted) return;
+      _fullListFromApi = fromApi;
+      final full = fromApi.isNotEmpty ? fromApi : getCompanionList(_filters);
+      setState(() {
+        _list = full.take(_pageSize).toList();
+        _loadedCount = _list.length;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      _fullListFromApi = [];
+      final full = getCompanionList(_filters);
+      setState(() {
+        _list = full.take(_pageSize).toList();
+        _loadedCount = _list.length;
+        _loading = false;
+      });
+    }
   }
 
   Future<void> _onRefresh() async {
@@ -527,7 +542,7 @@ class _CompanionListPageState extends State<CompanionListPage>
 
   Future<void> _loadMore() async {
     if (_loadingMore || _loading) return;
-    final all = getCompanionList(_filters);
+    final all = _fullListFromApi.isNotEmpty ? _fullListFromApi : getCompanionList(_filters);
     if (_loadedCount >= all.length) return;
     setState(() => _loadingMore = true);
     await Future.delayed(const Duration(milliseconds: 300));

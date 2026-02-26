@@ -78,8 +78,14 @@ class TourRepository {
 
   static TourItem _packageToTourItem(Map<String, dynamic> p) {
     final id = p['_id']?.toString() ?? '';
-    final name = p['name'] as String? ?? '';
-    final description = p['description'] as String? ?? '';
+    final name = _preferChineseText(
+      p['name'] as String?,
+      fallback: '精选旅行套餐',
+    );
+    final description = _preferChineseText(
+      p['description'] as String?,
+      fallback: '官方精选路线，安心出行',
+    );
     final price = (p['price'] as num?)?.toDouble() ?? 0;
     final days = (p['duration_days'] as num?)?.toInt() ?? 0;
     final route = p['route_id'];
@@ -87,7 +93,10 @@ class TourRepository {
     String? region;
     if (route is Map<String, dynamic>) {
       imageUrl = route['cover_image'] as String?;
-      region = route['region'] as String?;
+      region = _preferChineseText(
+        route['region'] as String?,
+        fallback: '国内',
+      );
     }
     return TourItem(
       id: id,
@@ -105,8 +114,14 @@ class TourRepository {
 
   static TourDetail _packageToTourDetail(Map<String, dynamic> p) {
     final id = p['_id']?.toString() ?? '';
-    final name = p['name'] as String? ?? '';
-    final description = p['description'] as String? ?? '';
+    final name = _preferChineseText(
+      p['name'] as String?,
+      fallback: '精选旅行套餐',
+    );
+    final description = _preferChineseText(
+      p['description'] as String?,
+      fallback: '官方精选路线，安心出行',
+    );
     final price = (p['price'] as num?)?.toDouble() ?? 0;
     final days = (p['duration_days'] as num?)?.toInt() ?? 0;
     final route = p['route_id'] as Map<String, dynamic>?;
@@ -114,7 +129,10 @@ class TourRepository {
     String? region;
     if (route != null) {
       imageUrl = route['cover_image'] as String?;
-      region = route['region'] as String?;
+      region = _preferChineseText(
+        route['region'] as String?,
+        fallback: '国内',
+      );
     }
     return TourDetail(
       id: id,
@@ -134,5 +152,16 @@ class TourRepository {
       reviews: [],
       imageUrl: imageUrl,
     );
+  }
+
+  /// Prefer Chinese display text in UI.
+  /// If backend text is English-only, use localized Chinese fallback.
+  static String _preferChineseText(String? value, {required String fallback}) {
+    final text = (value ?? '').trim();
+    if (text.isEmpty) return fallback;
+    final hasChinese = RegExp(r'[\u4e00-\u9fff]').hasMatch(text);
+    final hasLatin = RegExp(r'[A-Za-z]').hasMatch(text);
+    if (!hasChinese && hasLatin) return fallback;
+    return text;
   }
 }

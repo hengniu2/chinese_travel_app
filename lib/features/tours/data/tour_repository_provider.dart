@@ -44,6 +44,32 @@ class TourListParams {
   final int? maxDays;
   final String? region;
   final String? sort;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is TourListParams &&
+            other.page == page &&
+            other.pageSize == pageSize &&
+            other.minPrice == minPrice &&
+            other.maxPrice == maxPrice &&
+            other.minDays == minDays &&
+            other.maxDays == maxDays &&
+            other.region == region &&
+            other.sort == sort);
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    page,
+    pageSize,
+    minPrice,
+    maxPrice,
+    minDays,
+    maxDays,
+    region,
+    sort,
+  );
 }
 
 /// 旅行团详情
