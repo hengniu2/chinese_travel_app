@@ -518,18 +518,18 @@ GoRouter createAppRouter(Ref ref) {
             const NoTransitionPage(child: OrdersShellPage()),
       ),
       GoRoute(
+        path: '/orders/create',
+        name: 'orderCreate',
+        pageBuilder: (context, state) =>
+            slideTransitionPage(child: const OrderCreatePage()),
+      ),
+      GoRoute(
         path: '/orders/:id',
         name: 'orderDetail',
         pageBuilder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
           return slideTransitionPage(child: OrderDetailPage(id: id));
         },
-      ),
-      GoRoute(
-        path: '/orders/create',
-        name: 'orderCreate',
-        pageBuilder: (context, state) =>
-            slideTransitionPage(child: const OrderCreatePage()),
       ),
       GoRoute(
         path: '/auth/login',

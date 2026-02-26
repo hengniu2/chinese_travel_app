@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../data/order_repository_provider.dart';
 import '../../domain/order_item.dart';
+import 'order_create_page.dart';
 import '../widgets/order_card.dart';
 
 // ─── 订单列表页规范：白顶栏、标签下划线、浅底、卡片 12dp 圆角、12dp 间距 ─────
@@ -94,7 +95,9 @@ class _OrdersListPageState extends ConsumerState<OrdersListPage>
               size: 22.sp,
               color: AppColors.textSecondary,
             ),
-            onPressed: () => context.push('/orders/create'),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const OrderCreatePage())),
           ),
           IconButton(
             icon: Icon(
