@@ -668,7 +668,14 @@ class _TourDetailContent extends StatelessWidget {
               width: 160.w,
               child: AppButton(
                 label: l10n?.tourBookNow ?? '立即预订',
-                onPressed: () => context.push('/tours/${detail.id}/order'),
+                onPressed: () => context.push(
+                  '/orders/create',
+                  extra: {
+                    'packageId': detail.id,
+                    'packageTitle': detail.title,
+                    'unitPrice': detail.price.toInt(),
+                  },
+                ),
                 minHeight: 48,
                 expand: true,
               ),

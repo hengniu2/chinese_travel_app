@@ -520,8 +520,19 @@ GoRouter createAppRouter(Ref ref) {
       GoRoute(
         path: '/orders/create',
         name: 'orderCreate',
-        pageBuilder: (context, state) =>
-            slideTransitionPage(child: const OrderCreatePage()),
+        pageBuilder: (context, state) {
+          final extra = state.extra;
+          if (extra is Map) {
+            return slideTransitionPage(
+              child: OrderCreatePage(
+                packageId: extra['packageId']?.toString(),
+                packageTitle: extra['packageTitle']?.toString(),
+                unitPrice: (extra['unitPrice'] as num?)?.toInt(),
+              ),
+            );
+          }
+          return slideTransitionPage(child: const OrderCreatePage());
+        },
       ),
       GoRoute(
         path: '/orders/:id',
