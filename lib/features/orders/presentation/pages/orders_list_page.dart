@@ -61,6 +61,14 @@ class _OrdersListPageState extends ConsumerState<OrdersListPage>
     ];
   }
 
+  void _handleBackNavigation() {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+    context.go('/profile');
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -86,7 +94,7 @@ class _OrdersListPageState extends ConsumerState<OrdersListPage>
             size: 20.sp,
             color: AppColors.textPrimary,
           ),
-          onPressed: () => context.pop(),
+          onPressed: _handleBackNavigation,
         ),
         actions: [
           IconButton(
