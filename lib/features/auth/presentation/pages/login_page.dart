@@ -98,7 +98,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               SizedBox(height: 24.h),
               Text(l10n?.authWelcomeBack ?? '欢迎回来', style: AppTextStyles.headlineLarge),
               SizedBox(height: 8.h),
-              Text(l10n?.authLoginSubtitle ?? '登录享梦游，发现更多旅行', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+              Text(l10n?.authLoginSubtitle ?? '登录凌行天下旅行，发现更多旅行', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
               SizedBox(height: 32.h),
               AuthInputField(
                 controller: _phoneController,

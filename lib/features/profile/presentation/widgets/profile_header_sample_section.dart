@@ -16,7 +16,7 @@ const double _kHeaderHeight = 188;
 const double _kAvatarSize = 64;
 const double _kCardRadius = 16;
 
-/// Profile screen only: AI-generated cartoon header (Chinese travel app, 享梦游 XMY vibe).
+/// Profile screen only: AI-generated cartoon header (Chinese travel app, 凌行天下旅行).
 const String kProfileHeaderImageAsset = 'assets/header_profile_xmy.png';
 /// Default cartoon avatar when no user photo (profile screen).
 const String kProfileAvatarDefaultAsset = 'assets/avatar_profile_default.png';
@@ -80,21 +80,23 @@ class _ProfileHeaderStripState extends State<ProfileHeaderStrip> {
     final profileState = widget.profileState;
     final membershipProfile = widget.membershipProfile;
     final customerProfile = widget.customerProfile;
-    return Container(
-      height: _kHeaderHeight.h,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            offset: const Offset(0, 2),
-            blurRadius: 10,
-          ),
-        ],
-      ),
-      child: ClipRect(
-        child: Stack(
-          fit: StackFit.expand,
+    return Material(
+      type: MaterialType.transparency,
+      child: Container(
+        height: _kHeaderHeight.h,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              offset: const Offset(0, 2),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: ClipRect(
+          child: Stack(
+            fit: StackFit.expand,
           children: [
             Positioned.fill(
               child: Image.asset(
@@ -155,58 +157,65 @@ class _ProfileHeaderStripState extends State<ProfileHeaderStrip> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        if (!auth.isAuthenticated) context.push('/auth/login');
-                      },
-                      child: Stack(
-                        alignment: Alignment.bottomRight,
-                        children: [
-                          ClipOval(
-                            child: SizedBox(
-                              width: _kAvatarSize.r,
-                              height: _kAvatarSize.r,
-                              child: customerProfile?.avatarUrl != null && customerProfile!.avatarUrl.isNotEmpty
-                                  ? AppNetworkImage(
-                                      imageUrl: customerProfile!.avatarUrl,
-                                      fit: BoxFit.cover,
-                                      errorWidget: Image.asset(
-                                        kProfileAvatarDefaultAsset,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => _avatarPlaceholder(context),
-                                      ),
-                                    )
-                                  : Image.asset(
-                                      kProfileAvatarDefaultAsset,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => _avatarPlaceholder(context),
-                                    ),
-                            ),
-                          ),
-                          Container(
-                            width: _kAvatarSize.r,
-                            height: _kAvatarSize.r,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 2))],
-                            ),
-                          ),
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              width: 22.w,
-                              height: 22.w,
-                              decoration: BoxDecoration(
-                                color: AppColors.textSecondary,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 1.5),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => context.push('/auth/login'),
+                        borderRadius: BorderRadius.circular(_kAvatarSize.r / 2),
+                        customBorder: const CircleBorder(),
+                        child: SizedBox(
+                          width: _kAvatarSize.r,
+                          height: _kAvatarSize.r,
+                          child: Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              ClipOval(
+                                child: SizedBox(
+                                  width: _kAvatarSize.r,
+                                  height: _kAvatarSize.r,
+                                  child: customerProfile?.avatarUrl != null && customerProfile!.avatarUrl.isNotEmpty
+                                      ? AppNetworkImage(
+                                          imageUrl: customerProfile!.avatarUrl,
+                                          fit: BoxFit.cover,
+                                          errorWidget: Image.asset(
+                                            kProfileAvatarDefaultAsset,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) => _avatarPlaceholder(context),
+                                          ),
+                                        )
+                                      : Image.asset(
+                                          kProfileAvatarDefaultAsset,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => _avatarPlaceholder(context),
+                                        ),
+                                ),
                               ),
-                              child: Icon(Icons.camera_alt_rounded, size: 11.sp, color: Colors.white),
-                            ),
+                              Container(
+                                width: _kAvatarSize.r,
+                                height: _kAvatarSize.r,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 2))],
+                                ),
+                              ),
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  width: 22.w,
+                                  height: 22.w,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.textSecondary,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 1.5),
+                                  ),
+                                  child: Icon(Icons.camera_alt_rounded, size: 11.sp, color: Colors.white),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                     SizedBox(width: 12.w),
@@ -272,7 +281,7 @@ class _ProfileHeaderStripState extends State<ProfileHeaderStrip> {
                         elevation: 1,
                         shadowColor: Colors.black.withValues(alpha: 0.15),
                         child: InkWell(
-                          onTap: () {},
+                          onTap: () => context.push('/auth/login'),
                           borderRadius: BorderRadius.circular(20.r),
                           child: Padding(
                             padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
@@ -318,6 +327,7 @@ class _ProfileHeaderStripState extends State<ProfileHeaderStrip> {
               ),
             ),
           ],
+          ),
         ),
       ),
     );

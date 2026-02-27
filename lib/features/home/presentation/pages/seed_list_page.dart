@@ -3,6 +3,7 @@ import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/design_system.dart';
 import '../../../../shared/widgets/app_network_image.dart';
 import '../../data/home_mock_data.dart';
@@ -21,7 +22,7 @@ Color _blogCardTint(int index) {
   return c.withValues(alpha: 0.35);
 }
 
-/// 享梦游种草官 · 商业级列表页（中国旅行超级 App 风格）
+/// 凌行天下旅行种草官 · 商业级列表页（中国旅行超级 App 风格）
 /// 艺术化 Header / AI 背景 / 分区色 / 粘性标题 / 查看更多
 class SeedListPage extends StatefulWidget {
   const SeedListPage({super.key});
@@ -226,7 +227,7 @@ class _SeedListPageState extends State<SeedListPage>
                       ),
                       const Spacer(),
                       Text(
-                        '享梦游种草官',
+                        AppLocalizations.of(context)?.homeSeedSectionTitle ?? '凌行天下旅行种草官',
                         style: AppTextStyles.header(
                           Colors.white,
                           fontSize: 28,

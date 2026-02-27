@@ -9,7 +9,16 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Dream Travel';
+  String get appTitle => 'Lingxing Travel';
+
+  @override
+  String get homeHeaderSubtitle => 'Travel with Lingxing';
+
+  @override
+  String get homeSeedSectionTitle => 'Lingxing Seeders';
+
+  @override
+  String get homeCompanionSectionTitle => 'Lingxing Companions';
 
   @override
   String get tabHome => 'Home';
@@ -925,7 +934,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authWelcomeBack => 'Welcome back';
 
   @override
-  String get authLoginSubtitle => 'Log in to discover more travel';
+  String get authLoginSubtitle => 'Log in to Lingxing to discover more travel';
 
   @override
   String get authPhone => 'Phone';
@@ -956,7 +965,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authCreateAccount => 'Create account';
 
   @override
-  String get authRegisterSubtitle => 'Join us for green travel';
+  String get authRegisterSubtitle => 'Join Lingxing for green travel';
 
   @override
   String get authVerifyCode => 'Verify code';

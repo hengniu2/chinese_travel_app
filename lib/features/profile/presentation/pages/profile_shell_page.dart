@@ -95,7 +95,10 @@ class _ProfileShellPageState extends ConsumerState<ProfileShellPage> {
             top: 0,
             left: 0,
             right: 0,
-            child: profileAsync.when(
+            height: topPadding,
+            child: Material(
+              type: MaterialType.transparency,
+              child: profileAsync.when(
               data: (ProfileUiState state) => ProfileHeaderStrip(
                 auth: auth,
                 profileState: state,
@@ -129,6 +132,7 @@ class _ProfileShellPageState extends ConsumerState<ProfileShellPage> {
                   if (context.mounted) context.go('/auth/login');
                 },
               ),
+            ),
             ),
           ),
         ],

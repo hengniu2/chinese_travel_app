@@ -9,7 +9,16 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appTitle => '享梦游';
+  String get appTitle => '凌行天下旅行';
+
+  @override
+  String get homeHeaderSubtitle => '和凌行天下旅行一起出发';
+
+  @override
+  String get homeSeedSectionTitle => '凌行天下旅行种草官';
+
+  @override
+  String get homeCompanionSectionTitle => '凌行天下旅行陪游';
 
   @override
   String get tabHome => '首页';
@@ -921,7 +930,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get authWelcomeBack => '欢迎回来';
 
   @override
-  String get authLoginSubtitle => '登录享梦游，发现更多旅行';
+  String get authLoginSubtitle => '登录凌行天下旅行，发现更多旅行';
 
   @override
   String get authPhone => '手机号';
@@ -951,7 +960,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get authCreateAccount => '创建账号';
 
   @override
-  String get authRegisterSubtitle => '注册享梦游，开启绿色旅行';
+  String get authRegisterSubtitle => '注册凌行天下旅行，开启绿色旅行';
 
   @override
   String get authVerifyCode => '验证码';

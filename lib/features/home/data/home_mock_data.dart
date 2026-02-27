@@ -13,7 +13,7 @@ const String kHomeHeaderTitleLine1 = '爱你老己的';
 /// 标题第二行
 const String kHomeHeaderTitleLine2 = '新春首站之旅';
 /// 副标题
-const String kHomeHeaderSubtitle = '和享梦游一起出发';
+const String kHomeHeaderSubtitle = '和凌行天下旅行一起出发';
 
 // ─── 推荐人物（种草官）- 头像 + 名字 + 副标题 + 阅读量/点赞
 class HomePersonItem {

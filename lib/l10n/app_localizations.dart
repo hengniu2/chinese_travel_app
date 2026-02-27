@@ -101,8 +101,26 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In zh, this message translates to:
-  /// **'享梦游'**
+  /// **'凌行天下旅行'**
   String get appTitle;
+
+  /// No description provided for @homeHeaderSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'和凌行天下旅行一起出发'**
+  String get homeHeaderSubtitle;
+
+  /// No description provided for @homeSeedSectionTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'凌行天下旅行种草官'**
+  String get homeSeedSectionTitle;
+
+  /// No description provided for @homeCompanionSectionTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'凌行天下旅行陪游'**
+  String get homeCompanionSectionTitle;
 
   /// No description provided for @tabHome.
   ///
@@ -1877,7 +1895,7 @@ abstract class AppLocalizations {
   /// No description provided for @authLoginSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'登录享梦游，发现更多旅行'**
+  /// **'登录凌行天下旅行，发现更多旅行'**
   String get authLoginSubtitle;
 
   /// No description provided for @authPhone.
@@ -1937,7 +1955,7 @@ abstract class AppLocalizations {
   /// No description provided for @authRegisterSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'注册享梦游，开启绿色旅行'**
+  /// **'注册凌行天下旅行，开启绿色旅行'**
   String get authRegisterSubtitle;
 
   /// No description provided for @authVerifyCode.

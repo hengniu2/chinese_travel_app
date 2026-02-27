@@ -94,7 +94,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               Text(l10n?.authCreateAccount ?? '创建账号', style: AppTextStyles.headlineLarge),
               SizedBox(height: 8.h),
               Text(
-                l10n?.authRegisterSubtitle ?? '注册享梦游，开启绿色旅行',
+                l10n?.authRegisterSubtitle ?? '注册凌行天下旅行，开启绿色旅行',
                 style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
               ),
               SizedBox(height: 32.h),

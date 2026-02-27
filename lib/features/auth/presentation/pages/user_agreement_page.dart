@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/design_system/app_colors.dart';
 import '../../../../shared/design_system/app_spacing.dart';
 import '../../../../shared/design_system/app_text_styles.dart';
@@ -19,6 +20,7 @@ class UserAgreementPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appName = AppLocalizations.of(context)?.appTitle ?? '凌行天下旅行';
     return Scaffold(
       backgroundColor: AppColors.backgroundCard,
       appBar: AppTopBar(
@@ -32,7 +34,7 @@ class UserAgreementPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _isPrivacy ? '享梦游隐私政策' : '享梦游用户协议',
+                _isPrivacy ? '$appName隐私政策' : '$appName用户协议',
                 style: AppTextStyles.headlineMedium,
               ),
               SizedBox(height: 8.h),
@@ -44,7 +46,7 @@ class UserAgreementPage extends StatelessWidget {
               ..._paragraphs.map((e) => Padding(
                     padding: EdgeInsets.only(bottom: 16.h),
                     child: Text(
-                      e,
+                      e.replaceAll('享梦游', appName),
                       style: AppTextStyles.bodyMedium.copyWith(height: 1.6),
                     ),
                   )),

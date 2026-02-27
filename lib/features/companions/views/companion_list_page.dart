@@ -465,7 +465,6 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
     _floatAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: controller, curve: Curves.easeInOut),
     );
-    _loadFeatured();
     _loadFirst();
   }
 
@@ -499,15 +498,20 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
     _loadFirst();
   }
 
-  Future<void> _loadFeatured() async {
-    final sponsored = getSponsoredCompanions();
-    final featured = getFeaturedCompanions();
-    final recommended = getRecommendedCompanions();
-    if (mounted) setState(() {
-      _sponsored = sponsored;
-      _featured = featured;
-      _recommended = recommended;
-    });
+  /// Deduplicate by companion id (first occurrence wins) so no card repeats across or within slides.
+  static List<CompanionListItem> _deduplicateById(List<CompanionListItem> list) {
+    final seen = <String>{};
+    return list.where((c) => seen.add(c.id)).toList();
+  }
+
+  /// Derive sponsored, featured, recommended, and smart recommendation slides from API list (no mock).
+  /// Uses deduplicated list so the same companion never appears in more than one slide.
+  void _deriveSlidesFromApi(List<CompanionListItem> fromApi) {
+    final list = _deduplicateById(fromApi);
+    _sponsored = list.take(2).toList();
+    _featured = list.skip(2).take(4).toList();
+    _recommended = list.skip(6).take(6).toList();
+    _smartRecommendations = list.skip(12).take(6).toList();
   }
 
   Future<void> _loadFirst() async {
@@ -518,20 +522,23 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
     try {
       final fromApi = await ref.read(companionListFromApiProvider(_filters.city).future);
       if (!mounted) return;
-      _fullListFromApi = fromApi;
-      final full = fromApi.isNotEmpty ? fromApi : getCompanionList(_filters);
+      _fullListFromApi = _deduplicateById(fromApi);
+      _deriveSlidesFromApi(_fullListFromApi);
       setState(() {
-        _list = full.take(_pageSize).toList();
+        _list = _fullListFromApi.take(_pageSize).toList();
         _loadedCount = _list.length;
         _loading = false;
       });
     } catch (_) {
       if (!mounted) return;
       _fullListFromApi = [];
-      final full = getCompanionList(_filters);
+      _sponsored = [];
+      _featured = [];
+      _recommended = [];
+      _smartRecommendations = [];
       setState(() {
-        _list = full.take(_pageSize).toList();
-        _loadedCount = _list.length;
+        _list = [];
+        _loadedCount = 0;
         _loading = false;
       });
     }
@@ -540,18 +547,13 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
   Future<void> _onRefresh() async {
     _filters = const CompanionListFilters();
     _filterIndex = 0;
-    await Future.wait([_loadFeatured(), _loadFirst()]);
+    await _loadFirst();
   }
 
   void _onFilterChanged(int index) {
     setState(() {
       _filterIndex = index;
       _applyFilters();
-      _smartRecommendations = getSmartRecommendations(SmartRecommendationParams(
-        location: _filters.city ?? '杭州',
-        clickedIds: _favoritedIds.toList(),
-        preferHighRating: index == 1,
-      ));
     });
   }
 
@@ -562,17 +564,12 @@ class _CompanionListPageState extends ConsumerState<CompanionListPage>
       } else {
         _favoritedIds.add(id);
       }
-      _smartRecommendations = getSmartRecommendations(SmartRecommendationParams(
-        location: _filters.city ?? '杭州',
-        clickedIds: _favoritedIds.toList(),
-        preferHighRating: _filterIndex == 1,
-      ));
     });
   }
 
   Future<void> _loadMore() async {
     if (_loadingMore || _loading) return;
-    final all = _fullListFromApi.isNotEmpty ? _fullListFromApi : getCompanionList(_filters);
+    final all = _fullListFromApi;
     if (_loadedCount >= all.length) return;
     setState(() => _loadingMore = true);
     await Future.delayed(const Duration(milliseconds: 300));

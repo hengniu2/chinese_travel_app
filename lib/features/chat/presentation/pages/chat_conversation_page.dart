@@ -569,8 +569,8 @@ class _ChatConversationPageState extends ConsumerState<ChatConversationPage> wit
         8.h + MediaQuery.of(context).padding.bottom,
       ),
       decoration: BoxDecoration(
-        color: AppColors.primaryPale.withValues(alpha: 0.3),
-        border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+        color: AppColors.primaryPale.withValues(alpha: 0.35),
+        border: Border(top: BorderSide(color: AppColors.border.withValues(alpha: 0.6), width: 0.5)),
       ),
       child: SafeArea(
         top: false,
@@ -588,9 +588,12 @@ class _ChatConversationPageState extends ConsumerState<ChatConversationPage> wit
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(12.r),
-                  boxShadow: AppShadow.light,
+                  color: Colors.white.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(24.r),
+                  border: Border.all(
+                    color: AppColors.border.withValues(alpha: 0.7),
+                    width: 1,
+                  ),
                 ),
                 child: TextField(
                   controller: _inputController,

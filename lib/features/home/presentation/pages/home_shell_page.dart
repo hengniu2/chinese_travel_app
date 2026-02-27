@@ -204,7 +204,7 @@ const double _kHeaderSearchPillHeight = 36;
 const double _kHeaderSearchPillRadius = 12;
 const double _kHeaderSearchPillMaxWidth = 260;
 
-/// Header：纯插画背景 + 顶部居中可展开搜索栏
+/// Header：纯插画背景 + 可交互搜索栏（插画内已含标题，不再渲染标题）
 class _HomeHeader extends StatelessWidget {
   const _HomeHeader({required this.heroHeight});
 
@@ -951,7 +951,7 @@ class _PeopleSection extends StatelessWidget {
             SizedBox(width: 6),
             Expanded(
               child: Text(
-                '享梦游种草官',
+                AppLocalizations.of(context)?.homeSeedSectionTitle ?? '凌行天下旅行种草官',
                 style: AppTextStyles.headlineSmall.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
@@ -2015,7 +2015,7 @@ class _CompanionsSection extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '享梦游陪游',
+                      AppLocalizations.of(context)?.homeCompanionSectionTitle ?? '凌行天下旅行陪游',
                       style: AppTextStyles.headlineSmall.copyWith(
                         fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,

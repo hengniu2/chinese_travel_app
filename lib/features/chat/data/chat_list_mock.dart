@@ -43,7 +43,7 @@ final List<ChatListItem> _mockChats = [
   ),
   ChatListItem(
     id: 'c5',
-    nickname: '享梦游客服',
+    nickname: '凌行天下旅行客服',
     lastMessage: '您的退款申请已受理',
     unreadCount: 1,
     lastTime: DateTime(2025, 2, 17, 11, 0),
